@@ -15,7 +15,6 @@ class OnIceAtEvent:
     event_type: str
     team_id_in_possession: Optional[int]
     player_id: Optional[int]  # actor (if known)
-
     home_on_ice: tuple[int, ...]
     away_on_ice: tuple[int, ...]
 
