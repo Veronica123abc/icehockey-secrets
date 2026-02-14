@@ -1,0 +1,88 @@
+# =========================
+# OS / Editor
+# =========================
+.DS_Store
+Thumbs.db
+
+# JetBrains / PyCharm
+.idea/
+*.iml
+
+# VS Code
+.vscode/
+
+# =========================
+# Environment / Secrets
+# =========================
+.env
+.env.*
+!.env.example
+
+# Python virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# =========================
+# Python cache / bytecode
+# =========================
+__pycache__/
+*.py[cod]
+*$py.class
+
+# =========================
+# Packaging / build
+# =========================
+build/
+dist/
+*.egg-info/
+.eggs/
+pip-wheel-metadata/
+wheelhouse/
+
+# =========================
+# Tests / coverage
+# =========================
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+hypothesis/
+
+# =========================
+# Type checkers / linters
+# =========================
+.mypy_cache/
+.pyre/
+.pytype/
+.ruff_cache/
+
+# =========================
+# Jupyter
+# =========================
+.ipynb_checkpoints/
+
+# =========================
+# Logs
+# =========================
+*.log
+
+# =========================
+# Local outputs / generated artifacts
+# =========================
+output/
+outputs/
+generated/
+tmp/
+temp/
+*.html
+*.png
+*.svg
+*.pdf
+*.csv
+
+# If you want to keep some plots committed, remove the patterns above
+# and instead ignore only specific folders like output/ generated/ tmp/

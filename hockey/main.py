@@ -3,12 +3,16 @@ from hockey.io.raw_game import RawGame
 from hockey.normalize.build_game import build_game
 from hockey.derive.on_ice import on_ice_at_events, strength_at_event
 from hockey.visualize.shift_toi import plot_shift_toi_with_grades
+
+
 raw = RawGame(game_id=168742, root_dir=Path("/home/veronica/hockeystats/ver3/"))
 game = build_game(raw)
 
+
+
 shots = [e for e in game.events if e.type == "shot"]
 df_events = game.events_df()     # only builds DataFrame if you call it
-
+df_raw = game.events_raw_df()
 
 
 rows = on_ice_at_events(

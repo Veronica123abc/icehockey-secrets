@@ -50,7 +50,9 @@ def normalize_player_toi(
                 del active_start[player_id]
                 active_team.pop(player_id, None)
             else:
-                raise ValueError(f"TOI OUT without prior IN for player {player_id} at t={t}")
+                pass
+                #print("OUT event without prior IN")
+                #raise ValueError(f"TOI OUT without prior IN for player {player_id} at t={t}")
         else:
             continue
 

@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Optional
+from typing import Any, Optional, TypeVar
 
+T = TypeVar("T")
 
 @dataclass(frozen=True, slots=True)
 class Event:
@@ -15,3 +16,18 @@ class Event:
     team_defencemen_on_ice_refs: Optional[list[int]]
     grade: Optional[str]
     raw: dict                     # keep raw payload for now; you can drop later
+
+    def get_raw(self, key: str, default: T = None) -> Any | T:
+        """
+        Safe getter for supplier raw payload.
+
+        - Returns default if raw is missing or not a dict
+        - Returns default if key is not present
+
+        Example:
+            x = event.get_raw("expected_goals", 0.0)
+        """
+        raw = self.raw
+        if not isinstance(raw, dict):
+            return default
+        return raw.get(key, default)

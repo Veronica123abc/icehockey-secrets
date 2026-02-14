@@ -111,6 +111,7 @@ def plot_shift_toi_with_grades(
         include_goalies=include_goalies,
         reset_on_whistle=reset_on_whistle,
     )
+    diff = home_mean + away_mean
 
     fig = go.Figure()
 
@@ -132,6 +133,15 @@ def plot_shift_toi_with_grades(
             line=dict(color="firebrick", width=2),
         )
     )
+    fig.add_trace(
+        go.Scatter(
+            x=times,
+            y=diff,
+            mode="lines",
+            name="Difference (home - away)",
+            line=dict(color="black", width=3),
+        )
+    )
 
     # Grade markers (A/B/C) + vertical line at event time
     home_id = game.info.home_team.id
@@ -139,7 +149,8 @@ def plot_shift_toi_with_grades(
 
     graded = [
         e for e in game.events
-        if getattr(e, "grade", None) in {"A", "B", "C"}
+        if getattr(e, "grade", None) in {"A", "B", "C"} and
+           e.raw['team_skaters_on_ice'] == 5 and e.raw['opposing_team_skaters_on_ice'] == 5
     ]
 
     # Put grade labels above/below plot with a bit of padding

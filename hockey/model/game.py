@@ -35,6 +35,28 @@ class Game:
             )
         return self._dfs["events"]
 
+    def events_raw_df(self) -> pd.DataFrame:
+        """
+        Returns the *raw supplier event dicts* as a DataFrame.
+        Each key in the raw dict becomes a column.
+
+        Notes:
+        - Nested structures (lists/dicts) will appear as object dtype columns.
+        - We also add a few normalized columns (game_id, t, name, type, etc.) for convenience.
+        """
+        if "events_raw" not in self._dfs:
+            df = pd.DataFrame([e.raw for e in self.events])
+
+            # Add a few normalized fields up front to simplify filtering/joins
+            df.insert(0, "game_id", [e.game_id for e in self.events])
+            df.insert(1, "t", [e.t for e in self.events])
+            df.insert(2, "team_id_in_possession", [e.team_id_in_possession for e in self.events])
+            df.insert(3, "player_id", [e.player_id for e in self.events])
+
+            self._dfs["events_raw"] = df
+
+        return self._dfs["events_raw"]
+
     def toi_df(self) -> pd.DataFrame:
         if "toi" not in self._dfs:
             self._dfs["toi"] = pd.DataFrame(
