@@ -48,9 +48,7 @@ def filter_goal_5v5(df_raw: pd.DataFrame) -> pd.DataFrame:
 
 
 
-#def baseline_5v5_regulation(game_ids: Optional[list[int]] = [], max_time: Optional[int]=60):
 def baseline_5v5_regulation(game_ids: Optional[list[int]] = []):
-    #accumulated = defaultdict(lambda: np.zeros(max_time*2+1).astype(np.int16))
     accumulated_values = defaultdict(lambda: [])
     for game_id in tqdm(game_ids):
         raw = RawGame(game_id=game_id, root_dir=settings.data_root_dir)
@@ -60,7 +58,6 @@ def baseline_5v5_regulation(game_ids: Optional[list[int]] = []):
                      t[game.info.away_team.id]['total_team_shift_toi'] / len(t[game.info.away_team.id]['players'])
                      for t in times if len(t[game.info.home_team.id]['players']) == 5 and
                                        len(t[game.info.away_team.id]['players']) == 5]
-        #time_diff_home_team = [round(t) for t in time_diff]
         time_diff_home_team = time_diff
         time_diff_away_team = [-d for d in time_diff_home_team]
         accumulated_values[game.info.home_team.id] += time_diff_home_team
@@ -76,21 +73,19 @@ def add_baseline_5v5(event_diff, baseline):
     return e_d
 
 
-def toi_difference(game_ids: list[int] = [168742], filter_func: Optional[DFFilter] = filter_goal_5v5):
+def toi_difference(game_ids: list[int] = [], filter_func: Optional[DFFilter] = filter_goal_5v5):
     accumulated = defaultdict(lambda: {"for": [], "against": []})
     for game_id in tqdm(game_ids):
         raw = RawGame(game_id=game_id, root_dir=settings.data_root_dir)
         game = build_game(raw)
         df_raw = game.events_raw_df()
         df_raw = filter_func(df_raw)
-        #times = current_shift_toi_series(game, end_time=3600, reset_on_whistle=True)
         times = [game.current_shift_toi(t) for t in df_raw['game_time']]
         time_diff = [t[game.info.home_team.id]['total_team_shift_toi'] / len(t[game.info.home_team.id]['players'])-
                      t[game.info.away_team.id]['total_team_shift_toi'] / len(t[game.info.away_team.id]['players'])
                      for t in times]
 
         df_raw.insert(0, "time_diff", time_diff, True)
-
         df_home_chances = df_raw[df_raw["team_id_in_possession"] == game.info.home_team.id][['time_diff', 'game_time', 'team_id_in_possession', 'team_skaters_on_ice', 'opposing_team_skaters_on_ice', 'expected_goals_all_shots_grade']]
         df_away_chances = df_raw[df_raw["team_id_in_possession"] == game.info.away_team.id][['time_diff', 'game_time', 'team_id_in_possession', 'team_skaters_on_ice', 'opposing_team_skaters_on_ice', 'expected_goals_all_shots_grade']]
 
@@ -114,7 +109,6 @@ def toi_difference(game_ids: list[int] = [168742], filter_func: Optional[DFFilte
 
 def get_games(filepath, teams=[]):
     games = json.load(open(os.path.join(filepath,'games.json')))
-
     if len(teams) > 0:
         teams = [str(t) for t in teams] # in case team is passed as int
         games = [int(g["id"]) for g in games["games"] if g['home_team_id'] in teams or g['away_team_id'] in teams]
@@ -123,19 +117,33 @@ def get_games(filepath, teams=[]):
     return games
 
 
-def generate_stats(league_id, season, stage_name, teams, outfile):
-    games = get_games(settings.data_path("leagues", str(league_id), str(season), "regular"), teams)
-    outpath = settings.output_path(outfile)
+def full_stats(games):
+    #games = get_games(settings.data_path("leagues", str(league_id), str(season), "regular"), teams)
+    #outpath = settings.output_path(outfile)
     f = partial(filter_abc_5v5, grades={"A", "B", "C"})
-    toi_events = toi_difference(games[:1], f)
+    toi_events = toi_difference(games[:], f)
     toi_baseline = baseline_5v5_regulation(games[:])
     res = add_baseline_5v5(toi_events, toi_baseline)
-    json.dump(res, open(outpath, 'w'), indent=4)
+    return res
+    #json.dump(res, open(outpath, 'w'), indent=4)
 
-
+def create_csv(games: list[str]):
+    for game_id in games:
+        print(game_id)
+        raw = RawGame(game_id=game_id, root_dir=settings.data_root_dir)
+        game = build_game(raw)
+        game.events_raw_df().to_csv(settings.data_path("tmp_csv", f"{game_id}_playsequence").with_suffix('.csv'),
+                                    index=False)
 
 if __name__ == "__main__":
-    generate_stats(13, 20242025, "regular", [200], "debug.json")
+    league_id = "1"
+    season = "20242025"
+    stage = "regular"
+    games = get_games(settings.data_path("leagues", league_id, season, stage), [])
+    outfile = settings.output_path(f"abc_chances_5v5_{league_id}_{season}_{stage}.json")
+    stats = full_stats(games[:])
+    outpath = settings.output_path(outfile)
+    json.dump(stats, open(outpath, 'w'), indent=4)
     exit(0)
     games = get_games(settings.data_path("leagues","13", "20242025", "regular"))
     script_directory = os.path.dirname(os.path.abspath(sys.argv[0]))

@@ -74,6 +74,9 @@ class Game:
 
         return current_shift_toi(self, game_time, include_goalies=include_goalies, reset_on_whistle=reset_on_whistle)
 
+
+
+
     # def current_shift_toi(
     #         self,
     #         game_time: float,

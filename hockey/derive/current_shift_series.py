@@ -46,7 +46,7 @@ def current_shift_toi_series(
     whistle_seconds: set[int] = set()
     if reset_on_whistle:
         for e in game.events:
-            if getattr(e, "type", None) == "whistle":
+            if getattr(e, "name", None) == "whistle":
                 whistle_seconds.add(int(e.t))
 
     # Build IN/OUT schedules by integer second

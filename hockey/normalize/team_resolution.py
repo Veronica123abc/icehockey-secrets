@@ -26,6 +26,7 @@ class TeamResolver:
         )
 
     def team_id_from_string(self, s: Optional[str]) -> Optional[int]:
+
         if s is None:
             return None
         s = str(s).strip()
@@ -34,6 +35,12 @@ class TeamResolver:
         if s == self.home_display:
             return self.home_id
         if s == self.away_display:
+            return self.away_id
+
+        #Big time hack to handle Utahs name-change during 2025
+        if self.home_display[0:4] == "Utah":
+            return self.home_id
+        if self.away_display[0:4] == "Utah":
             return self.away_id
         raise ValueError(
             f"Unknown team string: {s!r}. Expected {self.home_display!r} or {self.away_display!r}."
