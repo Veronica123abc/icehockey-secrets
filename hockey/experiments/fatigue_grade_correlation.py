@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import pathlib
 from distutils.archive_util import make_zipfile
 from pathlib import Path
 
@@ -7,9 +8,12 @@ import pandas as pd
 from typing import Callable
 from functools import partial
 import time
-from hockey.model.game import Game
-from hockey.io.raw_game import RawGame
-from hockey.normalize.build_game import build_game
+
+from hockey.io.raw_competition import RawCompetition
+#from hockey.model.game import Game
+#from hockey.io.raw_game import RawGame
+from hockey.normalize.build_game import  build_game
+from hockey.normalize.build_competition import build_competition
 from hockey.derive.current_shift_series import current_shift_toi_series
 
 import os
@@ -64,7 +68,7 @@ def baseline_5v5_regulation(game_ids: Optional[list[int]] = []):
         accumulated_values[game.info.away_team.id] += time_diff_away_team
     return accumulated_values
 
-def add_baseline_5v5(event_diff, baseline):
+def add_baseline_5v5(event_diff: dict, baseline:dict)->dict:
     e_d = event_diff.copy()
     for k, v in event_diff.items():
         if k not in baseline:
@@ -107,7 +111,7 @@ def toi_difference(game_ids: list[int] = [], filter_func: Optional[DFFilter] = f
     return accumulated
 
 
-def get_games(filepath, teams=[]):
+def get_games(filepath:pathlib.PosixPath, teams:list=[])->list:
     games = json.load(open(os.path.join(filepath,'games.json')))
     if len(teams) > 0:
         teams = [str(t) for t in teams] # in case team is passed as int
@@ -117,31 +121,28 @@ def get_games(filepath, teams=[]):
     return games
 
 
-def full_stats(games):
-    #games = get_games(settings.data_path("leagues", str(league_id), str(season), "regular"), teams)
-    #outpath = settings.output_path(outfile)
-    f = partial(filter_abc_5v5, grades={"A", "B", "C"})
-    toi_events = toi_difference(games[:], f)
+def event_histograms(games: int,
+               filter_func: Optional[DFFilter] =  None
+               )->dict:
+    if not filter_func:
+        print("No filter function was provided - using filter_abc_5v5")
+        filter_func = partial(filter_abc_5v5, grades={"A", "B", "C"})
+    toi_events = toi_difference(games[:], filter_func)
     toi_baseline = baseline_5v5_regulation(games[:])
     res = add_baseline_5v5(toi_events, toi_baseline)
     return res
-    #json.dump(res, open(outpath, 'w'), indent=4)
-
-def create_csv(games: list[str]):
-    for game_id in games:
-        print(game_id)
-        raw = RawGame(game_id=game_id, root_dir=settings.data_root_dir)
-        game = build_game(raw)
-        game.events_raw_df().to_csv(settings.data_path("tmp_csv", f"{game_id}_playsequence").with_suffix('.csv'),
-                                    index=False)
 
 if __name__ == "__main__":
     league_id = "1"
     season = "20242025"
     stage = "regular"
+
+    raw_competition = RawCompetition(int(league_id), root_dir=settings.data_root_dir)
+    competition = build_competition(raw_competition)
+    #raw_games = RawGame(116215, root_dir=settings.data_root_dir)
     games = get_games(settings.data_path("leagues", league_id, season, stage), [])
     outfile = settings.output_path(f"abc_chances_5v5_{league_id}_{season}_{stage}.json")
-    stats = full_stats(games[:])
+    stats = event_histograms(games[:])
     outpath = settings.output_path(outfile)
     json.dump(stats, open(outpath, 'w'), indent=4)
     exit(0)
