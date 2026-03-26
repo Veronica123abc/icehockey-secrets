@@ -1,39 +1,23 @@
 from __future__ import annotations
-
+import os, psutil
+import sys
 import pathlib
-from distutils.archive_util import make_zipfile
 from pathlib import Path
-
 import pandas as pd
 from typing import Callable
 from functools import partial
-import time
-
-from hockey.io.raw_competition import RawCompetition
-#from hockey.model.game import Game
-#from hockey.io.raw_game import RawGame
-from hockey.normalize.build_game import  build_game
-from hockey.normalize.build_competition import build_competition
-from hockey.derive.current_shift_series import current_shift_toi_series
-
-import os
-import sys
 import json
-import matplotlib.pyplot as plt
 from tqdm import tqdm
 from typing import Any, Optional, TYPE_CHECKING
 from hockey.config.settings import Settings
 from hockey.io.raw_game import RawGame
-from shifts import toi_status
 from collections import defaultdict
-import numpy as np
-import matplotlib.pyplot as plt
-
+from hockey.io.raw_competition import RawCompetition
+from hockey.normalize.build_game import  build_game
+from hockey.normalize.build_competition import build_competition
 DFFilter = Callable[[pd.DataFrame], pd.DataFrame]
-
+import time
 settings = Settings.from_env(project_root=Path(__file__).resolve().parent)
-print(settings.data_root_dir, settings.output_dir)
-
 
 def filter_baseline_5v5(df_raw: pd.DataFrame) -> pd.DataFrame:
     return df_raw[(df_raw["team_skaters_on_ice"] == 5) &
@@ -50,14 +34,12 @@ def filter_goal_5v5(df_raw: pd.DataFrame) -> pd.DataFrame:
                   (df_raw["team_skaters_on_ice"] == 5) &
                   (df_raw["opposing_team_skaters_on_ice"] == 5)]
 
-
-
 def baseline_5v5_regulation(game_ids: Optional[list[int]] = []):
     accumulated_values = defaultdict(lambda: [])
     for game_id in tqdm(game_ids):
         raw = RawGame(game_id=game_id, root_dir=settings.data_root_dir)
         game = build_game(raw)
-        times = current_shift_toi_series(game, end_time=3600, reset_on_whistle=True)
+        times = game.shift_toi_series(start_time=0, end_time=3600, include_goalies=False,reset_on_whistle=True)
         time_diff = [t[game.info.home_team.id]['total_team_shift_toi'] / len(t[game.info.home_team.id]['players']) -
                      t[game.info.away_team.id]['total_team_shift_toi'] / len(t[game.info.away_team.id]['players'])
                      for t in times if len(t[game.info.home_team.id]['players']) == 5 and
@@ -78,7 +60,7 @@ def add_baseline_5v5(event_diff: dict, baseline:dict)->dict:
 
 
 def toi_difference(game_ids: list[int] = [], filter_func: Optional[DFFilter] = filter_goal_5v5):
-    accumulated = defaultdict(lambda: {"for": [], "against": []})
+    accumulated = defaultdict(lambda: {"for": [], "against": [], "baseline": []})
     for game_id in tqdm(game_ids):
         raw = RawGame(game_id=game_id, root_dir=settings.data_root_dir)
         game = build_game(raw)
@@ -108,6 +90,20 @@ def toi_difference(game_ids: list[int] = [], filter_func: Optional[DFFilter] = f
         accumulated[game.info.away_team.id]['for'] += away_team
         accumulated[game.info.away_team.id]['against'] += away_team_against
 
+        #Compute baselines
+        #t0 = time.time()
+        times = game.shift_toi_series(start_time=0, end_time=3600, include_goalies=False, reset_on_whistle=True)
+        time_diff = [t[game.info.home_team.id]['total_team_shift_toi'] / len(t[game.info.home_team.id]['players']) -
+                     t[game.info.away_team.id]['total_team_shift_toi'] / len(t[game.info.away_team.id]['players'])
+                     for t in times if len(t[game.info.home_team.id]['players']) == 5 and
+                     len(t[game.info.away_team.id]['players']) == 5]
+        time_diff_home_team = time_diff
+        time_diff_away_team = [-d for d in time_diff_home_team]
+        accumulated[game.info.home_team.id]['baseline'] += time_diff_home_team
+        accumulated[game.info.away_team.id]['baseline'] += time_diff_away_team
+        #print(time.time() - t0)
+        # process = psutil.Process(os.getpid())
+        # print(process.memory_info().rss / 1e6, "MB")
     return accumulated
 
 
@@ -128,30 +124,24 @@ def event_histograms(games: int,
         print("No filter function was provided - using filter_abc_5v5")
         filter_func = partial(filter_abc_5v5, grades={"A", "B", "C"})
     toi_events = toi_difference(games[:], filter_func)
-    toi_baseline = baseline_5v5_regulation(games[:])
-    res = add_baseline_5v5(toi_events, toi_baseline)
-    return res
+    #toi_baseline = baseline_5v5_regulation(games[:])
+    #res = add_baseline_5v5(toi_events, toi_baseline)
+    return toi_events #res
 
 if __name__ == "__main__":
-    league_id = "1"
+    league_id = "13"
     season = "20242025"
     stage = "regular"
 
     raw_competition = RawCompetition(int(league_id), root_dir=settings.data_root_dir)
-    competition = build_competition(raw_competition)
-    #raw_games = RawGame(116215, root_dir=settings.data_root_dir)
-    games = get_games(settings.data_path("leagues", league_id, season, stage), [])
-    outfile = settings.output_path(f"abc_chances_5v5_{league_id}_{season}_{stage}.json")
-    stats = event_histograms(games[:])
+    raw_competition.load()
+    #competition = build_competition(raw_competition)
+    games = raw_competition.game_ids(season, stage)
+
+    #outfile = settings.output_path(f"abc_chances_5v5_{league_id}_{season}_{stage}.json")
+    #filter_func = partial(filter_abc_5v5, grades={"A", "B", "C"})
+    filter_func = partial(filter_goal_5v5) #, grades={"A", "B", "C"})
+    stats = event_histograms(games[:1], filter_func)
+    outfile = settings.output_path(f"{filter_func.func.__name__}_{league_id}_{season}_{stage}_test.json")
     outpath = settings.output_path(outfile)
     json.dump(stats, open(outpath, 'w'), indent=4)
-    exit(0)
-    games = get_games(settings.data_path("leagues","13", "20242025", "regular"))
-    script_directory = os.path.dirname(os.path.abspath(sys.argv[0]))
-    filepath_events = settings.output_path("abc_chances_5v5_13_regular.json")
-    f = partial(filter_abc_5v5, grades={"A", "B", "C"})
-    toi_events = toi_difference(games[:], f)
-    toi_baseline = baseline_5v5_regulation(games[:])
-    res = add_baseline_5v5(toi_events, toi_baseline)
-    json.dump(res, open(filepath_events, 'w'), indent=4)
-    exit(0)

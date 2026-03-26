@@ -36,7 +36,8 @@ def normalize_playsequence(
         t = float(e["game_time"])
         type = str(e.get("type", "")).strip()
         name = str(e.get("name", "")).strip()
-        team_id = teams.team_id_from_string(e.get("team_in_possession"))
+        team_in_possession_id = teams.team_id_from_string(e.get("team_in_possession"))
+        team_id = teams.team_id_from_string(e.get("team"))
         player_id = _maybe_int(e.get("player_reference_id"))
         grade = e.get("expected_goals_all_shots_grade")
         team_defencemen_on_ice_refs = _int_list(e.get("team_defencemen_on_ice_refs"))
@@ -46,7 +47,8 @@ def normalize_playsequence(
                 t=t,
                 name=name,
                 type=type,
-                team_id_in_possession=team_id,
+                team_id_in_possession=team_in_possession_id,
+                team_id=team_id,
                 player_id=player_id,
                 team_defencemen_on_ice_refs=team_defencemen_on_ice_refs,
                 grade=grade,

@@ -12,6 +12,7 @@ class Event:
     type: str                     # e.g. "pass", "shot", "whistle", ...
     name: str
     team_id_in_possession: Optional[int]
+    team_id: Optional[int]
     player_id: Optional[int]
     team_defencemen_on_ice_refs: Optional[list[int]]
     grade: Optional[str]

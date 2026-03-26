@@ -6,7 +6,7 @@ from hockey.normalize.playsequence import normalize_playsequence
 from hockey.normalize.player_toi import normalize_player_toi
 from hockey.normalize.roster import normalize_roster
 from hockey.normalize.team_resolution import TeamResolver
-
+import time
 
 def normalize_game_info(*, game_id: int, raw_game_info: dict) -> GameInfo:
     ht = raw_game_info["home_team"]
@@ -20,14 +20,12 @@ def normalize_game_info(*, game_id: int, raw_game_info: dict) -> GameInfo:
 
 def build_game(raw: RawGame) -> Game:
     info = normalize_game_info(game_id=raw.game_id, raw_game_info=raw.game_info)
-
     resolver = TeamResolver.from_game_info(info)
     events = normalize_playsequence(
         game_id=raw.game_id,
         raw_playsequence=raw.playsequence,
         teams=resolver,
     )
-
     toi = normalize_player_toi(
         game_id=raw.game_id,
         raw_player_toi=raw.player_toi,

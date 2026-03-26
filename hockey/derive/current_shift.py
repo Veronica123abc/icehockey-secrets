@@ -38,7 +38,7 @@ def current_shift_toi(
     *,
     include_goalies: bool = False,
     reset_on_whistle: bool = True,
-) -> dict[int, dict[str, Any]]:
+) -> dict[int, dict[str, Any]]: #dict[int, list[dict[str, Any]]]: #dict[int, list[dict]]: #dict[int, dict[str, Any]]:
     """
     For a given game_time (seconds), return per-team:
       - all players currently on ice
@@ -51,19 +51,31 @@ def current_shift_toi(
     away_id = game.info.away_team.id
     team_ids = (home_id, away_id)
 
-    whistle_t = _last_whistle_time(game, game_time) if reset_on_whistle else None
+    # whistle_t = _last_whistle_time(game, game_time) if reset_on_whistle else None
 
     # Collect active intervals at this moment
-    by_team: dict[int, list[ToIInterval]] = {home_id: [], away_id: []}
-
+    # by_team: dict[int, list[ToIInterval]] = {home_id: [], away_id: []}
+    # by_team: dict[int, list[dict]] = {home_id: [], away_id: []}
+    by_team: dict[int, dict[str, Any]] = {
+        home_id: {"players": [], "total_team_shift_toi": 0},
+        away_id: {"players": [], "total_team_shift_toi": 0}
+    }
     for x in game.toi:
         if x.team_id not in by_team:
             continue
         if x.start_t <= game_time and (x.end_t is None or game_time < x.end_t):
             if (not include_goalies) and _is_goalie(game, x.player_id):
                 continue
-            by_team[x.team_id].append(x)
+            item = {"player_id": x.player_id, "toi": game_time - x.start_t}     # "player_position": _player_position(game, x.player_id)}
+            #by_team[x.team_id].append(x)
+            by_team[x.team_id]["players"].append(item)
+            by_team[x.team_id]["total_team_shift_toi"] += game_time - x.start_t
 
+    # for team_id in team_ids:
+    #     total = sum([k['toi'] for k in by_team[team_id]])
+    #     by_team[team_id].append({"total": total})
+
+    return by_team
     out: dict[int, dict[str, Any]] = {}
 
     for team_id in team_ids:
@@ -72,8 +84,8 @@ def current_shift_toi(
 
         def _toi_now(interval: ToIInterval) -> float:
             effective_start = interval.start_t
-            if whistle_t is not None and whistle_t > effective_start:
-                effective_start = whistle_t
+            # if whistle_t is not None and whistle_t > effective_start:
+            #     effective_start = whistle_t
             return float(game_time - effective_start)
 
         # sort for stable output (by longer shift first, then player id)
