@@ -39,7 +39,7 @@ def baseline_5v5_regulation(game_ids: Optional[list[int]] = []):
     for game_id in tqdm(game_ids):
         raw = RawGame(game_id=game_id, root_dir=settings.data_root_dir)
         game = build_game(raw)
-        times = game.shift_toi_series(start_time=0, end_time=3600, include_goalies=False,reset_on_whistle=True)
+        times = game.shift_toi_series(start_time=0, end_time=3600, include_goalies=False,reset_on_whistle=False)
         time_diff = [t[game.info.home_team.id]['total_team_shift_toi'] / len(t[game.info.home_team.id]['players']) -
                      t[game.info.away_team.id]['total_team_shift_toi'] / len(t[game.info.away_team.id]['players'])
                      for t in times if len(t[game.info.home_team.id]['players']) == 5 and
@@ -92,7 +92,10 @@ def toi_difference(game_ids: list[int] = [], filter_func: Optional[DFFilter] = f
 
         #Compute baselines
         #t0 = time.time()
-        times = game.shift_toi_series(start_time=0, end_time=3600, include_goalies=False, reset_on_whistle=True)
+        times = game.shift_toi_series(start_time=0, end_time=3600, include_goalies=False, reset_on_whistle=False)
+        # #times_2 = game.shift_toi_series_2(start_time=0, end_time=3600, include_goalies=False, reset_on_whistle=False)
+        # times_3 = game.shift_toi_series_3()
+
         time_diff = [t[game.info.home_team.id]['total_team_shift_toi'] / len(t[game.info.home_team.id]['players']) -
                      t[game.info.away_team.id]['total_team_shift_toi'] / len(t[game.info.away_team.id]['players'])
                      for t in times if len(t[game.info.home_team.id]['players']) == 5 and
@@ -139,9 +142,9 @@ if __name__ == "__main__":
     games = raw_competition.game_ids(season, stage)
 
     #outfile = settings.output_path(f"abc_chances_5v5_{league_id}_{season}_{stage}.json")
-    #filter_func = partial(filter_abc_5v5, grades={"A", "B", "C"})
-    filter_func = partial(filter_goal_5v5) #, grades={"A", "B", "C"})
-    stats = event_histograms(games[:1], filter_func)
+    filter_func = partial(filter_abc_5v5, grades={"A", "B", "C"})
+    #filter_func = partial(filter_goal_5v5) #, grades={"A", "B", "C"})
+    stats = event_histograms(games[:], filter_func)
     outfile = settings.output_path(f"{filter_func.func.__name__}_{league_id}_{season}_{stage}_test.json")
     outpath = settings.output_path(outfile)
     json.dump(stats, open(outpath, 'w'), indent=4)

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from collections import defaultdict
 from typing import Any, Optional, TYPE_CHECKING
-
+import numpy as np
 from hockey.model.toi import ToIInterval
 
 if TYPE_CHECKING:
@@ -12,6 +12,72 @@ if TYPE_CHECKING:
 def _is_goalie(game: "Game", player_id: int) -> bool:
     p = game.roster.players.get(player_id)
     return (p is not None) and (p.position == "G")
+
+
+class my_interpolator:
+    def __init__(self, points):
+        points = sorted(points)
+        self.t = np.array([t for t, _ in points], dtype=float)
+        self.v = np.array([v for _, v in points], dtype=float)
+
+    def __call__(self, t):
+        return float(np.interp(t, self.t, self.v))
+
+
+def current_shift_toi_series_3(
+    game: "Game",
+    *,
+    start_time: int = 0,
+    end_time: int = 3600,
+    include_goalies: bool = False,
+    reset_on_whistle: bool = True,
+) -> list[dict[int, dict[str, Any]]]:
+    epsilon = 1e-6
+    home_id = game.info.home_team.id
+    away_id = game.info.away_team.id
+    team_ids = (home_id, away_id)
+    for team_id in team_ids:
+        ins = sorted(set(list([k.start_t for k in game.toi if k.team_id == team_id])))
+        outs = sorted(set(list([k.end_t for k in game.toi if k.team_id == team_id])))
+        times = ins + outs
+        intervals = [b - a for a, b in zip(times[:-1], times[1:])]
+        res = [0]*(end_time - start_time)
+        anchors = []
+        for t in times:
+            anchors.append(((t-epsilon),
+                           game.current_shift_toi(t-epsilon, reset_on_whistle=False)[home_id]['total_team_shift_toi']))
+            anchors.append(((t),
+                           game.current_shift_toi(t, reset_on_whistle=False)[home_id]['total_team_shift_toi']))
+        k=my_interpolator(anchors)
+        res = [k(t) for t in range(start_time, end_time)]
+        return res
+
+
+def current_shift_toi_series_2(
+    game: "Game",
+    *,
+    start_time: int = 0,
+    end_time: int = 3600,
+    include_goalies: bool = False,
+    reset_on_whistle: bool = True,
+) -> list[dict[int, dict[str, Any]]]:
+    epsilon = 1e-6
+    home_id = game.info.home_team.id
+    away_id = game.info.away_team.id
+    team_ids = (home_id, away_id)
+    for team_id in team_ids:
+        ins = sorted(set(list([k.start_t for k in game.toi if k.team_id == team_id])))
+        outs = sorted(set(list([k.end_t for k in game.toi if k.team_id == team_id])))
+        times = ins + outs
+        intervals = [b - a for a, b in zip(times[:-1], times[1:])]
+        res = [0]*(end_time - start_time + 1)
+        for t in times:
+            print(t)
+            res[int(t)] = game.current_shift_toi(t - epsilon, reset_on_whistle=False)[home_id]['total_team_shift_toi']
+        a = np.array(res, dtype=float)
+        x = np.arange(len(a))
+        mask = a != 0   # known values are the non-zero ones
+        result = np.interp(x, x[mask], a[mask])
 
 
 def current_shift_toi_series(
@@ -62,6 +128,8 @@ def current_shift_toi_series(
         in_sec = int(x.start_t)
         ins[in_sec].append((x.team_id, x.player_id, x.start_t))
 
+
+
         if x.end_t is not None:
             out_sec = int(x.end_t)
             outs[out_sec].append((x.team_id, x.player_id))
@@ -73,6 +141,7 @@ def current_shift_toi_series(
     snapshots: list[dict[int, dict[str, Any]]] = []
 
     for t in range(start_time, end_time):
+
         # Apply OUTs first at second t (players whose shift ended at time ~t)
         for team_id, player_id in outs.get(t, []):
             active_start[team_id].pop(player_id, None)

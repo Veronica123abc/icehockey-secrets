@@ -8,7 +8,7 @@ from hockey.model.game_info import GameInfo
 from hockey.model.toi import ToIInterval
 from hockey.model.roster import Roster
 from hockey.derive.current_shift import current_shift_toi
-from hockey.derive.current_shift_series import current_shift_toi_series
+from hockey.derive.current_shift_series import current_shift_toi_series, current_shift_toi_series_2, current_shift_toi_series_3
 
 @dataclass
 class Game:
@@ -83,8 +83,15 @@ class Game:
 
         return current_shift_toi(self, game_time, include_goalies=include_goalies, reset_on_whistle=reset_on_whistle)
 
-    def shift_toi_series(self, *, start_time: int = 0, end_time: int = 3600, include_goalies: bool = False, reset_on_whistle: bool = True):
+    def shift_toi_series(self, *, start_time: int = 0, end_time: int = 3600, include_goalies: bool = False, reset_on_whistle: bool = False):
         return current_shift_toi_series(self, start_time=start_time, end_time=end_time, include_goalies=include_goalies, reset_on_whistle=reset_on_whistle)
+
+    def shift_toi_series_2(self, *, start_time: int = 0, end_time: int = 3600, include_goalies: bool = False, reset_on_whistle: bool = False):
+        return current_shift_toi_series_2(self, start_time=start_time, end_time=end_time, include_goalies=include_goalies, reset_on_whistle=reset_on_whistle)
+
+    def shift_toi_series_3(self, *, start_time: int = 0, end_time: int = 3600, include_goalies: bool = False, reset_on_whistle: bool = False):
+        return current_shift_toi_series_3(self, start_time=start_time, end_time=end_time, include_goalies=include_goalies, reset_on_whistle=reset_on_whistle)
+
 
     # def current_shift_toi(
     #         self,

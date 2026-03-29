@@ -61,7 +61,7 @@ def current_shift_chances(data: dict,
 def generate_graphs_per_team():
     filepath = settings.data_path("computed_stats/linhack26/shiftlength_team_performance/1",
                                   "filter_goal_5v5_1_20242025_regular.png")
-    filepath = settings.output_path("filter_goal_5v5_13_20242025_regular_test.png")
+    filepath = settings.output_path("filter_abc_5v5_13_20242025_regular_test.png")
     team_info = settings.data_path("teams.json")
     team_data= json.load(open(team_info.with_suffix('.json'), 'r'))
     data = json.load(open(filepath.with_suffix('.json'), 'r'))
@@ -69,7 +69,7 @@ def generate_graphs_per_team():
         team_id_data = [d for d in team_data['teams'] if d["id"] == team_id][0]
         team_name = team_id_data['location'] + " " + team_id_data['name']
         for mode in ["baseline", "for", "against"]:
-            fig, axes = current_shift_chances(data, [team_id], mode=mode, label=team_name, filter_type="goals")
+            fig, axes = current_shift_chances(data, [team_id], mode=mode, label=team_name, filter_type="abc")
             outfile = filepath.with_name(f"{filepath.stem}_{team_name}_{mode}.png")
             fig.savefig(outfile)
             plt.close()
