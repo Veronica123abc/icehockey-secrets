@@ -1,0 +1,6 @@
+FETCH ROOT CERTIFICATE from https://cacerts.digicert.com/DigiCertGlobalRootCA.crt.pem
+curl https://cacerts.digicert.com/DigiCertGlobalRootCA.crt.pem > ~/DigiCertGlobalRootCA.crt.pem
+
+OPEN AZURE MYSQL DATABASE
+mysql -h mysql-flex-public.mysql.database.azure.com   -u mysqladmin   -p   --ssl-mode=REQUIRED   --ssl-ca=~/DigiCertGlobalRootCA.crt.pem
+

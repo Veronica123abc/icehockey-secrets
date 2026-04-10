@@ -42,6 +42,7 @@ class Game:
         """
         if "events_supplier" not in self._dfs:
             self._dfs["events_supplier"] = pd.DataFrame([e.raw for e in self.events])
+
         return self._dfs["events_supplier"]
 
     def events_enriched_df(self) -> pd.DataFrame:

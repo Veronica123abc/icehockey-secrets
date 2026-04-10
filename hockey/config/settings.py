@@ -31,6 +31,7 @@ class Settings:
     data_root_dir: Path
     output_dir: Path
 
+
     @classmethod
     def from_env(cls, *, project_root: Path | None = None) -> "Settings":
         # If project_root is provided, we try loading project_root/.env
