@@ -5,11 +5,19 @@ from typing import Optional
 
 import numpy as np
 import plotly.graph_objects as go
-
+import time
 from hockey.model.game import Game
 from hockey.model.toi import ToIInterval
-
-
+from hockey.config.settings import Settings
+from hockey.io.raw_game import RawGame
+from collections import defaultdict
+from hockey.io.raw_competition import RawCompetition
+from hockey.normalize.build_game import  build_game
+from hockey.normalize.build_competition import build_competition
+from hockey.model.game import Game
+from pathlib import Path
+from hockey.derive.current_shift_series import find_intervals, find_intervals, current_shift_toi_series
+settings = Settings.from_env(project_root=Path(__file__).resolve().parent)
 def _game_end_time_seconds(game: Game, default: int = 3600) -> int:
     # Prefer max event time if available; fall back to 3600.
     if game.events:
@@ -104,15 +112,11 @@ def plot_shift_toi_with_grades(
     reset_on_whistle: bool = True,
 ) -> go.Figure:
     end_time = _game_end_time_seconds(game, default=3600)
-
-    times, home_mean, away_mean = mean_shift_time_series(
-        game=game,
-        end_time=end_time,
-        include_goalies=include_goalies,
-        reset_on_whistle=reset_on_whistle,
-    )
-    diff = home_mean + away_mean
-
+    times = list(range(end_time))
+    line_toi = game.shift_toi_series(range(end_time))
+    home_mean = [t[game.info.home_team.id]['average_team_shift_toi'] for t in line_toi]
+    away_mean = [t[game.info.away_team.id]['average_team_shift_toi'] for t in line_toi]
+    diff =[h-a for h,a in zip(home_mean, away_mean)]
     fig = go.Figure()
 
     fig.add_trace(
@@ -228,3 +232,13 @@ def plot_shift_toi_with_grades(
 
     fig.write_html(filename, auto_open=False)
     return fig
+
+
+if __name__ == "__main__":
+    raw = RawGame(game_id=202401, root_dir=settings.data_root_dir)
+    game = build_game(raw)
+    #intervals = [(shift.start_t, shift.end_t) for shift in game.toi]
+    #queries = list(set([shift.start_t for shift in game.toi]))
+    #queries = range(3600)
+    #toi = game.shift_toi_series(queries)
+    plot_shift_toi_with_grades(game=game, filename="shift_toi.html")

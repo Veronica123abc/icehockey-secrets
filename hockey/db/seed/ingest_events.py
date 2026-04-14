@@ -10,8 +10,6 @@ from pathlib import Path
 from tqdm import tqdm
 from hockey.helpers.pretty_print import *
 from datetime import datetime
-
-settings = Settings.from_env(project_root=Path(__file__).resolve().parent)
 import pandas as pd
 from sqlalchemy import create_engine
 import numpy as np
@@ -20,6 +18,7 @@ from hockey.io.raw_game import RawGame
 from hockey.normalize.build_game import  build_game
 from hockey.normalize.team_resolution import TeamResolver
 
+settings = Settings.from_env(project_root=Path(__file__).resolve().parent)
 __all__ = [
     'settings',
 ]
@@ -50,6 +49,7 @@ def ingest_events(game: Game):
     single_value_cols = ['team_goalie_on_ice_ref',
                          'opposing_team_goalie_on_ice_ref',
                          'player_reference_id']
+
     # For each column, replace None with empty string if the value is None
     # Each item in the lists are subsituted with the player-mapped value.
     for col in list_player_cols:
@@ -73,12 +73,11 @@ def ingest_events(game: Game):
     engine = create_engine(
         "mysql+mysqlconnector://apa:apa@localhost:3306/hockeystats_ver3"
     )
-    #df = clean_df(df)
+    engine = database.sqlalchemy_engine()
     df.to_sql('event', engine, if_exists='append', index=False)
 
 
 if __name__ == "__main__":
-    # TODO: Replace with your Azure tenant ID
     raw = RawGame(game_id=202403, root_dir=settings.data_root_dir)
     game = build_game(raw)
     ingest_events(game)

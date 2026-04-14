@@ -24,7 +24,12 @@ def open_database_azure(db_name="hockeystats_ver3"):
     return stats_db
 
 def sqlalchemy_engine():
-    engine = create_engine("mysql://localhost/mysql/mysql-5.1.1-10.1.")
+    #engine = create_engine("mysql://localhost/mysql/mysql-5.1.1-10.1.")
+    engine = create_engine("mysql+mysqlconnector://apa:apa@localhost:3306/hockeystats_ver3")
+    # engine = create_engine(
+    #     f"mysql+mysqlconnector://mysqladmin:B1llyfjant.1@mysql-flex-public.mysql.database.azure.com:3306/your_database",
+    #     connect_args={"ssl_ca": "~/DigiCertGlobalRootCA.crt.pem"}
+    # )
     return engine
 
 def create_map(table, cursor=None, values: list[int] = None):
