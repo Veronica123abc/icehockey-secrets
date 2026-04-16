@@ -111,6 +111,16 @@ def plot_shift_toi_with_grades(
     include_goalies: bool = False,
     reset_on_whistle: bool = True,
 ) -> go.Figure:
+    marker_size = 50
+    marker_line_width = 3
+    marker_text_size = 25
+
+    marker_y_spacing = 25
+    marker_min_x_spacing = 25
+    chance_colors = {"A": "green",
+                     "B": "orange",
+                     "C": "red"}
+
     end_time = _game_end_time_seconds(game, default=3600)
     times = list(range(end_time))
     line_toi = game.shift_toi_series(range(end_time))
@@ -119,21 +129,27 @@ def plot_shift_toi_with_grades(
     diff =[h-a for h,a in zip(home_mean, away_mean)]
     fig = go.Figure()
 
+    home_name = game.info.home_team.display_name
+    away_name = game.info.away_team.display_name
     fig.add_trace(
         go.Scatter(
             x=times,
             y=home_mean,
             mode="lines",
-            name="Home mean shift TOI",
+            name=f"{home_name} mean shift TOI",
+            hovertemplate="%{y:.0f} s<extra></extra>",
             line=dict(color="royalblue", width=2),
         )
     )
+
     fig.add_trace(
         go.Scatter(
             x=times,
-            y=away_mean,
+            y=[-t for t in away_mean],
             mode="lines",
-            name="Away mean shift TOI",
+            name=f"{away_name} mean shift TOI",
+            hovertext = [f"{y:.0f}" for y in away_mean],
+            hovertemplate="%{hovertext} s<extra></extra>",
             line=dict(color="firebrick", width=2),
         )
     )
@@ -142,7 +158,8 @@ def plot_shift_toi_with_grades(
             x=times,
             y=diff,
             mode="lines",
-            name="Difference (home - away)",
+            name=f"Difference ({home_name} - {away_name})",
+            hovertemplate="%{y:.0f} s<extra></extra>",
             line=dict(color="black", width=3),
         )
     )
@@ -159,39 +176,88 @@ def plot_shift_toi_with_grades(
 
     # Put grade labels above/below plot with a bit of padding
     y_top = float(np.max(home_mean)) if len(home_mean) else 0.0
-    y_bottom = float(np.min(away_mean)) if len(away_mean) else 0.0
-    pad = max(5.0, 0.1 * max(y_top, abs(y_bottom), 1.0))
+    y_bottom = -float(np.max(away_mean)) if len(away_mean) else 0.0
+    pad = 0 #max(5.0, 0.1 * max(y_top, abs(y_bottom), 1.0))
 
     shapes = []
-    home_x, home_y, home_text = [], [], []
-    away_x, away_y, away_text = [], [], []
+    home_x, home_y, home_text, home_marker_color, home_hoover_text = [], [], [], [], []
+    away_x, away_y, away_text, away_marker_color, away_hoover_text = [], [], [], [], []
+
 
     for e in graded:
         x = float(e.t)
-
-        shapes.append(
-            dict(
-                type="line",
-                x0=x, x1=x,
-                y0=y_bottom - pad, y1=y_top + pad,
-                line=dict(color="orange", width=2),
-            )
-        )
-
         team = getattr(e, "team_id_in_possession", None)
         grade = getattr(e, "grade", "")
 
         if team == home_id:
             home_x.append(x)
             home_y.append(y_top + pad * 0.5)
-            home_text.append(f"{grade} (H)")
+            home_text.append(f"{grade}")
+            home_marker_color.append(chance_colors[grade])
+            current_time = round(x)
+            period = current_time // 1200
+            minutes = (current_time - period * 1200) // 60
+            seconds = (current_time - period * 1200) % 60
+            time_str = f"{minutes}.{seconds:02d}"
+            home_hoover_text.append(f"P{period+1} {time_str}")
+
         elif team == away_id:
             away_x.append(x)
             away_y.append(y_bottom - pad * 0.5)
-            away_text.append(f"{grade} (A)")
+            away_text.append(f"{grade}")
+            away_marker_color.append(chance_colors[grade])
+            current_time = round(x)
+            period = current_time // 1200
+            minutes = (current_time - period * 1200) // 60
+            seconds = (current_time - period * 1200) % 60
+            time_str = f"{minutes}.{seconds:02d}"
+            away_hoover_text.append(f"P{period+1} {time_str}")
         else:
             # If team is unknown/None, skip labeling (still keeps vertical line)
             pass
+
+
+
+    y_offset = 0
+    for i in range(1, len(home_x)):
+        if home_x[i] - home_x[i-1] < marker_min_x_spacing:
+            y_offset += marker_y_spacing
+            home_y[i] += y_offset
+        else:
+            y_offset = 0
+
+    y_offset = 0
+    for i in range(1, len(away_x)):
+        if away_x[i] - away_x[i-1] < marker_min_x_spacing:
+            y_offset += marker_y_spacing
+            away_y[i] += y_offset
+        else:
+            y_offset = 0
+
+    for c_idx in range(len(home_x)):
+        shapes.append(
+            dict(
+                type="line",
+                name=f"{home_text[c_idx]}",
+                x0=home_x[c_idx], x1=home_x[c_idx],
+                y0=0, y1=home_y[c_idx] -10,
+                line=dict(color=home_marker_color[c_idx], width=2),
+                showlegend=False,
+            )
+        )
+
+    for c_idx in range(len(away_x)):
+        shapes.append(
+            dict(
+                type="line",
+                name=f"{away_text[c_idx]}",
+                x0=away_x[c_idx], x1=away_x[c_idx],
+                y0=0, y1=away_y[c_idx],
+                line=dict(color=away_marker_color[c_idx], width=2),
+                showlegend=False,
+            )
+        )
+
 
     if home_x:
         fig.add_trace(
@@ -200,12 +266,16 @@ def plot_shift_toi_with_grades(
                 y=home_y,
                 mode="markers+text",
                 text=home_text,
+                textfont=dict(color=home_marker_color, size=marker_text_size),
                 textposition="middle center",
-                marker=dict(size=18, color="black", line=dict(width=3, color="royalblue")),
-                name="Grades (home)",
+                hovertext=home_hoover_text,
+                hovertemplate="%{hovertext}<extra></extra>",
+                marker=dict(size=marker_size, color="black", line=dict(width=marker_line_width, color = home_marker_color)),#="firebrick")),
+                name=f"Grades ({home_name})",
                 showlegend=True,
             )
         )
+
 
     if away_x:
         fig.add_trace(
@@ -214,9 +284,12 @@ def plot_shift_toi_with_grades(
                 y=away_y,
                 mode="markers+text",
                 text=away_text,
+                textfont=dict(color=away_marker_color, size=marker_text_size),
                 textposition="middle center",
-                marker=dict(size=18, color="black", line=dict(width=3, color="firebrick")),
-                name="Grades (away)",
+                hovertext=away_hoover_text,
+                hovertemplate="%{hovertext}<extra></extra>",
+                marker=dict(size=marker_size, color="black", line=dict(width=marker_line_width, color=away_marker_color)),
+                name=f"Grades ({away_name})",
                 showlegend=True,
             )
         )
