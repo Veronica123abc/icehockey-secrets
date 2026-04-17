@@ -38,7 +38,6 @@ if _dotenv_path.exists():
 DATA_ROOT_DIR = os.getenv("DATA_ROOT_DIR", "")
 
 # Cache game list to avoid scanning blob storage on every request.
-# Refresh after GAME_LIST_CACHE_TTL seconds.
 GAME_LIST_CACHE_TTL = 300  # 5 minutes
 _game_list_cache: dict[str, object] = {"ids": [], "ts": 0.0}
 
@@ -51,10 +50,7 @@ def _data_root() -> Path | None:
     d = os.getenv("DATA_ROOT_DIR", DATA_ROOT_DIR)
     if not d:
         return None
-    p = Path(d).expanduser()
-    if p.exists() and p.is_dir():
-        return p
-    return None
+    return Path(d).expanduser()
 
 
 def _list_game_ids() -> list[int]:
@@ -65,11 +61,14 @@ def _list_game_ids() -> list[int]:
     root = _data_root()
     if root is None:
         return []
-    ids = sorted(
-        int(child.name)
-        for child in root.iterdir()
-        if child.is_dir() and child.name.isdigit()
-    )
+
+    # Use os.listdir to avoid per-entry stat calls on mounted blob storage.
+    try:
+        entries = os.listdir(root)
+    except OSError:
+        return []
+
+    ids = sorted(int(name) for name in entries if name.isdigit())
     _game_list_cache["ids"] = ids
     _game_list_cache["ts"] = now
     return ids
