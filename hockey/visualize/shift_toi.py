@@ -107,7 +107,7 @@ def mean_shift_time_series(
 def plot_shift_toi_with_grades(
     *,
     game: Game,
-    filename: str = "shift_toi.html",
+    filename: Optional[str] = "shift_toi.html",
     include_goalies: bool = False,
     reset_on_whistle: bool = True,
 ) -> go.Figure:
@@ -303,7 +303,8 @@ def plot_shift_toi_with_grades(
         hovermode="x unified",
     )
 
-    fig.write_html(filename, auto_open=False)
+    if filename is not None:
+        fig.write_html(filename, auto_open=False)
     return fig
 
 
