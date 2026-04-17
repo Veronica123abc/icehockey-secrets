@@ -18,6 +18,9 @@ Thumbs.db
 .env.*
 !.env.example
 
+# Azure CLI local config
+.azure/
+
 # Python virtual environments
 .venv/
 venv/
