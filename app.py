@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import json
 import os
+import time
 from pathlib import Path
 
 from flask import Flask, render_template, abort, jsonify
@@ -36,6 +37,11 @@ if _dotenv_path.exists():
 
 DATA_ROOT_DIR = os.getenv("DATA_ROOT_DIR", "")
 
+# Cache game list to avoid scanning blob storage on every request.
+# Refresh after GAME_LIST_CACHE_TTL seconds.
+GAME_LIST_CACHE_TTL = 300  # 5 minutes
+_game_list_cache: dict[str, object] = {"ids": [], "ts": 0.0}
+
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -52,14 +58,20 @@ def _data_root() -> Path | None:
 
 
 def _list_game_ids() -> list[int]:
+    now = time.time()
+    if now - _game_list_cache["ts"] < GAME_LIST_CACHE_TTL and _game_list_cache["ids"]:
+        return _game_list_cache["ids"]
+
     root = _data_root()
     if root is None:
         return []
-    ids = []
-    for child in sorted(root.iterdir()):
-        if child.is_dir() and child.name.isdigit():
-            if (child / "game-info.json").exists():
-                ids.append(int(child.name))
+    ids = sorted(
+        int(child.name)
+        for child in root.iterdir()
+        if child.is_dir() and child.name.isdigit()
+    )
+    _game_list_cache["ids"] = ids
+    _game_list_cache["ts"] = now
     return ids
 
 
