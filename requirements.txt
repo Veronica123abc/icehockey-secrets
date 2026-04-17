@@ -3,3 +3,4 @@ gunicorn>=21.2,<23.0
 plotly>=5.18,<6.0
 numpy>=1.24,<3.0
 pandas>=2.0,<3.0
+azure-storage-blob>=12.19,<13.0
