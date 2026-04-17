@@ -81,6 +81,7 @@ results/
 tmp/
 temp/
 *.html
+!templates/**/*.html
 *.png
 *.svg
 *.pdf

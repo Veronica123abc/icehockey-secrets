@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% block title %}Ice Hockey Analytics — Home{% endblock %}
+
+{% block extra_style %}
+    .game-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        gap: 1rem;
+    }
+
+    .game-link {
+        display: block;
+        background: #1e293b;
+        border: 1px solid #334155;
+        border-radius: 0.5rem;
+        padding: 1.25rem;
+        text-decoration: none;
+        color: #e2e8f0;
+        transition: border-color 0.15s, background 0.15s;
+    }
+
+    .game-link:hover {
+        border-color: #60a5fa;
+        background: #1e3a5f;
+    }
+
+    .game-link .id {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #f8fafc;
+    }
+
+    .game-link .label {
+        font-size: 0.8rem;
+        color: #94a3b8;
+        margin-top: 0.25rem;
+    }
+
+    .info-box {
+        background: #1e293b;
+        border: 1px solid #334155;
+        border-radius: 0.5rem;
+        padding: 2rem;
+        text-align: center;
+        color: #94a3b8;
+    }
+
+    .info-box code {
+        background: #334155;
+        padding: 0.15rem 0.4rem;
+        border-radius: 0.25rem;
+        font-size: 0.85rem;
+    }
+
+    .api-section {
+        margin-top: 2rem;
+    }
+
+    .api-section h3 {
+        font-size: 0.95rem;
+        color: #94a3b8;
+        margin-bottom: 0.75rem;
+    }
+
+    .api-endpoint {
+        font-family: monospace;
+        font-size: 0.85rem;
+        color: #86efac;
+        margin-bottom: 0.35rem;
+    }
+{% endblock %}
+
+{% block content %}
+    <h2 style="font-size: 1.5rem; margin-bottom: 1.5rem;">Games</h2>
+
+    {% if game_ids %}
+        <div class="game-grid">
+            {% for gid in game_ids %}
+                <a href="/game/{{ gid }}" class="game-link">
+                    <div class="id">{{ gid }}</div>
+                    <div class="label">View analysis</div>
+                </a>
+            {% endfor %}
+        </div>
+    {% elif data_configured %}
+        <div class="info-box">
+            <p>No games found in the data directory.</p>
+            <p style="margin-top: 0.5rem;">Each game needs a folder named by its ID containing <code>game-info.json</code>, <code>playsequence.json</code>, <code>playerTOI.json</code>, and <code>roster.json</code>.</p>
+        </div>
+    {% else %}
+        <div class="info-box">
+            <p>Data directory not configured.</p>
+            <p style="margin-top: 0.5rem;">Set the <code>DATA_ROOT_DIR</code> environment variable (via Azure App Settings or <code>.env</code>) to point to your game data folder.</p>
+        </div>
+    {% endif %}
+
+    <div class="api-section card">
+        <h2>API Endpoints</h2>
+        <div class="api-endpoint">GET /api/games</div>
+        <div class="api-endpoint">GET /api/game/&lt;game_id&gt;</div>
+        <div class="api-endpoint">GET /api/game/&lt;game_id&gt;/events</div>
+    </div>
+{% endblock %}
