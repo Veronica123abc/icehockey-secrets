@@ -3,13 +3,62 @@
 {% block title %}Ice Hockey Analytics — Home{% endblock %}
 
 {% block extra_style %}
+    .filter-bar {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        margin-bottom: 2rem;
+        align-items: flex-end;
+    }
+
+    .filter-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.35rem;
+    }
+
+    .filter-group label {
+        font-size: 0.8rem;
+        color: #94a3b8;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .filter-group select {
+        background: #1e293b;
+        color: #e2e8f0;
+        border: 1px solid #334155;
+        border-radius: 0.375rem;
+        padding: 0.5rem 2rem 0.5rem 0.75rem;
+        font-size: 0.9rem;
+        font-family: inherit;
+        cursor: pointer;
+        min-width: 180px;
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2394a3b8' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 0.75rem center;
+    }
+
+    .filter-group select:focus {
+        outline: none;
+        border-color: #60a5fa;
+        box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.2);
+    }
+
+    .filter-group select:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+    }
+
     .game-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
         gap: 1rem;
     }
 
-    .game-link {
+    .game-card {
         display: block;
         background: #1e293b;
         border: 1px solid #334155;
@@ -20,21 +69,43 @@
         transition: border-color 0.15s, background 0.15s;
     }
 
-    .game-link:hover {
+    .game-card:hover {
         border-color: #60a5fa;
         background: #1e3a5f;
     }
 
-    .game-link .id {
-        font-size: 1.5rem;
-        font-weight: 700;
+    .game-card .matchup {
+        font-size: 1.05rem;
+        font-weight: 600;
         color: #f8fafc;
+        margin-bottom: 0.5rem;
     }
 
-    .game-link .label {
+    .game-card .meta {
         font-size: 0.8rem;
         color: #94a3b8;
-        margin-top: 0.25rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .game-card .score {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #86efac;
+    }
+
+    .game-card .view-link {
+        font-size: 0.8rem;
+        color: #60a5fa;
+        margin-top: 0.75rem;
+        display: block;
+    }
+
+    .game-count {
+        font-size: 0.85rem;
+        color: #94a3b8;
+        margin-bottom: 1rem;
     }
 
     .info-box {
@@ -53,15 +124,13 @@
         font-size: 0.85rem;
     }
 
-    .api-section {
-        margin-top: 2rem;
+    .loading {
+        color: #94a3b8;
+        font-size: 0.9rem;
+        padding: 1rem 0;
     }
 
-    .api-section h3 {
-        font-size: 0.95rem;
-        color: #94a3b8;
-        margin-bottom: 0.75rem;
-    }
+    .api-section { margin-top: 2rem; }
 
     .api-endpoint {
         font-family: monospace;
@@ -74,20 +143,31 @@
 {% block content %}
     <h2 style="font-size: 1.5rem; margin-bottom: 1.5rem;">Games</h2>
 
-    {% if game_ids %}
-        <div class="game-grid">
-            {% for gid in game_ids %}
-                <a href="/game/{{ gid }}" class="game-link">
-                    <div class="id">{{ gid }}</div>
-                    <div class="label">View analysis</div>
-                </a>
-            {% endfor %}
+    {% if data_configured %}
+        <div class="filter-bar">
+            <div class="filter-group">
+                <label for="league-select">League</label>
+                <select id="league-select">
+                    <option value="">Select league...</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="season-select">Season</label>
+                <select id="season-select" disabled>
+                    <option value="">Select season...</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="stage-select">Stage</label>
+                <select id="stage-select" disabled>
+                    <option value="">Select stage...</option>
+                </select>
+            </div>
         </div>
-    {% elif data_configured %}
-        <div class="info-box">
-            <p>No games found in the data directory.</p>
-            <p style="margin-top: 0.5rem;">Each game needs a folder named by its ID containing <code>game-info.json</code>, <code>playsequence.json</code>, <code>playerTOI.json</code>, and <code>roster.json</code>.</p>
-        </div>
+
+        <div id="game-count" class="game-count" style="display: none;"></div>
+        <div id="game-grid" class="game-grid"></div>
+        <div id="loading" class="loading" style="display: none;">Loading...</div>
     {% else %}
         <div class="info-box">
             <p>Data directory not configured.</p>
@@ -97,8 +177,129 @@
 
     <div class="api-section card">
         <h2>API Endpoints</h2>
-        <div class="api-endpoint">GET /api/games</div>
+        <div class="api-endpoint">GET /api/leagues</div>
+        <div class="api-endpoint">GET /api/leagues/&lt;id&gt;/seasons</div>
+        <div class="api-endpoint">GET /api/leagues/&lt;id&gt;/seasons/&lt;s&gt;/stages</div>
+        <div class="api-endpoint">GET /api/leagues/&lt;id&gt;/seasons/&lt;s&gt;/stages/&lt;st&gt;/games</div>
         <div class="api-endpoint">GET /api/game/&lt;game_id&gt;</div>
         <div class="api-endpoint">GET /api/game/&lt;game_id&gt;/events</div>
     </div>
+
+    {% if data_configured %}
+    <script>
+    (function() {
+        var leagueSel = document.getElementById('league-select');
+        var seasonSel = document.getElementById('season-select');
+        var stageSel = document.getElementById('stage-select');
+        var gameGrid = document.getElementById('game-grid');
+        var gameCount = document.getElementById('game-count');
+        var loading = document.getElementById('loading');
+
+        function resetSelect(sel, ph) {
+            sel.innerHTML = '<option value="">' + ph + '</option>';
+            sel.disabled = true;
+        }
+
+        function esc(s) {
+            var d = document.createElement('div');
+            d.textContent = s;
+            return d.innerHTML;
+        }
+
+        function fmtSeason(s) {
+            if (s.length === 8 && /^\d+$/.test(s)) return s.slice(0,4) + '/' + s.slice(4);
+            return s;
+        }
+
+        function fmtDate(d) {
+            if (!d) return '';
+            var dt = new Date(d);
+            if (isNaN(dt.getTime())) return d;
+            return dt.toLocaleDateString('en-US', {year:'numeric', month:'short', day:'numeric'});
+        }
+
+        function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+        fetch('/api/leagues').then(function(r){return r.json();}).then(function(data) {
+            data.leagues.forEach(function(lg) {
+                var o = document.createElement('option');
+                o.value = lg.id;
+                o.textContent = lg.name;
+                leagueSel.appendChild(o);
+            });
+        });
+
+        leagueSel.addEventListener('change', function() {
+            resetSelect(seasonSel, 'Select season...');
+            resetSelect(stageSel, 'Select stage...');
+            gameGrid.innerHTML = '';
+            gameCount.style.display = 'none';
+            var id = leagueSel.value;
+            if (!id) return;
+            loading.style.display = 'block';
+            fetch('/api/leagues/' + id + '/seasons').then(function(r){return r.json();}).then(function(data) {
+                loading.style.display = 'none';
+                data.seasons.forEach(function(s) {
+                    var o = document.createElement('option');
+                    o.value = s;
+                    o.textContent = fmtSeason(s);
+                    seasonSel.appendChild(o);
+                });
+                seasonSel.disabled = false;
+            });
+        });
+
+        seasonSel.addEventListener('change', function() {
+            resetSelect(stageSel, 'Select stage...');
+            gameGrid.innerHTML = '';
+            gameCount.style.display = 'none';
+            var season = seasonSel.value;
+            if (!season) return;
+            loading.style.display = 'block';
+            fetch('/api/leagues/' + leagueSel.value + '/seasons/' + season + '/stages').then(function(r){return r.json();}).then(function(data) {
+                loading.style.display = 'none';
+                data.stages.forEach(function(s) {
+                    var o = document.createElement('option');
+                    o.value = s;
+                    o.textContent = cap(s);
+                    stageSel.appendChild(o);
+                });
+                stageSel.disabled = false;
+            });
+        });
+
+        stageSel.addEventListener('change', function() {
+            gameGrid.innerHTML = '';
+            gameCount.style.display = 'none';
+            var stage = stageSel.value;
+            if (!stage) return;
+            loading.style.display = 'block';
+            var url = '/api/leagues/' + leagueSel.value + '/seasons/' + seasonSel.value + '/stages/' + stage + '/games';
+            fetch(url).then(function(r){return r.json();}).then(function(data) {
+                loading.style.display = 'none';
+                if (data.games.length === 0) {
+                    gameGrid.innerHTML = '<div class="info-box" style="grid-column:1/-1;">No games found.</div>';
+                    return;
+                }
+                gameCount.textContent = data.games.length + ' game' + (data.games.length !== 1 ? 's' : '');
+                gameCount.style.display = 'block';
+                data.games.forEach(function(g) {
+                    var card = document.createElement('a');
+                    card.href = '/game/' + g.id;
+                    card.className = 'game-card';
+                    var scoreHtml = '';
+                    if (g.home_score != null && g.away_score != null) {
+                        scoreHtml = '<span class="score">' + esc(String(g.home_score)) + ' &ndash; ' + esc(String(g.away_score)) + '</span>';
+                    }
+                    card.innerHTML =
+                        '<div class="matchup">' + esc(g.home_team_name) + ' vs ' + esc(g.away_team_name) + '</div>' +
+                        '<div class="meta"><span>' + esc(fmtDate(g.date)) + '</span>' + scoreHtml + '</div>' +
+                        '<span class="view-link">View analysis &rarr;</span>';
+                    gameGrid.appendChild(card);
+                });
+            });
+        });
+    })();
+    </script>
+    {% endif %}
 {% endblock %}
