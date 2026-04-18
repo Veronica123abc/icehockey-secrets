@@ -58,7 +58,7 @@
         gap: 1rem;
     }
 
-    .game-card {
+    .game-card, .game-link {
         display: block;
         background: #1e293b;
         border: 1px solid #334155;
@@ -69,7 +69,7 @@
         transition: border-color 0.15s, background 0.15s;
     }
 
-    .game-card:hover {
+    .game-card:hover, .game-link:hover {
         border-color: #60a5fa;
         background: #1e3a5f;
     }
@@ -100,6 +100,18 @@
         color: #60a5fa;
         margin-top: 0.75rem;
         display: block;
+    }
+
+    .game-link .id {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #f8fafc;
+    }
+
+    .game-link .label {
+        font-size: 0.8rem;
+        color: #94a3b8;
+        margin-top: 0.25rem;
     }
 
     .game-count {
@@ -143,7 +155,7 @@
 {% block content %}
     <h2 style="font-size: 1.5rem; margin-bottom: 1.5rem;">Games</h2>
 
-    {% if data_configured %}
+    {% if has_leagues %}
         <div class="filter-bar">
             <div class="filter-group">
                 <label for="league-select">League</label>
@@ -168,6 +180,23 @@
         <div id="game-count" class="game-count" style="display: none;"></div>
         <div id="game-grid" class="game-grid"></div>
         <div id="loading" class="loading" style="display: none;">Loading...</div>
+
+    {% elif game_ids %}
+        <div class="game-grid">
+            {% for gid in game_ids %}
+                <a href="/game/{{ gid }}" class="game-link">
+                    <div class="id">{{ gid }}</div>
+                    <div class="label">View analysis</div>
+                </a>
+            {% endfor %}
+        </div>
+
+    {% elif data_configured %}
+        <div class="info-box">
+            <p>No games found in the data directory.</p>
+            <p style="margin-top: 0.5rem;">Each game needs a folder named by its ID containing <code>game-info.json</code>, <code>playsequence.json</code>, <code>playerTOI.json</code>, and <code>roster.json</code>.</p>
+        </div>
+
     {% else %}
         <div class="info-box">
             <p>Data directory not configured.</p>
@@ -177,15 +206,12 @@
 
     <div class="api-section card">
         <h2>API Endpoints</h2>
-        <div class="api-endpoint">GET /api/leagues</div>
-        <div class="api-endpoint">GET /api/leagues/&lt;id&gt;/seasons</div>
-        <div class="api-endpoint">GET /api/leagues/&lt;id&gt;/seasons/&lt;s&gt;/stages</div>
-        <div class="api-endpoint">GET /api/leagues/&lt;id&gt;/seasons/&lt;s&gt;/stages/&lt;st&gt;/games</div>
+        <div class="api-endpoint">GET /api/games</div>
         <div class="api-endpoint">GET /api/game/&lt;game_id&gt;</div>
         <div class="api-endpoint">GET /api/game/&lt;game_id&gt;/events</div>
     </div>
 
-    {% if data_configured %}
+    {% if has_leagues %}
     <script>
     (function() {
         var leagueSel = document.getElementById('league-select');
