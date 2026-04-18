@@ -57,11 +57,19 @@ def _list_game_ids() -> list[int]:
     root = _data_root()
     if root is None:
         return []
+    try:
+        entries = sorted(os.listdir(str(root)))
+    except OSError:
+        return []
     ids = []
-    for child in sorted(root.iterdir()):
-        if child.is_dir() and child.name.isdigit():
-            if (child / "game-info.json").exists():
-                ids.append(int(child.name))
+    for name in entries:
+        if name.isdigit():
+            game_dir = root / name
+            try:
+                if "game-info.json" in os.listdir(str(game_dir)):
+                    ids.append(int(name))
+            except OSError:
+                pass
     return ids
 
 
@@ -92,7 +100,15 @@ def _build_plotly_html(game) -> str:
 @app.route("/")
 def index():
     data_configured = _data_root() is not None
-    return render_template("index.html", data_configured=data_configured)
+    game_ids = _list_game_ids()
+    leagues = []
+    if data_configured:
+        from filter_api import _load_leagues
+        leagues = _load_leagues()
+    return render_template("index.html",
+                           game_ids=game_ids,
+                           data_configured=data_configured,
+                           has_leagues=len(leagues) > 0)
 
 
 @app.route("/game/<int:game_id>")
