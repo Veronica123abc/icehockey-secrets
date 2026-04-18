@@ -7,7 +7,7 @@ name: Build and deploy Python app to Azure Web App - hockeystats-demo-eneffkg6gb
 on:
   push:
     branches:
-      - claude/deploy-azure-webapp-deuB7
+      - prod
   workflow_dispatch:
 
 jobs:
