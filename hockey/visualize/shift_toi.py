@@ -122,6 +122,7 @@ def plot_shift_toi_with_grades(
                      "C": "red"}
 
     end_time = _game_end_time_seconds(game, default=3600)
+    end_time += 100
     times = list(range(end_time))
     line_toi = game.shift_toi_series(range(end_time))
     home_mean = [t[game.info.home_team.id]['average_team_shift_toi'] for t in line_toi]
