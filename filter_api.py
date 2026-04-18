@@ -42,6 +42,16 @@ def _get(obj: dict, *keys, default=""):
     return default
 
 
+def _extract_list(data) -> list:
+    if isinstance(data, list):
+        return data
+    if isinstance(data, dict):
+        for v in data.values():
+            if isinstance(v, list):
+                return v
+    return []
+
+
 def _load_teams() -> dict[str, str]:
     global _teams_cache
     if _teams_cache is not None:
@@ -53,7 +63,7 @@ def _load_teams() -> dict[str, str]:
     try:
         with (root / "teams.json").open("r", encoding="utf-8") as f:
             data = json.load(f)
-        teams_list = data.get("teams", []) if isinstance(data, dict) else data
+        teams_list = _extract_list(data)
         _teams_cache = {
             str(t["id"]): t.get("displayName", t.get("name", str(t["id"])))
             for t in teams_list
@@ -73,7 +83,8 @@ def _load_leagues() -> list[dict]:
         return _leagues_cache
     try:
         with (root / "leagues" / "leagues.json").open("r", encoding="utf-8") as f:
-            _leagues_cache = json.load(f)
+            data = json.load(f)
+        _leagues_cache = _extract_list(data)
     except Exception:
         _leagues_cache = []
     return _leagues_cache
@@ -128,13 +139,14 @@ def api_stage_games(league_id: str, season: str, stage: str):
     games_path = root / "leagues" / league_id / season / stage / "games.json"
     try:
         with games_path.open("r", encoding="utf-8") as f:
-            raw_games = json.load(f)
+            raw_data = json.load(f)
     except Exception:
         return jsonify({"games": []})
 
+    game_list = _extract_list(raw_data)
     teams = _load_teams()
     result = []
-    for g in raw_games:
+    for g in game_list:
         home_id = str(_get(g, "home_team_id", "homeTeamId"))
         away_id = str(_get(g, "away_team_id", "awayTeamId"))
         result.append({
