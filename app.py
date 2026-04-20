@@ -38,6 +38,10 @@ if _dotenv_path.exists():
 
 DATA_ROOT_DIR = os.getenv("DATA_ROOT_DIR", "")
 
+_game_ids_cache: list[int] | None = None
+_game_cache: dict[int, object] = {}
+_plotly_cache: dict[int, str] = {}
+
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -54,26 +58,35 @@ def _data_root() -> Path | None:
 
 
 def _list_game_ids() -> list[int]:
+    global _game_ids_cache
+    if _game_ids_cache is not None:
+        return _game_ids_cache
     root = _data_root()
     if root is None:
         return []
+    ids = []
     try:
-        entries = sorted(os.listdir(str(root)))
+        with os.scandir(str(root)) as it:
+            for entry in it:
+                if entry.is_dir() and entry.name.isdigit():
+                    if (root / entry.name / "game-info.json").exists():
+                        ids.append(int(entry.name))
     except OSError:
         return []
-    ids = []
-    for name in entries:
-        if name.isdigit():
-            game_dir = root / name
-            try:
-                if "game-info.json" in os.listdir(str(game_dir)):
-                    ids.append(int(name))
-            except OSError:
-                pass
-    return ids
+    _game_ids_cache = sorted(ids)
+    return _game_ids_cache
+
+
+def _invalidate_game_caches(game_id: int) -> None:
+    global _game_ids_cache
+    _game_ids_cache = None
+    _game_cache.pop(game_id, None)
+    _plotly_cache.pop(game_id, None)
 
 
 def _game_exists(game_id: int) -> bool:
+    if _game_ids_cache is not None:
+        return game_id in _game_ids_cache
     root = _data_root()
     if root is None:
         return False
@@ -82,6 +95,8 @@ def _game_exists(game_id: int) -> bool:
 
 
 def _load_game(game_id: int):
+    if game_id in _game_cache:
+        return _game_cache[game_id]
     root = _data_root()
     if root is None:
         return None
@@ -90,15 +105,22 @@ def _load_game(game_id: int):
         from hockey.normalize.build_game import build_game
 
         raw = RawGame(game_id=game_id, root_dir=root)
-        return build_game(raw)
+        game = build_game(raw)
+        _game_cache[game_id] = game
+        return game
     except Exception:
         return None
 
 
 def _build_plotly_html(game) -> str:
+    game_id = game.info.game_id
+    if game_id in _plotly_cache:
+        return _plotly_cache[game_id]
     from hockey.visualize.shift_toi import plot_shift_toi_with_grades
     fig = plot_shift_toi_with_grades(game=game, filename=None)
-    return fig.to_html(full_html=False, include_plotlyjs="cdn")
+    html = fig.to_html(full_html=False, include_plotlyjs="cdn")
+    _plotly_cache[game_id] = html
+    return html
 
 
 # ---------------------------------------------------------------------------
@@ -133,6 +155,7 @@ def download_game(game_id: int):
     try:
         from hockey.data_collection.sportlogiq_api import download_complete_game
         download_complete_game(game_id, root_dir=root, verbose=True)
+        _invalidate_game_caches(game_id)
     except EnvironmentError as e:
         return render_template("confirm_download.html", game_id=game_id, error=str(e))
     except Exception as e:
