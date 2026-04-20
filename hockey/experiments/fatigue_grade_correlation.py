@@ -92,7 +92,9 @@ def toi_difference(game_ids: list[int] = [], filter_func: Optional[DFFilter] = f
 
         #Compute baselines
         #t0 = time.time()
-        times = game.shift_toi_series(start_time=0, end_time=3600, include_goalies=False, reset_on_whistle=False)
+        query_times = list(range(3600))
+        times = game.shift_toi_series(query_times)
+        #times = game.shift_toi_series(start_time=0, end_time=3600, include_goalies=False, reset_on_whistle=False)
         # #times_2 = game.shift_toi_series_2(start_time=0, end_time=3600, include_goalies=False, reset_on_whistle=False)
         # times_3 = game.shift_toi_series_3()
 

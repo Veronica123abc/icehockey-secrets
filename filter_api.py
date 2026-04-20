@@ -19,6 +19,8 @@ _teams_cache: dict[str, str] | None = None
 _leagues_cache: list[dict] | None = None
 _STAGE_ORDER = {"preseason": 0, "regular": 1, "playoffs": 2}
 
+_MANIFEST_PATH = Path(__file__).resolve().parent / "hockey" / "manifests" / "games.json"
+
 
 def _data_root() -> Path | None:
     d = os.getenv("DATA_ROOT_DIR", "")
@@ -88,6 +90,33 @@ def _load_leagues() -> list[dict]:
     except Exception:
         _leagues_cache = []
     return _leagues_cache
+
+
+@filter_bp.route("/api/manifest/games")
+def api_manifest_games():
+    try:
+        with _MANIFEST_PATH.open("r", encoding="utf-8") as f:
+            raw = json.load(f)
+    except Exception:
+        return jsonify({"games": []})
+    game_list = _extract_list(raw)
+    teams = _load_teams()
+    result = []
+    for g in game_list:
+        home_id = str(_get(g, "home_team_id", "homeTeamId"))
+        away_id = str(_get(g, "away_team_id", "awayTeamId"))
+        score = g.get("score", {})
+        home_score = score.get(home_id) if isinstance(score, dict) else None
+        away_score = score.get(away_id) if isinstance(score, dict) else None
+        result.append({
+            "id": _get(g, "id", "game_id", "gameId"),
+            "date": _get(g, "date", "gameDate", "game_date"),
+            "home_team_name": teams.get(home_id, "Team " + home_id),
+            "away_team_name": teams.get(away_id, "Team " + away_id),
+            "home_score": home_score,
+            "away_score": away_score,
+        })
+    return jsonify({"games": result})
 
 
 @filter_bp.route("/api/leagues")

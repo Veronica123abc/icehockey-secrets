@@ -255,6 +255,12 @@
             });
         });
 
+        loading.style.display = 'block';
+        fetch('/api/manifest/games').then(function(r){return r.json();}).then(function(data) {
+            loading.style.display = 'none';
+            renderGames(data.games);
+        });
+
         leagueSel.addEventListener('change', function() {
             resetSelect(seasonSel, 'Select season...');
             resetSelect(stageSel, 'Select stage...');
@@ -294,6 +300,31 @@
             });
         });
 
+        function renderGames(games) {
+            gameGrid.innerHTML = '';
+            if (games.length === 0) {
+                gameGrid.innerHTML = '<div class="info-box" style="grid-column:1/-1;">No games found.</div>';
+                gameCount.style.display = 'none';
+                return;
+            }
+            gameCount.textContent = games.length + ' game' + (games.length !== 1 ? 's' : '');
+            gameCount.style.display = 'block';
+            games.forEach(function(g) {
+                var card = document.createElement('a');
+                card.href = '/game/' + g.id;
+                card.className = 'game-card';
+                var scoreHtml = '';
+                if (g.home_score != null && g.away_score != null) {
+                    scoreHtml = '<span class="score">' + esc(String(g.home_score)) + ' &ndash; ' + esc(String(g.away_score)) + '</span>';
+                }
+                card.innerHTML =
+                    '<div class="matchup">' + esc(g.home_team_name) + ' vs ' + esc(g.away_team_name) + '</div>' +
+                    '<div class="meta"><span>' + esc(fmtDate(g.date)) + '</span>' + scoreHtml + '</div>' +
+                    '<span class="view-link">View analysis &rarr;</span>';
+                gameGrid.appendChild(card);
+            });
+        }
+
         stageSel.addEventListener('change', function() {
             gameGrid.innerHTML = '';
             gameCount.style.display = 'none';
@@ -303,26 +334,7 @@
             var url = '/api/leagues/' + leagueSel.value + '/seasons/' + seasonSel.value + '/stages/' + stage + '/games';
             fetch(url).then(function(r){return r.json();}).then(function(data) {
                 loading.style.display = 'none';
-                if (data.games.length === 0) {
-                    gameGrid.innerHTML = '<div class="info-box" style="grid-column:1/-1;">No games found.</div>';
-                    return;
-                }
-                gameCount.textContent = data.games.length + ' game' + (data.games.length !== 1 ? 's' : '');
-                gameCount.style.display = 'block';
-                data.games.forEach(function(g) {
-                    var card = document.createElement('a');
-                    card.href = '/game/' + g.id;
-                    card.className = 'game-card';
-                    var scoreHtml = '';
-                    if (g.home_score != null && g.away_score != null) {
-                        scoreHtml = '<span class="score">' + esc(String(g.home_score)) + ' &ndash; ' + esc(String(g.away_score)) + '</span>';
-                    }
-                    card.innerHTML =
-                        '<div class="matchup">' + esc(g.home_team_name) + ' vs ' + esc(g.away_team_name) + '</div>' +
-                        '<div class="meta"><span>' + esc(fmtDate(g.date)) + '</span>' + scoreHtml + '</div>' +
-                        '<span class="view-link">View analysis &rarr;</span>';
-                    gameGrid.appendChild(card);
-                });
+                renderGames(data.games);
             });
         });
     })();
