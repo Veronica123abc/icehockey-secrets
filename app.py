@@ -16,7 +16,7 @@ import json
 import os
 from pathlib import Path
 
-from flask import Flask, render_template, abort, jsonify
+from flask import Flask, render_template, abort, jsonify, redirect, url_for
 
 app = Flask(__name__)
 
@@ -73,6 +73,14 @@ def _list_game_ids() -> list[int]:
     return ids
 
 
+def _game_exists(game_id: int) -> bool:
+    root = _data_root()
+    if root is None:
+        return False
+    game_dir = root / str(game_id)
+    return game_dir.is_dir() and (game_dir / "game-info.json").exists()
+
+
 def _load_game(game_id: int):
     root = _data_root()
     if root is None:
@@ -111,11 +119,35 @@ def index():
                            has_leagues=len(leagues) > 0)
 
 
+@app.route("/game/<int:game_id>/confirm-download")
+def confirm_download(game_id: int):
+    return render_template("confirm_download.html", game_id=game_id)
+
+
+@app.route("/game/<int:game_id>/download", methods=["POST"])
+def download_game(game_id: int):
+    root = _data_root()
+    if root is None:
+        return render_template("confirm_download.html", game_id=game_id,
+                               error="DATA_ROOT_DIR is not configured.")
+    try:
+        from hockey.data_collection.sportlogiq_api import download_complete_game
+        download_complete_game(game_id, root_dir=root, verbose=True)
+    except EnvironmentError as e:
+        return render_template("confirm_download.html", game_id=game_id, error=str(e))
+    except Exception as e:
+        return render_template("confirm_download.html", game_id=game_id,
+                               error=f"Download failed: {e}")
+    return redirect(url_for("game_view", game_id=game_id))
+
+
 @app.route("/game/<int:game_id>")
 def game_view(game_id: int):
+    if not _game_exists(game_id):
+        return redirect(url_for("confirm_download", game_id=game_id))
     game = _load_game(game_id)
     if game is None:
-        abort(404, description=f"Game {game_id} not found or data not configured.")
+        abort(404, description=f"Game {game_id} could not be loaded.")
 
     chart_html = _build_plotly_html(game)
 

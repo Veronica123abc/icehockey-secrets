@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+
+{% block title %}Download Game {{ game_id }} — Ice Hockey Analytics{% endblock %}
+
+{% block extra_style %}
+    .confirm-card {
+        max-width: 480px;
+        margin: 4rem auto;
+        background: #1e293b;
+        border: 1px solid #334155;
+        border-radius: 0.75rem;
+        padding: 2rem;
+    }
+
+    .confirm-card h2 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #f8fafc;
+        margin-bottom: 0.75rem;
+    }
+
+    .confirm-card p {
+        color: #94a3b8;
+        font-size: 0.95rem;
+        line-height: 1.6;
+        margin-bottom: 1.5rem;
+    }
+
+    .confirm-card .game-id {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #60a5fa;
+        margin-bottom: 0.5rem;
+    }
+
+    .btn-row {
+        display: flex;
+        gap: 0.75rem;
+    }
+
+    .btn {
+        flex: 1;
+        padding: 0.65rem 1.25rem;
+        border-radius: 0.375rem;
+        font-size: 0.95rem;
+        font-weight: 500;
+        cursor: pointer;
+        border: none;
+        font-family: inherit;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .btn-primary {
+        background: #2563eb;
+        color: #fff;
+    }
+
+    .btn-primary:hover { background: #1d4ed8; color: #fff; }
+
+    .btn-secondary {
+        background: #334155;
+        color: #e2e8f0;
+    }
+
+    .btn-secondary:hover { background: #475569; color: #f8fafc; }
+
+    .notice {
+        margin-top: 1.25rem;
+        font-size: 0.8rem;
+        color: #64748b;
+    }
+
+    {% if downloading %}
+    .spinner {
+        display: inline-block;
+        width: 1rem;
+        height: 1rem;
+        border: 2px solid #3b82f6;
+        border-top-color: transparent;
+        border-radius: 50%;
+        animation: spin 0.7s linear infinite;
+        vertical-align: middle;
+        margin-right: 0.4rem;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="confirm-card">
+    <div class="game-id">Game {{ game_id }}</div>
+    <h2>Data not available locally</h2>
+
+    {% if error %}
+        <p style="color: #f87171;">{{ error }}</p>
+        <a href="/" class="btn btn-secondary">Back to games</a>
+    {% elif downloading %}
+        <p><span class="spinner"></span> Downloading game data from the Sportlogiq API…</p>
+        <p class="notice">This page will refresh automatically when the download is complete.</p>
+        <meta http-equiv="refresh" content="3;url=/game/{{ game_id }}">
+    {% else %}
+        <p>
+            Game <strong>{{ game_id }}</strong> was not found in local storage.
+            Download it now from the Sportlogiq API?
+        </p>
+        <div class="btn-row">
+            <form method="POST" action="/game/{{ game_id }}/download" style="flex:1;">
+                <button type="submit" class="btn btn-primary" style="width:100%;">Download</button>
+            </form>
+            <a href="/" class="btn btn-secondary">Cancel</a>
+        </div>
+        <p class="notice">Requires <code>SPORTLOGIQ_USERNAME</code> and <code>SPORTLOGIQ_PWD</code> to be configured.</p>
+    {% endif %}
+</div>
+{% endblock %}
