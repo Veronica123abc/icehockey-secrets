@@ -194,6 +194,27 @@
 
         var DEFAULT_LEAGUE = '1';
 
+        // --- URL state helpers ---
+
+        function getParams() {
+            var p = new URLSearchParams(window.location.search);
+            return {
+                league: p.get('league') || DEFAULT_LEAGUE,
+                season: p.get('season') || '',
+                stage:  p.get('stage')  || '',
+            };
+        }
+
+        function updateUrl(league, season, stage) {
+            var p = new URLSearchParams();
+            if (league) p.set('league', league);
+            if (season) p.set('season', season);
+            if (stage)  p.set('stage',  stage);
+            history.replaceState(null, '', '?' + p.toString());
+        }
+
+        // --- UI helpers ---
+
         function resetSelect(sel, placeholder) {
             sel.innerHTML = '<option value="">' + placeholder + '</option>';
             sel.disabled = true;
@@ -206,8 +227,8 @@
         }
 
         function fmtSeason(s) {
-            if (s.length === 8 && /^\d+$/.test(s)) return s.slice(0, 4) + '/' + s.slice(4);
-            return s;
+            if (s && s.length === 8 && /^\d+$/.test(s)) return s.slice(0, 4) + '/' + s.slice(4);
+            return s || '';
         }
 
         function fmtDate(d) {
@@ -217,10 +238,12 @@
             return dt.toLocaleDateString('en-US', {year: 'numeric', month: 'short', day: 'numeric'});
         }
 
-        function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+        function cap(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : s; }
 
         function showLoading() { loading.style.display = 'block'; }
         function hideLoading() { loading.style.display = 'none'; }
+
+        // --- Game rendering ---
 
         function renderGames(games, label) {
             gameGrid.innerHTML = '';
@@ -235,6 +258,9 @@
                 var card = document.createElement('a');
                 card.href = '/game/' + g.id;
                 card.className = 'game-card';
+                card.addEventListener('click', function() {
+                    sessionStorage.setItem('homeUrl', window.location.href);
+                });
                 var scoreHtml = '';
                 if (g.home_score != null && g.away_score != null) {
                     scoreHtml = '<span class="score">' + esc(String(g.home_score)) + ' &ndash; ' + esc(String(g.away_score)) + '</span>';
@@ -249,6 +275,8 @@
             });
         }
 
+        // --- Data fetchers ---
+
         function loadRecentGames(leagueId) {
             showLoading();
             gameGrid.innerHTML = '';
@@ -257,15 +285,103 @@
                 .then(function(r) { return r.json(); })
                 .then(function(data) {
                     hideLoading();
-                    renderGames(data.games, 'Most recent ' + (data.season ? fmtSeason(data.season) : ''));
+                    renderGames(data.games, 'Most recent ' + fmtSeason(data.season));
                 })
                 .catch(function() { hideLoading(); });
         }
 
-        function loadSeasons(leagueId) {
+        function loadSeasonGames(leagueId, season) {
+            showLoading();
+            gameGrid.innerHTML = '';
+            gameCount.style.display = 'none';
+            fetch('/api/leagues/' + leagueId + '/seasons/' + season + '/games?limit=30')
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    hideLoading();
+                    renderGames(data.games, fmtSeason(season));
+                })
+                .catch(function() { hideLoading(); });
+        }
+
+        function loadStageGames(leagueId, season, stage) {
+            showLoading();
+            gameGrid.innerHTML = '';
+            gameCount.style.display = 'none';
+            var url = '/api/leagues/' + leagueId + '/seasons/' + season + '/stages/' + stage + '/games';
+            fetch(url)
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    hideLoading();
+                    renderGames(data.games, cap(stage) + ' ' + fmtSeason(season));
+                })
+                .catch(function() { hideLoading(); });
+        }
+
+        // --- Bootstrap: restore state from URL or default to NHL ---
+
+        var init = getParams();
+
+        fetch('/api/leagues')
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                leagueSel.innerHTML = '';
+                data.leagues.forEach(function(lg) {
+                    var o = document.createElement('option');
+                    o.value = lg.id;
+                    o.textContent = lg.name;
+                    if (lg.id === init.league) o.selected = true;
+                    leagueSel.appendChild(o);
+                });
+
+                // Populate seasons for the initial league, then restore season/stage
+                return fetch('/api/leagues/' + init.league + '/seasons')
+                    .then(function(r) { return r.json(); })
+                    .then(function(data) {
+                        data.seasons.forEach(function(s) {
+                            var o = document.createElement('option');
+                            o.value = s;
+                            o.textContent = fmtSeason(s);
+                            if (s === init.season) o.selected = true;
+                            seasonSel.appendChild(o);
+                        });
+                        seasonSel.disabled = false;
+
+                        if (!init.season) {
+                            loadRecentGames(init.league);
+                            return;
+                        }
+
+                        // Restore stages for the initial season
+                        return fetch('/api/leagues/' + init.league + '/seasons/' + init.season + '/stages')
+                            .then(function(r) { return r.json(); })
+                            .then(function(data) {
+                                data.stages.forEach(function(s) {
+                                    var o = document.createElement('option');
+                                    o.value = s;
+                                    o.textContent = cap(s);
+                                    if (s === init.stage) o.selected = true;
+                                    stageSel.appendChild(o);
+                                });
+                                stageSel.disabled = false;
+
+                                if (init.stage) {
+                                    loadStageGames(init.league, init.season, init.stage);
+                                } else {
+                                    loadSeasonGames(init.league, init.season);
+                                }
+                            });
+                    });
+            });
+
+        // --- Event listeners ---
+
+        leagueSel.addEventListener('change', function() {
+            var id = leagueSel.value;
+            if (!id) return;
+            updateUrl(id, '', '');
             resetSelect(seasonSel, 'Select season...');
             resetSelect(stageSel, 'Select stage...');
-            fetch('/api/leagues/' + leagueId + '/seasons')
+            fetch('/api/leagues/' + id + '/seasons')
                 .then(function(r) { return r.json(); })
                 .then(function(data) {
                     data.seasons.forEach(function(s) {
@@ -276,39 +392,15 @@
                     });
                     seasonSel.disabled = false;
                 });
-        }
-
-        // Bootstrap: load leagues then default to NHL
-        fetch('/api/leagues')
-            .then(function(r) { return r.json(); })
-            .then(function(data) {
-                leagueSel.innerHTML = '';
-                data.leagues.forEach(function(lg) {
-                    var o = document.createElement('option');
-                    o.value = lg.id;
-                    o.textContent = lg.name;
-                    if (lg.id === DEFAULT_LEAGUE) o.selected = true;
-                    leagueSel.appendChild(o);
-                });
-                loadSeasons(DEFAULT_LEAGUE);
-                loadRecentGames(DEFAULT_LEAGUE);
-            });
-
-        leagueSel.addEventListener('change', function() {
-            var id = leagueSel.value;
-            if (!id) return;
-            loadSeasons(id);
             loadRecentGames(id);
         });
 
         seasonSel.addEventListener('change', function() {
-            resetSelect(stageSel, 'Select stage...');
-            gameGrid.innerHTML = '';
-            gameCount.style.display = 'none';
             var season = seasonSel.value;
+            resetSelect(stageSel, 'Select stage...');
+            updateUrl(leagueSel.value, season, '');
             if (!season) return;
 
-            // Populate stages and load games in parallel
             fetch('/api/leagues/' + leagueSel.value + '/seasons/' + season + '/stages')
                 .then(function(r) { return r.json(); })
                 .then(function(data) {
@@ -321,30 +413,14 @@
                     stageSel.disabled = false;
                 });
 
-            showLoading();
-            fetch('/api/leagues/' + leagueSel.value + '/seasons/' + season + '/games?limit=30')
-                .then(function(r) { return r.json(); })
-                .then(function(data) {
-                    hideLoading();
-                    renderGames(data.games, fmtSeason(season));
-                })
-                .catch(function() { hideLoading(); });
+            loadSeasonGames(leagueSel.value, season);
         });
 
         stageSel.addEventListener('change', function() {
             var stage = stageSel.value;
+            updateUrl(leagueSel.value, seasonSel.value, stage);
             if (!stage) return;
-            showLoading();
-            gameGrid.innerHTML = '';
-            gameCount.style.display = 'none';
-            var url = '/api/leagues/' + leagueSel.value + '/seasons/' + seasonSel.value + '/stages/' + stage + '/games';
-            fetch(url)
-                .then(function(r) { return r.json(); })
-                .then(function(data) {
-                    hideLoading();
-                    renderGames(data.games, cap(stage) + ' ' + fmtSeason(seasonSel.value));
-                })
-                .catch(function() { hideLoading(); });
+            loadStageGames(leagueSel.value, seasonSel.value, stage);
         });
     })();
     </script>

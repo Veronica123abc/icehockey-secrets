@@ -114,8 +114,12 @@
         <p style="color: #f87171; margin-bottom: 1.25rem;">{{ error }}</p>
         <div class="btn-row">
             <a href="/game/{{ game_id }}/confirm-download" class="btn btn-primary">Try again</a>
-            <a href="/" class="btn btn-secondary">Back to games</a>
+            <a href="/" class="btn btn-secondary" id="cancel-btn">Back to games</a>
         </div>
+        <script>
+            var saved = sessionStorage.getItem('homeUrl');
+            if (saved) document.getElementById('cancel-btn').href = saved;
+        </script>
 
     {% else %}
         <div id="confirm-section">
@@ -127,7 +131,7 @@
                 <form id="download-form" method="POST" action="/game/{{ game_id }}/download" style="flex:1;">
                     <button type="submit" class="btn btn-primary" style="width:100%;">Download</button>
                 </form>
-                <a href="/" class="btn btn-secondary">Cancel</a>
+                <a href="/" class="btn btn-secondary" id="cancel-btn">Cancel</a>
             </div>
             <p class="notice">Requires <code>SPORTLOGIQ_USERNAME</code> and <code>SPORTLOGIQ_PWD</code> to be configured.</p>
         </div>
@@ -148,11 +152,13 @@
         document.getElementById('confirm-section').style.display = 'none';
         var dl = document.getElementById('downloading-section');
         dl.style.display = 'block';
-        // Kick off the progress bar animation after a tick so the element is visible
         requestAnimationFrame(function() {
             document.getElementById('progress-bar').style.animationPlayState = 'running';
         });
     });
+
+    var saved = sessionStorage.getItem('homeUrl');
+    if (saved) document.getElementById('cancel-btn').href = saved;
 </script>
 {% endif %}
 {% endblock %}

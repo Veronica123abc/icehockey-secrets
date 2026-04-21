@@ -68,7 +68,11 @@
 {% endblock %}
 
 {% block content %}
-    <a href="/" class="back-link">&larr; All games</a>
+    <a href="/" class="back-link" id="back-link">&larr; All games</a>
+    <script>
+        var saved = sessionStorage.getItem('homeUrl');
+        if (saved) document.getElementById('back-link').href = saved;
+    </script>
 
     <div class="game-header">
         <h2>Game {{ info.game_id }}</h2>
