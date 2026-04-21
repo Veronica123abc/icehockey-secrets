@@ -16,7 +16,7 @@ import json
 import os
 from pathlib import Path
 
-from flask import Flask, render_template, abort, jsonify, redirect, url_for
+from flask import Flask, render_template, abort, jsonify, redirect, url_for, request
 
 app = Flask(__name__)
 
@@ -134,7 +134,8 @@ def index():
 
 @app.route("/game/<int:game_id>/confirm-download")
 def confirm_download(game_id: int):
-    return render_template("confirm_download.html", game_id=game_id)
+    auto = request.args.get("auto") == "1"
+    return render_template("confirm_download.html", game_id=game_id, auto=auto)
 
 
 @app.route("/game/<int:game_id>/download", methods=["POST"])
@@ -158,7 +159,8 @@ def download_game(game_id: int):
 @app.route("/game/<int:game_id>")
 def game_view(game_id: int):
     if not _game_exists(game_id):
-        return redirect(url_for("confirm_download", game_id=game_id))
+        auto = request.args.get("auto", "0")
+        return redirect(url_for("confirm_download", game_id=game_id, auto=auto))
     game = _load_game(game_id)
     if game is None:
         abort(404, description=f"Game {game_id} could not be loaded.")

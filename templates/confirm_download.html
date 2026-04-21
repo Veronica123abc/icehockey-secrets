@@ -159,6 +159,12 @@
 
     var saved = sessionStorage.getItem('homeUrl');
     if (saved) document.getElementById('cancel-btn').href = saved;
+
+    {% if auto %}
+    document.getElementById('confirm-section').style.display = 'none';
+    document.getElementById('downloading-section').style.display = 'block';
+    document.getElementById('download-form').submit();
+    {% endif %}
 </script>
 {% endif %}
 {% endblock %}
