@@ -72,7 +72,6 @@
         color: #64748b;
     }
 
-    {% if downloading %}
     .spinner {
         display: inline-block;
         width: 1rem;
@@ -82,11 +81,28 @@
         border-radius: 50%;
         animation: spin 0.7s linear infinite;
         vertical-align: middle;
-        margin-right: 0.4rem;
+        margin-right: 0.5rem;
     }
 
     @keyframes spin { to { transform: rotate(360deg); } }
-    {% endif %}
+
+    .progress-bar-wrap {
+        height: 4px;
+        background: #1e3a5f;
+        border-radius: 2px;
+        margin: 1.25rem 0;
+        overflow: hidden;
+    }
+
+    .progress-bar {
+        height: 100%;
+        width: 0%;
+        background: #3b82f6;
+        border-radius: 2px;
+        animation: progress 90s linear forwards;
+    }
+
+    @keyframes progress { to { width: 92%; } }
 {% endblock %}
 
 {% block content %}
@@ -95,24 +111,48 @@
     <h2>Data not available locally</h2>
 
     {% if error %}
-        <p style="color: #f87171;">{{ error }}</p>
-        <a href="/" class="btn btn-secondary">Back to games</a>
-    {% elif downloading %}
-        <p><span class="spinner"></span> Downloading game data from the Sportlogiq API…</p>
-        <p class="notice">This page will refresh automatically when the download is complete.</p>
-        <meta http-equiv="refresh" content="3;url=/game/{{ game_id }}">
-    {% else %}
-        <p>
-            Game <strong>{{ game_id }}</strong> was not found in local storage.
-            Download it now from the Sportlogiq API?
-        </p>
+        <p style="color: #f87171; margin-bottom: 1.25rem;">{{ error }}</p>
         <div class="btn-row">
-            <form method="POST" action="/game/{{ game_id }}/download" style="flex:1;">
-                <button type="submit" class="btn btn-primary" style="width:100%;">Download</button>
-            </form>
-            <a href="/" class="btn btn-secondary">Cancel</a>
+            <a href="/game/{{ game_id }}/confirm-download" class="btn btn-primary">Try again</a>
+            <a href="/" class="btn btn-secondary">Back to games</a>
         </div>
-        <p class="notice">Requires <code>SPORTLOGIQ_USERNAME</code> and <code>SPORTLOGIQ_PWD</code> to be configured.</p>
+
+    {% else %}
+        <div id="confirm-section">
+            <p>
+                Game <strong>{{ game_id }}</strong> was not found in local storage.
+                Download it now from the Sportlogiq API?
+            </p>
+            <div class="btn-row">
+                <form id="download-form" method="POST" action="/game/{{ game_id }}/download" style="flex:1;">
+                    <button type="submit" class="btn btn-primary" style="width:100%;">Download</button>
+                </form>
+                <a href="/" class="btn btn-secondary">Cancel</a>
+            </div>
+            <p class="notice">Requires <code>SPORTLOGIQ_USERNAME</code> and <code>SPORTLOGIQ_PWD</code> to be configured.</p>
+        </div>
+
+        <div id="downloading-section" style="display:none;">
+            <p><span class="spinner"></span> Downloading game data from the Sportlogiq API&hellip;</p>
+            <div class="progress-bar-wrap">
+                <div class="progress-bar" id="progress-bar"></div>
+            </div>
+            <p class="notice">This may take up to a minute. Do not close this page.</p>
+        </div>
     {% endif %}
 </div>
+
+{% if not error %}
+<script>
+    document.getElementById('download-form').addEventListener('submit', function() {
+        document.getElementById('confirm-section').style.display = 'none';
+        var dl = document.getElementById('downloading-section');
+        dl.style.display = 'block';
+        // Kick off the progress bar animation after a tick so the element is visible
+        requestAnimationFrame(function() {
+            document.getElementById('progress-bar').style.animationPlayState = 'running';
+        });
+    });
+</script>
+{% endif %}
 {% endblock %}

@@ -168,17 +168,69 @@ def api_stage_games(league_id: str, season: str, stage: str):
     season_path = _MANIFEST_DIR / league_id / season / "games.json"
     try:
         if stage_path.exists():
-            with stage_path.open("r", encoding="utf-8") as f:
-                raw_data = json.load(f)
-            game_list = _extract_list(raw_data)
+            game_list = _extract_list(json.load(stage_path.open("r", encoding="utf-8")))
         else:
+            game_list = []
+        if not game_list:
             with season_path.open("r", encoding="utf-8") as f:
-                raw_data = json.load(f)
-            game_list = [g for g in _extract_list(raw_data) if g.get("stage", "").lower() == stage.lower()]
+                game_list = [g for g in _extract_list(json.load(f)) if g.get("stage", "").lower() == stage.lower()]
     except Exception:
         return jsonify({"games": []})
     teams = _load_teams()
     return jsonify({"games": _format_games(game_list, teams)})
+
+
+@filter_bp.route("/api/leagues/<league_id>/seasons/<season>/games")
+def api_season_games(league_id: str, season: str):
+    """Games for a season, filling from playoffs → regular → preseason until limit."""
+    if not (_is_safe_segment(league_id) and _is_safe_segment(season)):
+        return jsonify({"games": []})
+    try:
+        limit = min(int(request.args.get("limit", 30)), 200)
+    except (ValueError, TypeError):
+        limit = 30
+
+    comp = _load_competition(league_id)
+    if not comp:
+        return jsonify({"games": []})
+    season_data = next((s for s in comp.get("seasons", []) if s["name"] == season), None)
+    if not season_data:
+        return jsonify({"games": []})
+
+    stage_priority = ["playoffs", "regular", "preseason"]
+    all_stage_names = [st["name"] for st in season_data.get("stages", [])]
+    ordered_stages = sorted(
+        all_stage_names,
+        key=lambda s: stage_priority.index(s.lower()) if s.lower() in stage_priority else 99,
+    )
+
+    teams = _load_teams()
+    result = []
+    season_path = _MANIFEST_DIR / league_id / season / "games.json"
+    season_cache = None
+
+    for stage in ordered_stages:
+        if len(result) >= limit:
+            break
+        remaining = limit - len(result)
+        stage_path = _MANIFEST_DIR / league_id / season / stage / "games.json"
+        try:
+            if stage_path.exists():
+                with stage_path.open("r", encoding="utf-8") as f:
+                    game_list = _extract_list(json.load(f))
+            else:
+                game_list = []
+            if not game_list:
+                if season_cache is None:
+                    with season_path.open("r", encoding="utf-8") as f:
+                        season_cache = _extract_list(json.load(f))
+                game_list = [g for g in season_cache if g.get("stage", "").lower() == stage.lower()]
+        except Exception:
+            continue
+        game_list_sorted = sorted(game_list, key=lambda g: g.get("date", ""), reverse=True)
+        result.extend(_format_games(game_list_sorted[:remaining], teams))
+
+    return jsonify({"games": result})
 
 
 @filter_bp.route("/api/leagues/<league_id>/games/recent")

@@ -307,6 +307,8 @@
             gameCount.style.display = 'none';
             var season = seasonSel.value;
             if (!season) return;
+
+            // Populate stages and load games in parallel
             fetch('/api/leagues/' + leagueSel.value + '/seasons/' + season + '/stages')
                 .then(function(r) { return r.json(); })
                 .then(function(data) {
@@ -318,6 +320,15 @@
                     });
                     stageSel.disabled = false;
                 });
+
+            showLoading();
+            fetch('/api/leagues/' + leagueSel.value + '/seasons/' + season + '/games?limit=30')
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    hideLoading();
+                    renderGames(data.games, fmtSeason(season));
+                })
+                .catch(function() { hideLoading(); });
         });
 
         stageSel.addEventListener('change', function() {
