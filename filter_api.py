@@ -60,12 +60,8 @@ def _load_teams() -> dict[str, str]:
     global _teams_cache
     if _teams_cache is not None:
         return _teams_cache
-    root = _data_root()
-    if root is None:
-        _teams_cache = {}
-        return _teams_cache
     try:
-        with (root / "teams.json").open("r", encoding="utf-8") as f:
+        with (_MANIFEST_DIR / "teams.json").open("r", encoding="utf-8") as f:
             data = json.load(f)
         teams_list = _extract_list(data)
         _teams_cache = {
@@ -94,17 +90,12 @@ def _load_leagues() -> list[dict]:
     global _leagues_cache
     if _leagues_cache is not None:
         return _leagues_cache
-    result = []
     try:
-        for entry in sorted(_MANIFEST_DIR.iterdir()):
-            if entry.is_dir() and entry.name.isdigit():
-                comp = _load_competition(entry.name)
-                if comp and "id" in comp and "name" in comp:
-                    result.append({"id": comp["id"], "name": comp["name"]})
+        with (_MANIFEST_DIR / "leagues.json").open("r", encoding="utf-8") as f:
+            _leagues_cache = json.load(f)
     except Exception:
-        pass
-    _leagues_cache = result
-    return result
+        _leagues_cache = []
+    return _leagues_cache
 
 
 def _format_games(game_list: list, teams: dict) -> list[dict]:
@@ -258,3 +249,8 @@ def api_recent_games(league_id: str):
         "games": _format_games(game_list_sorted[:limit], teams),
         "season": most_recent_season,
     })
+
+
+# Warm up caches at import time so the first request is fast
+_load_teams()
+_load_leagues()
