@@ -1,0 +1,79 @@
+{
+    "season": "20172018",
+    "stage": "all",
+    "competition_id": "213",
+    "games": [
+        {
+            "id": "10193",
+            "date": "2018-05-20",
+            "scheduled_time": "2018-05-20T16:00:00+00:00",
+            "scheduled_venue_time": "2018-05-20T12:00:00",
+            "stage": "regular",
+            "away_team_id": "1339",
+            "home_team_id": "1335",
+            "venue_id": "568",
+            "event_status": "over",
+            "score": {
+                "1335": 2,
+                "1339": 2
+            },
+            "reference_id": null,
+            "reference_name": null,
+            "last_metrics_full_process_time": "2025-12-12T08:00:03.946Z"
+        },
+        {
+            "id": "10192",
+            "date": "2018-05-19",
+            "scheduled_time": "2018-05-19T16:00:00+00:00",
+            "scheduled_venue_time": "2018-05-19T12:00:00",
+            "stage": "regular",
+            "away_team_id": "1339",
+            "home_team_id": "1334",
+            "venue_id": "569",
+            "event_status": "over",
+            "score": {
+                "1334": 0,
+                "1339": 6
+            },
+            "reference_id": null,
+            "reference_name": null,
+            "last_metrics_full_process_time": "2025-12-12T07:59:49.987Z"
+        },
+        {
+            "id": "10195",
+            "date": "2018-05-10",
+            "scheduled_time": "2018-05-10T16:00:00+00:00",
+            "scheduled_venue_time": "2018-05-10T12:00:00",
+            "stage": "regular",
+            "away_team_id": "1327",
+            "home_team_id": "1326",
+            "venue_id": "566",
+            "event_status": "over",
+            "score": {
+                "1326": 3,
+                "1327": 4
+            },
+            "reference_id": null,
+            "reference_name": null,
+            "last_metrics_full_process_time": "2025-08-21T06:34:34.133Z"
+        },
+        {
+            "id": "10196",
+            "date": "2018-05-08",
+            "scheduled_time": "2018-05-08T16:00:00+00:00",
+            "scheduled_venue_time": "2018-05-08T12:00:00",
+            "stage": "regular",
+            "away_team_id": "1327",
+            "home_team_id": "1335",
+            "venue_id": "568",
+            "event_status": "over",
+            "score": {
+                "1327": 4,
+                "1335": 4
+            },
+            "reference_id": null,
+            "reference_name": null,
+            "last_metrics_full_process_time": "2025-12-12T07:57:46.242Z"
+        }
+    ]
+}

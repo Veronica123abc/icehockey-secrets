@@ -1,0 +1,221 @@
+{
+    "id": "1",
+    "name": "NHL",
+    "seasons": [
+        {
+            "name": "20252026",
+            "stages": [
+                {
+                    "name": "playoffs",
+                    "start_date": "2026-04-18",
+                    "end_date": "2026-04-20"
+                },
+                {
+                    "name": "regular",
+                    "start_date": "2025-10-07",
+                    "end_date": "2026-04-16"
+                },
+                {
+                    "name": "preseason",
+                    "start_date": "2025-09-21",
+                    "end_date": "2025-10-04"
+                }
+            ]
+        },
+        {
+            "name": "20242025",
+            "stages": [
+                {
+                    "name": "playoffs",
+                    "start_date": "2025-04-19",
+                    "end_date": "2025-06-17"
+                },
+                {
+                    "name": "regular",
+                    "start_date": "2024-10-04",
+                    "end_date": "2025-04-17"
+                },
+                {
+                    "name": "preseason",
+                    "start_date": "2024-09-25",
+                    "end_date": "2024-10-03"
+                }
+            ]
+        },
+        {
+            "name": "20232024",
+            "stages": [
+                {
+                    "name": "playoffs",
+                    "start_date": "2024-04-20",
+                    "end_date": "2024-06-24"
+                },
+                {
+                    "name": "regular",
+                    "start_date": "2023-10-10",
+                    "end_date": "2024-04-18"
+                },
+                {
+                    "name": "preseason",
+                    "start_date": "2023-09-24",
+                    "end_date": "2023-10-07"
+                }
+            ]
+        },
+        {
+            "name": "20222023",
+            "stages": [
+                {
+                    "name": "playoffs",
+                    "start_date": "2023-04-17",
+                    "end_date": "2023-06-13"
+                },
+                {
+                    "name": "regular",
+                    "start_date": "2022-10-07",
+                    "end_date": "2023-04-14"
+                },
+                {
+                    "name": "preseason",
+                    "start_date": "2022-09-27",
+                    "end_date": "2022-10-06"
+                }
+            ]
+        },
+        {
+            "name": "20212022",
+            "stages": [
+                {
+                    "name": "playoffs",
+                    "start_date": "2022-05-02",
+                    "end_date": "2022-06-26"
+                },
+                {
+                    "name": "regular",
+                    "start_date": "2021-10-12",
+                    "end_date": "2022-05-01"
+                },
+                {
+                    "name": "preseason",
+                    "start_date": "2021-09-29",
+                    "end_date": "2021-10-08"
+                }
+            ]
+        },
+        {
+            "name": "20202021",
+            "stages": [
+                {
+                    "name": "playoffs",
+                    "start_date": "2021-05-15",
+                    "end_date": "2021-07-07"
+                },
+                {
+                    "name": "regular",
+                    "start_date": "2021-01-13",
+                    "end_date": "2021-05-19"
+                }
+            ]
+        },
+        {
+            "name": "20192020",
+            "stages": [
+                {
+                    "name": "playoffs",
+                    "start_date": "2020-08-01",
+                    "end_date": "2020-09-28"
+                },
+                {
+                    "name": "regular",
+                    "start_date": "2019-10-02",
+                    "end_date": "2020-03-11"
+                },
+                {
+                    "name": "preseason",
+                    "start_date": "2019-09-15",
+                    "end_date": "2020-07-29"
+                }
+            ]
+        },
+        {
+            "name": "20182019",
+            "stages": [
+                {
+                    "name": "playoffs",
+                    "start_date": "2019-04-10",
+                    "end_date": "2019-06-12"
+                },
+                {
+                    "name": "regular",
+                    "start_date": "2018-10-03",
+                    "end_date": "2019-04-06"
+                },
+                {
+                    "name": "preseason",
+                    "start_date": "2018-09-16",
+                    "end_date": "2018-09-29"
+                }
+            ]
+        },
+        {
+            "name": "20172018",
+            "stages": [
+                {
+                    "name": "playoffs",
+                    "start_date": "2018-04-11",
+                    "end_date": "2018-06-07"
+                },
+                {
+                    "name": "regular",
+                    "start_date": "2017-10-04",
+                    "end_date": "2018-04-08"
+                },
+                {
+                    "name": "preseason",
+                    "start_date": "2017-09-18",
+                    "end_date": "2017-10-01"
+                }
+            ]
+        },
+        {
+            "name": "20162017",
+            "stages": [
+                {
+                    "name": "playoffs",
+                    "start_date": "2017-04-12",
+                    "end_date": "2017-06-11"
+                },
+                {
+                    "name": "regular",
+                    "start_date": "2016-10-12",
+                    "end_date": "2017-04-09"
+                },
+                {
+                    "name": "preseason",
+                    "start_date": "2016-09-27",
+                    "end_date": "2016-10-08"
+                }
+            ]
+        },
+        {
+            "name": "20152016",
+            "stages": [
+                {
+                    "name": "playoffs",
+                    "start_date": "2016-04-13",
+                    "end_date": "2016-06-12"
+                },
+                {
+                    "name": "regular",
+                    "start_date": "2015-10-07",
+                    "end_date": "2016-04-10"
+                },
+                {
+                    "name": "preseason",
+                    "start_date": "2015-09-22",
+                    "end_date": "2015-09-24"
+                }
+            ]
+        }
+    ]
+}

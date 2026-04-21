@@ -1,0 +1,187 @@
+{
+    "season": "20212022",
+    "stage": "preseason",
+    "competition_id": "1",
+    "games": [
+        {
+            "id": "60904",
+            "date": "2021-10-08",
+            "scheduled_time": "2021-10-08T23:00:00+00:00",
+            "scheduled_venue_time": "2021-10-08T19:00:00",
+            "stage": "preseason",
+            "away_team_id": "29",
+            "home_team_id": "31",
+            "venue_id": "1335",
+            "event_status": "over",
+            "score": {
+                "29": 3,
+                "31": 5
+            },
+            "reference_id": "10090",
+            "reference_name": "NHL",
+            "last_metrics_full_process_time": "2024-11-28T18:12:44.762Z"
+        },
+        {
+            "id": "52041",
+            "date": "2021-10-05",
+            "scheduled_time": "2021-10-06T02:30:00+00:00",
+            "scheduled_venue_time": "2021-10-05T19:30:00",
+            "stage": "preseason",
+            "away_team_id": "8",
+            "home_team_id": "7",
+            "venue_id": "1350",
+            "event_status": "over",
+            "score": {
+                "7": 1,
+                "8": 4
+            },
+            "reference_id": "10075",
+            "reference_name": "NHL",
+            "last_metrics_full_process_time": "2025-05-10T08:24:06.241Z"
+        },
+        {
+            "id": "53879",
+            "date": "2021-10-05",
+            "scheduled_time": "2021-10-06T02:00:00+00:00",
+            "scheduled_venue_time": "2021-10-05T19:00:00",
+            "stage": "preseason",
+            "away_team_id": "1390",
+            "home_team_id": "11",
+            "venue_id": "1340",
+            "event_status": "over",
+            "score": {
+                "11": 0,
+                "1390": 4
+            },
+            "reference_id": "10074",
+            "reference_name": "NHL",
+            "last_metrics_full_process_time": "2025-05-04T08:02:24.025Z"
+        },
+        {
+            "id": "52036",
+            "date": "2021-10-05",
+            "scheduled_time": "2021-10-05T23:00:00+00:00",
+            "scheduled_venue_time": "2021-10-05T19:00:00",
+            "stage": "preseason",
+            "away_team_id": "17",
+            "home_team_id": "32",
+            "venue_id": "1343",
+            "event_status": "over",
+            "score": {
+                "17": 3,
+                "32": 2
+            },
+            "reference_id": "10069",
+            "reference_name": "NHL",
+            "last_metrics_full_process_time": "2025-05-10T08:24:18.073Z"
+        },
+        {
+            "id": "60903",
+            "date": "2021-10-04",
+            "scheduled_time": "2021-10-04T23:00:00+00:00",
+            "scheduled_venue_time": "2021-10-04T19:00:00",
+            "stage": "preseason",
+            "away_team_id": "21",
+            "home_team_id": "29",
+            "venue_id": "1341",
+            "event_status": "over",
+            "score": {
+                "21": 1,
+                "29": 2
+            },
+            "reference_id": "10059",
+            "reference_name": "NHL",
+            "last_metrics_full_process_time": "2025-05-10T08:23:54.966Z"
+        },
+        {
+            "id": "52029",
+            "date": "2021-10-04",
+            "scheduled_time": "2021-10-04T23:00:00+00:00",
+            "scheduled_venue_time": "2021-10-04T19:00:00",
+            "stage": "preseason",
+            "away_team_id": "23",
+            "home_team_id": "2",
+            "venue_id": "1196",
+            "event_status": "over",
+            "score": {
+                "2": 1,
+                "23": 3
+            },
+            "reference_id": "10062",
+            "reference_name": "NHL",
+            "last_metrics_full_process_time": "2025-03-08T10:41:00.323Z"
+        },
+        {
+            "id": "60905",
+            "date": "2021-10-02",
+            "scheduled_time": "2021-10-02T23:00:00+00:00",
+            "scheduled_venue_time": "2021-10-02T19:00:00",
+            "stage": "preseason",
+            "away_team_id": "31",
+            "home_team_id": "29",
+            "venue_id": "1341",
+            "event_status": "over",
+            "score": {
+                "29": 3,
+                "31": 1
+            },
+            "reference_id": "10049",
+            "reference_name": "NHL",
+            "last_metrics_full_process_time": "2024-11-28T18:02:32.477Z"
+        },
+        {
+            "id": "52005",
+            "date": "2021-09-30",
+            "scheduled_time": "2021-10-01T02:00:00+00:00",
+            "scheduled_venue_time": "2021-09-30T19:00:00",
+            "stage": "preseason",
+            "away_team_id": "9",
+            "home_team_id": "12",
+            "venue_id": "1337",
+            "event_status": "over",
+            "score": {
+                "9": 3,
+                "12": 1
+            },
+            "reference_id": "10037",
+            "reference_name": "NHL",
+            "last_metrics_full_process_time": "2025-05-04T08:01:11.943Z"
+        },
+        {
+            "id": "60902",
+            "date": "2021-09-30",
+            "scheduled_time": "2021-09-30T23:30:00+00:00",
+            "scheduled_venue_time": "2021-09-30T19:30:00",
+            "stage": "preseason",
+            "away_team_id": "29",
+            "home_team_id": "21",
+            "venue_id": "1347",
+            "event_status": "over",
+            "score": {
+                "21": 5,
+                "29": 2
+            },
+            "reference_id": "10033",
+            "reference_name": "NHL",
+            "last_metrics_full_process_time": "2025-05-10T08:20:36.915Z"
+        },
+        {
+            "id": "51997",
+            "date": "2021-09-29",
+            "scheduled_time": "2021-09-30T00:00:00+00:00",
+            "scheduled_venue_time": "2021-09-29T19:00:00",
+            "stage": "preseason",
+            "away_team_id": "25",
+            "home_team_id": "13",
+            "venue_id": "1344",
+            "event_status": "over",
+            "score": {
+                "13": 3,
+                "25": 4
+            },
+            "reference_id": "10027",
+            "reference_name": "NHL",
+            "last_metrics_full_process_time": "2024-11-28T17:52:29.807Z"
+        }
+    ]
+}

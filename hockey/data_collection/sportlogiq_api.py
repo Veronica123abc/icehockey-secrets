@@ -16,6 +16,7 @@ class SportlogiqApi:
     def __init__(self):
         username = os.getenv("SPORTLOGIQ_USERNAME")
         password = os.getenv("SPORTLOGIQ_PWD")
+        self.apiurl = 'https://api.sportlogiq.com'
         if not username or not password:
             raise EnvironmentError(
                 "SPORTLOGIQ_USERNAME and SPORTLOGIQ_PWD must be set in the environment."
@@ -23,9 +24,14 @@ class SportlogiqApi:
         self.req = requests.Session()
         self.req.post(self.BASE_URL + "/v1/hockey/login", json={"username": username, "password": password})
 
-    def get_schedule(self, league_id, season, stage):
+    def get_schedule(self, league_id, season, stage=None):
+        if stage:
+            url = f"/v1/hockey/games?competition_id={league_id}&season={season}&stage={stage}"
+        else:
+            url = f"/v1/hockey/games?competition_id={league_id}&season={season}"
         return self.req.get(
-            self.BASE_URL + f"/v1/hockey/games?season={season}&stage={stage}&competition_id={league_id}&include_upcoming=1"
+            self.BASE_URL + url
+            #self.BASE_URL + f"/v1/hockey/games?season={season}&stage={stage}&competition_id={league_id}&include_upcoming=1"
         )
 
     def get_finished_games(self, league_id, season, stage):
@@ -224,3 +230,8 @@ def download_complete_games(
                 print(f"Error: {e}")
 
     return completed_games
+
+if __name__ == "__main__":
+    conn = SportlogiqApi()
+    games = conn.get_schedule(1,'20252026')
+    print(games)

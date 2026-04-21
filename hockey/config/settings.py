@@ -30,6 +30,8 @@ def _load_dotenv_if_present(dotenv_path: Path) -> None:
 class Settings:
     data_root_dir: Path
     output_dir: Path
+    project_root: Path | None = None
+
 
 
     @classmethod
@@ -44,6 +46,7 @@ class Settings:
                 "DATA_ROOT_DIR is not set. Define it in your environment or in .env."
             )
 
+
         output_dir = os.getenv("OUTPUT_DIR", "./output")
         data_root_path = Path(data_root).expanduser()
         output_path = Path(output_dir).expanduser()
@@ -53,6 +56,7 @@ class Settings:
                 data_root_path = (project_root / data_root_path).resolve()
             if not output_path.is_absolute():
                 output_path = (project_root / output_path).resolve()
+            project_root = Path(data_root_path)
 
         return cls(
             data_root_dir=data_root_path,
