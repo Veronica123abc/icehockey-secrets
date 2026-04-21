@@ -58,7 +58,7 @@
         gap: 1rem;
     }
 
-    .game-card, .game-link {
+    .game-card {
         display: block;
         background: #1e293b;
         border: 1px solid #334155;
@@ -69,7 +69,7 @@
         transition: border-color 0.15s, background 0.15s;
     }
 
-    .game-card:hover, .game-link:hover {
+    .game-card:hover {
         border-color: #60a5fa;
         background: #1e3a5f;
     }
@@ -95,23 +95,19 @@
         color: #86efac;
     }
 
+    .game-card .stage-badge {
+        font-size: 0.7rem;
+        color: #60a5fa;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-top: 0.4rem;
+    }
+
     .game-card .view-link {
         font-size: 0.8rem;
         color: #60a5fa;
         margin-top: 0.75rem;
         display: block;
-    }
-
-    .game-link .id {
-        font-size: 1.5rem;
-        font-weight: 700;
-        color: #f8fafc;
-    }
-
-    .game-link .label {
-        font-size: 0.8rem;
-        color: #94a3b8;
-        margin-top: 0.25rem;
     }
 
     .game-count {
@@ -155,54 +151,30 @@
 {% block content %}
     <h2 style="font-size: 1.5rem; margin-bottom: 1.5rem;">Games</h2>
 
-    {% if has_leagues %}
-        <div class="filter-bar">
-            <div class="filter-group">
-                <label for="league-select">League</label>
-                <select id="league-select">
-                    <option value="">Select league...</option>
-                </select>
-            </div>
-            <div class="filter-group">
-                <label for="season-select">Season</label>
-                <select id="season-select" disabled>
-                    <option value="">Select season...</option>
-                </select>
-            </div>
-            <div class="filter-group">
-                <label for="stage-select">Stage</label>
-                <select id="stage-select" disabled>
-                    <option value="">Select stage...</option>
-                </select>
-            </div>
+    <div class="filter-bar">
+        <div class="filter-group">
+            <label for="league-select">League</label>
+            <select id="league-select">
+                <option value="">Loading...</option>
+            </select>
         </div>
-
-        <div id="game-count" class="game-count" style="display: none;"></div>
-        <div id="game-grid" class="game-grid"></div>
-        <div id="loading" class="loading" style="display: none;">Loading...</div>
-
-    {% elif game_ids %}
-        <div class="game-grid">
-            {% for gid in game_ids %}
-                <a href="/game/{{ gid }}" class="game-link">
-                    <div class="id">{{ gid }}</div>
-                    <div class="label">View analysis</div>
-                </a>
-            {% endfor %}
+        <div class="filter-group">
+            <label for="season-select">Season</label>
+            <select id="season-select" disabled>
+                <option value="">Select season...</option>
+            </select>
         </div>
-
-    {% elif data_configured %}
-        <div class="info-box">
-            <p>No games found in the data directory.</p>
-            <p style="margin-top: 0.5rem;">Each game needs a folder named by its ID containing <code>game-info.json</code>, <code>playsequence.json</code>, <code>playerTOI.json</code>, and <code>roster.json</code>.</p>
+        <div class="filter-group">
+            <label for="stage-select">Stage</label>
+            <select id="stage-select" disabled>
+                <option value="">Select stage...</option>
+            </select>
         </div>
+    </div>
 
-    {% else %}
-        <div class="info-box">
-            <p>Data directory not configured.</p>
-            <p style="margin-top: 0.5rem;">Set the <code>DATA_ROOT_DIR</code> environment variable (via Azure App Settings or <code>.env</code>) to point to your game data folder.</p>
-        </div>
-    {% endif %}
+    <div id="game-count" class="game-count" style="display: none;"></div>
+    <div id="loading" class="loading" style="display: none;">Loading...</div>
+    <div id="game-grid" class="game-grid"></div>
 
     <div class="api-section card">
         <h2>API Endpoints</h2>
@@ -211,18 +183,19 @@
         <div class="api-endpoint">GET /api/game/&lt;game_id&gt;/events</div>
     </div>
 
-    {% if has_leagues %}
     <script>
     (function() {
         var leagueSel = document.getElementById('league-select');
         var seasonSel = document.getElementById('season-select');
-        var stageSel = document.getElementById('stage-select');
-        var gameGrid = document.getElementById('game-grid');
+        var stageSel  = document.getElementById('stage-select');
+        var gameGrid  = document.getElementById('game-grid');
         var gameCount = document.getElementById('game-count');
-        var loading = document.getElementById('loading');
+        var loading   = document.getElementById('loading');
 
-        function resetSelect(sel, ph) {
-            sel.innerHTML = '<option value="">' + ph + '</option>';
+        var DEFAULT_LEAGUE = '1';
+
+        function resetSelect(sel, placeholder) {
+            sel.innerHTML = '<option value="">' + placeholder + '</option>';
             sel.disabled = true;
         }
 
@@ -233,7 +206,7 @@
         }
 
         function fmtSeason(s) {
-            if (s.length === 8 && /^\d+$/.test(s)) return s.slice(0,4) + '/' + s.slice(4);
+            if (s.length === 8 && /^\d+$/.test(s)) return s.slice(0, 4) + '/' + s.slice(4);
             return s;
         }
 
@@ -241,73 +214,22 @@
             if (!d) return '';
             var dt = new Date(d);
             if (isNaN(dt.getTime())) return d;
-            return dt.toLocaleDateString('en-US', {year:'numeric', month:'short', day:'numeric'});
+            return dt.toLocaleDateString('en-US', {year: 'numeric', month: 'short', day: 'numeric'});
         }
 
         function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
 
-        fetch('/api/leagues').then(function(r){return r.json();}).then(function(data) {
-            data.leagues.forEach(function(lg) {
-                var o = document.createElement('option');
-                o.value = lg.id;
-                o.textContent = lg.name;
-                leagueSel.appendChild(o);
-            });
-        });
+        function showLoading() { loading.style.display = 'block'; }
+        function hideLoading() { loading.style.display = 'none'; }
 
-        loading.style.display = 'block';
-        fetch('/api/manifest/games').then(function(r){return r.json();}).then(function(data) {
-            loading.style.display = 'none';
-            renderGames(data.games);
-        });
-
-        leagueSel.addEventListener('change', function() {
-            resetSelect(seasonSel, 'Select season...');
-            resetSelect(stageSel, 'Select stage...');
+        function renderGames(games, label) {
             gameGrid.innerHTML = '';
-            gameCount.style.display = 'none';
-            var id = leagueSel.value;
-            if (!id) return;
-            loading.style.display = 'block';
-            fetch('/api/leagues/' + id + '/seasons').then(function(r){return r.json();}).then(function(data) {
-                loading.style.display = 'none';
-                data.seasons.forEach(function(s) {
-                    var o = document.createElement('option');
-                    o.value = s;
-                    o.textContent = fmtSeason(s);
-                    seasonSel.appendChild(o);
-                });
-                seasonSel.disabled = false;
-            });
-        });
-
-        seasonSel.addEventListener('change', function() {
-            resetSelect(stageSel, 'Select stage...');
-            gameGrid.innerHTML = '';
-            gameCount.style.display = 'none';
-            var season = seasonSel.value;
-            if (!season) return;
-            loading.style.display = 'block';
-            fetch('/api/leagues/' + leagueSel.value + '/seasons/' + season + '/stages').then(function(r){return r.json();}).then(function(data) {
-                loading.style.display = 'none';
-                data.stages.forEach(function(s) {
-                    var o = document.createElement('option');
-                    o.value = s;
-                    o.textContent = cap(s);
-                    stageSel.appendChild(o);
-                });
-                stageSel.disabled = false;
-            });
-        });
-
-        function renderGames(games) {
-            gameGrid.innerHTML = '';
-            if (games.length === 0) {
+            if (!games || games.length === 0) {
                 gameGrid.innerHTML = '<div class="info-box" style="grid-column:1/-1;">No games found.</div>';
                 gameCount.style.display = 'none';
                 return;
             }
-            gameCount.textContent = games.length + ' game' + (games.length !== 1 ? 's' : '');
+            gameCount.textContent = (label ? label + ' — ' : '') + games.length + ' game' + (games.length !== 1 ? 's' : '');
             gameCount.style.display = 'block';
             games.forEach(function(g) {
                 var card = document.createElement('a');
@@ -317,27 +239,102 @@
                 if (g.home_score != null && g.away_score != null) {
                     scoreHtml = '<span class="score">' + esc(String(g.home_score)) + ' &ndash; ' + esc(String(g.away_score)) + '</span>';
                 }
+                var stageHtml = g.stage ? '<div class="stage-badge">' + esc(cap(g.stage)) + '</div>' : '';
                 card.innerHTML =
                     '<div class="matchup">' + esc(g.home_team_name) + ' vs ' + esc(g.away_team_name) + '</div>' +
                     '<div class="meta"><span>' + esc(fmtDate(g.date)) + '</span>' + scoreHtml + '</div>' +
+                    stageHtml +
                     '<span class="view-link">View analysis &rarr;</span>';
                 gameGrid.appendChild(card);
             });
         }
 
-        stageSel.addEventListener('change', function() {
+        function loadRecentGames(leagueId) {
+            showLoading();
             gameGrid.innerHTML = '';
             gameCount.style.display = 'none';
+            fetch('/api/leagues/' + leagueId + '/games/recent?limit=30')
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    hideLoading();
+                    renderGames(data.games, 'Most recent ' + (data.season ? fmtSeason(data.season) : ''));
+                })
+                .catch(function() { hideLoading(); });
+        }
+
+        function loadSeasons(leagueId) {
+            resetSelect(seasonSel, 'Select season...');
+            resetSelect(stageSel, 'Select stage...');
+            fetch('/api/leagues/' + leagueId + '/seasons')
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    data.seasons.forEach(function(s) {
+                        var o = document.createElement('option');
+                        o.value = s;
+                        o.textContent = fmtSeason(s);
+                        seasonSel.appendChild(o);
+                    });
+                    seasonSel.disabled = false;
+                });
+        }
+
+        // Bootstrap: load leagues then default to NHL
+        fetch('/api/leagues')
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                leagueSel.innerHTML = '';
+                data.leagues.forEach(function(lg) {
+                    var o = document.createElement('option');
+                    o.value = lg.id;
+                    o.textContent = lg.name;
+                    if (lg.id === DEFAULT_LEAGUE) o.selected = true;
+                    leagueSel.appendChild(o);
+                });
+                loadSeasons(DEFAULT_LEAGUE);
+                loadRecentGames(DEFAULT_LEAGUE);
+            });
+
+        leagueSel.addEventListener('change', function() {
+            var id = leagueSel.value;
+            if (!id) return;
+            loadSeasons(id);
+            loadRecentGames(id);
+        });
+
+        seasonSel.addEventListener('change', function() {
+            resetSelect(stageSel, 'Select stage...');
+            gameGrid.innerHTML = '';
+            gameCount.style.display = 'none';
+            var season = seasonSel.value;
+            if (!season) return;
+            fetch('/api/leagues/' + leagueSel.value + '/seasons/' + season + '/stages')
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    data.stages.forEach(function(s) {
+                        var o = document.createElement('option');
+                        o.value = s;
+                        o.textContent = cap(s);
+                        stageSel.appendChild(o);
+                    });
+                    stageSel.disabled = false;
+                });
+        });
+
+        stageSel.addEventListener('change', function() {
             var stage = stageSel.value;
             if (!stage) return;
-            loading.style.display = 'block';
+            showLoading();
+            gameGrid.innerHTML = '';
+            gameCount.style.display = 'none';
             var url = '/api/leagues/' + leagueSel.value + '/seasons/' + seasonSel.value + '/stages/' + stage + '/games';
-            fetch(url).then(function(r){return r.json();}).then(function(data) {
-                loading.style.display = 'none';
-                renderGames(data.games);
-            });
+            fetch(url)
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    hideLoading();
+                    renderGames(data.games, cap(stage) + ' ' + fmtSeason(seasonSel.value));
+                })
+                .catch(function() { hideLoading(); });
         });
     })();
     </script>
-    {% endif %}
 {% endblock %}

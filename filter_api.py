@@ -3,7 +3,8 @@ Filter API endpoints for cascading game selection.
 
 Provides: /api/leagues, /api/leagues/<id>/seasons,
           /api/leagues/<id>/seasons/<s>/stages,
-          /api/leagues/<id>/seasons/<s>/stages/<st>/games
+          /api/leagues/<id>/seasons/<s>/stages/<st>/games,
+          /api/leagues/<id>/games/recent
 """
 from __future__ import annotations
 
@@ -11,15 +12,16 @@ import json
 import os
 from pathlib import Path
 
-from flask import Blueprint, jsonify
+from flask import Blueprint, jsonify, request
 
 filter_bp = Blueprint("filter", __name__)
 
 _teams_cache: dict[str, str] | None = None
 _leagues_cache: list[dict] | None = None
+_competition_cache: dict[str, dict] = {}
 _STAGE_ORDER = {"preseason": 0, "regular": 1, "playoffs": 2}
 
-_MANIFEST_PATH = Path(__file__).resolve().parent / "hockey" / "manifests" / "games.json"
+_MANIFEST_DIR = Path(__file__).resolve().parent / "hockey" / "manifests"
 
 
 def _data_root() -> Path | None:
@@ -75,32 +77,37 @@ def _load_teams() -> dict[str, str]:
     return _teams_cache
 
 
+def _load_competition(league_id: str) -> dict | None:
+    if league_id in _competition_cache:
+        return _competition_cache[league_id]
+    path = _MANIFEST_DIR / league_id / "competitions.json"
+    try:
+        with path.open("r", encoding="utf-8") as f:
+            data = json.load(f)
+        _competition_cache[league_id] = data
+        return data
+    except Exception:
+        return None
+
+
 def _load_leagues() -> list[dict]:
     global _leagues_cache
     if _leagues_cache is not None:
         return _leagues_cache
-    root = _data_root()
-    if root is None:
-        _leagues_cache = []
-        return _leagues_cache
+    result = []
     try:
-        with (root / "leagues" / "leagues.json").open("r", encoding="utf-8") as f:
-            data = json.load(f)
-        _leagues_cache = _extract_list(data)
+        for entry in sorted(_MANIFEST_DIR.iterdir()):
+            if entry.is_dir() and entry.name.isdigit():
+                comp = _load_competition(entry.name)
+                if comp and "id" in comp and "name" in comp:
+                    result.append({"id": comp["id"], "name": comp["name"]})
     except Exception:
-        _leagues_cache = []
-    return _leagues_cache
+        pass
+    _leagues_cache = result
+    return result
 
 
-@filter_bp.route("/api/manifest/games")
-def api_manifest_games():
-    try:
-        with _MANIFEST_PATH.open("r", encoding="utf-8") as f:
-            raw = json.load(f)
-    except Exception:
-        return jsonify({"games": []})
-    game_list = _extract_list(raw)
-    teams = _load_teams()
+def _format_games(game_list: list, teams: dict) -> list[dict]:
     result = []
     for g in game_list:
         home_id = str(_get(g, "home_team_id", "homeTeamId"))
@@ -111,12 +118,13 @@ def api_manifest_games():
         result.append({
             "id": _get(g, "id", "game_id", "gameId"),
             "date": _get(g, "date", "gameDate", "game_date"),
+            "stage": g.get("stage", ""),
             "home_team_name": teams.get(home_id, "Team " + home_id),
             "away_team_name": teams.get(away_id, "Team " + away_id),
             "home_score": home_score,
             "away_score": away_score,
         })
-    return jsonify({"games": result})
+    return result
 
 
 @filter_bp.route("/api/leagues")
@@ -128,17 +136,10 @@ def api_leagues():
 def api_seasons(league_id: str):
     if not _is_safe_segment(league_id):
         return jsonify({"seasons": []})
-    root = _data_root()
-    if root is None:
+    comp = _load_competition(league_id)
+    if not comp:
         return jsonify({"seasons": []})
-    try:
-        entries = os.listdir(str(root / "leagues" / league_id))
-        seasons = sorted(
-            [e for e in entries if not e.startswith(".") and "." not in e],
-            reverse=True,
-        )
-    except OSError:
-        seasons = []
+    seasons = [s["name"] for s in comp.get("seasons", [])]
     return jsonify({"seasons": seasons})
 
 
@@ -146,15 +147,16 @@ def api_seasons(league_id: str):
 def api_stages(league_id: str, season: str):
     if not (_is_safe_segment(league_id) and _is_safe_segment(season)):
         return jsonify({"stages": []})
-    root = _data_root()
-    if root is None:
+    comp = _load_competition(league_id)
+    if not comp:
         return jsonify({"stages": []})
-    try:
-        entries = os.listdir(str(root / "leagues" / league_id / season))
-        stages = [e for e in entries if not e.startswith(".") and "." not in e]
-        stages.sort(key=lambda s: _STAGE_ORDER.get(s.lower(), 99))
-    except OSError:
-        stages = []
+    season_data = next((s for s in comp.get("seasons", []) if s["name"] == season), None)
+    if not season_data:
+        return jsonify({"stages": []})
+    stages = sorted(
+        [st["name"] for st in season_data.get("stages", [])],
+        key=lambda s: _STAGE_ORDER.get(s.lower(), 99),
+    )
     return jsonify({"stages": stages})
 
 
@@ -162,28 +164,45 @@ def api_stages(league_id: str, season: str):
 def api_stage_games(league_id: str, season: str, stage: str):
     if not all(_is_safe_segment(s) for s in (league_id, season, stage)):
         return jsonify({"games": []})
-    root = _data_root()
-    if root is None:
+    stage_path = _MANIFEST_DIR / league_id / season / stage / "games.json"
+    season_path = _MANIFEST_DIR / league_id / season / "games.json"
+    try:
+        if stage_path.exists():
+            with stage_path.open("r", encoding="utf-8") as f:
+                raw_data = json.load(f)
+            game_list = _extract_list(raw_data)
+        else:
+            with season_path.open("r", encoding="utf-8") as f:
+                raw_data = json.load(f)
+            game_list = [g for g in _extract_list(raw_data) if g.get("stage", "").lower() == stage.lower()]
+    except Exception:
         return jsonify({"games": []})
-    games_path = root / "leagues" / league_id / season / stage / "games.json"
+    teams = _load_teams()
+    return jsonify({"games": _format_games(game_list, teams)})
+
+
+@filter_bp.route("/api/leagues/<league_id>/games/recent")
+def api_recent_games(league_id: str):
+    if not _is_safe_segment(league_id):
+        return jsonify({"games": []})
+    try:
+        limit = min(int(request.args.get("limit", 30)), 100)
+    except (ValueError, TypeError):
+        limit = 30
+    comp = _load_competition(league_id)
+    if not comp or not comp.get("seasons"):
+        return jsonify({"games": []})
+    most_recent_season = comp["seasons"][0]["name"]
+    games_path = _MANIFEST_DIR / league_id / most_recent_season / "games.json"
     try:
         with games_path.open("r", encoding="utf-8") as f:
             raw_data = json.load(f)
     except Exception:
         return jsonify({"games": []})
-
     game_list = _extract_list(raw_data)
+    game_list_sorted = sorted(game_list, key=lambda g: g.get("date", ""), reverse=True)
     teams = _load_teams()
-    result = []
-    for g in game_list:
-        home_id = str(_get(g, "home_team_id", "homeTeamId"))
-        away_id = str(_get(g, "away_team_id", "awayTeamId"))
-        result.append({
-            "id": _get(g, "id", "game_id", "gameId"),
-            "date": _get(g, "date", "gameDate", "game_date"),
-            "home_team_name": teams.get(home_id, "Team " + home_id),
-            "away_team_name": teams.get(away_id, "Team " + away_id),
-            "home_score": _get(g, "home_score", "homeScore", default=None),
-            "away_score": _get(g, "away_score", "awayScore", default=None),
-        })
-    return jsonify({"games": result})
+    return jsonify({
+        "games": _format_games(game_list_sorted[:limit], teams),
+        "season": most_recent_season,
+    })

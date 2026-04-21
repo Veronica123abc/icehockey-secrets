@@ -129,16 +129,7 @@ def _build_plotly_html(game) -> str:
 
 @app.route("/")
 def index():
-    data_configured = _data_root() is not None
-    game_ids = _list_game_ids()
-    leagues = []
-    if data_configured:
-        from filter_api import _load_leagues
-        leagues = _load_leagues()
-    return render_template("index.html",
-                           game_ids=game_ids,
-                           data_configured=data_configured,
-                           has_leagues=len(leagues) > 0)
+    return render_template("index.html", data_configured=_data_root() is not None)
 
 
 @app.route("/game/<int:game_id>/confirm-download")
