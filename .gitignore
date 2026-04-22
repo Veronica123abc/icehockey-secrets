@@ -21,6 +21,13 @@ Thumbs.db
 # Azure CLI local config
 .azure/
 
+# Claude Code (keep settings.json, ignore personal/generated files)
+.claude/settings.local.json
+.claude/memory/
+.claude/todos/
+.claude/transcripts/
+CLAUDE.md
+
 # Python virtual environments
 .venv/
 venv/

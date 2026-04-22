@@ -30,7 +30,8 @@ def ingest_players(players: List[Dict]):
         tenant_id: Azure tenant ID (optional)
     """
 
-    db = database.open_database()
+    #db = database.open_database()
+    db = database.open_database_azure()
     cursor = db.cursor()
     ctr=0
 
@@ -51,5 +52,5 @@ if __name__ == "__main__":
     # TODO: Replace with your Azure tenant ID
 
     #leagues = json.load(open("/home/veronica/hockeystats/ver3/leagues/leagues.json", "r"))
-    players = json.load(open(settings.data_root_dir / 'leagues' / '13' / '20252026' / 'players.json' ))
+    players = json.load(open(settings.data_root_dir / 'leagues' / '213' / '20242025' / 'players.json' ))
     ingest_players(players['players'])

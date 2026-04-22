@@ -24,14 +24,14 @@ from sqlalchemy import create_engine
 settings = Settings.from_env(project_root=Path(__file__).resolve().parent)
 
 def create_dataframe(game:Game):
-    db = database.open_database()
+    db = database.open_database_azure()
     cursor = db.cursor()
     records = [
         {
             'player_id': toi.player_id,
             'game_id': toi.game_id,
-            'in': toi.start_t,
-            'out': toi.end_t
+            'in_time': toi.start_t,
+            'out_time': toi.end_t
         }
         for toi in game.toi
     ]
@@ -49,16 +49,16 @@ def normalize_df(df):
 
 def ingest_shifts(game:Game):
     df = create_dataframe(game)
-    #df = normalize_df(df)
-    engine = create_engine(
-        "mysql+mysqlconnector://apa:apa@localhost:3306/hockeystats_ver3"
-    )
-
+    df = normalize_df(df)
+    # engine = create_engine(
+    #     "mysql+mysqlconnector://apa:apa@localhost:3306/hockeystats_ver3"
+    # )
+    engine = database.sqlalchemy_engine_azure()
     df.to_sql('shift', engine, if_exists='append', index=False)
 
 
 if __name__ == "__main__":
 
-    raw = RawGame(game_id=202401, root_dir=settings.data_root_dir)
+    raw = RawGame(game_id=202403, root_dir=settings.data_root_dir)
     game = build_game(raw)
     ingest_shifts(game)

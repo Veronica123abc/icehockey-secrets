@@ -55,7 +55,7 @@ def download_all_game_indexes_per_stage(league_id):
 
 
 if __name__ == "__main__":
-    download_all_game_indexes_per_season(1)
+    #download_all_game_indexes_per_season(1)
     download_all_game_indexes_per_season(13)
-    download_all_game_indexes_per_season(17)
-    download_all_game_indexes_per_season(213)
+    #download_all_game_indexes_per_season(17)
+    #download_all_game_indexes_per_season(213)

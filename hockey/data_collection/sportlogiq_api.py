@@ -229,9 +229,11 @@ def download_complete_games(
             except Exception as e:
                 print(f"Error: {e}")
 
-    return completed_games
+
 
 if __name__ == "__main__":
     conn = SportlogiqApi()
+    games = json.load(open('games.json'))
+    download_complete_game(203911,conn=conn, verbose=True)
     games = conn.get_schedule(1,'20252026')
     print(games)

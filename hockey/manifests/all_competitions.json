@@ -1,0 +1,4407 @@
+{
+    "1": {
+        "id": "1",
+        "name": "NHL",
+        "seasons": [
+            {
+                "name": "20252026",
+                "stages": [
+                    {
+                        "end_date": "2026-04-21",
+                        "name": "playoffs",
+                        "start_date": "2026-04-18"
+                    },
+                    {
+                        "end_date": "2026-04-16",
+                        "name": "regular",
+                        "start_date": "2025-10-07"
+                    },
+                    {
+                        "end_date": "2025-10-04",
+                        "name": "preseason",
+                        "start_date": "2025-09-21"
+                    }
+                ]
+            },
+            {
+                "name": "20242025",
+                "stages": [
+                    {
+                        "end_date": "2025-06-17",
+                        "name": "playoffs",
+                        "start_date": "2025-04-19"
+                    },
+                    {
+                        "end_date": "2025-04-17",
+                        "name": "regular",
+                        "start_date": "2024-10-04"
+                    },
+                    {
+                        "end_date": "2024-10-03",
+                        "name": "preseason",
+                        "start_date": "2024-09-25"
+                    }
+                ]
+            },
+            {
+                "name": "20232024",
+                "stages": [
+                    {
+                        "end_date": "2024-06-24",
+                        "name": "playoffs",
+                        "start_date": "2024-04-20"
+                    },
+                    {
+                        "end_date": "2024-04-18",
+                        "name": "regular",
+                        "start_date": "2023-10-10"
+                    },
+                    {
+                        "end_date": "2023-10-07",
+                        "name": "preseason",
+                        "start_date": "2023-09-24"
+                    }
+                ]
+            },
+            {
+                "name": "20222023",
+                "stages": [
+                    {
+                        "end_date": "2023-06-13",
+                        "name": "playoffs",
+                        "start_date": "2023-04-17"
+                    },
+                    {
+                        "end_date": "2023-04-14",
+                        "name": "regular",
+                        "start_date": "2022-10-07"
+                    },
+                    {
+                        "end_date": "2022-10-06",
+                        "name": "preseason",
+                        "start_date": "2022-09-27"
+                    }
+                ]
+            },
+            {
+                "name": "20212022",
+                "stages": [
+                    {
+                        "end_date": "2022-06-26",
+                        "name": "playoffs",
+                        "start_date": "2022-05-02"
+                    },
+                    {
+                        "end_date": "2022-05-01",
+                        "name": "regular",
+                        "start_date": "2021-10-12"
+                    },
+                    {
+                        "end_date": "2021-10-08",
+                        "name": "preseason",
+                        "start_date": "2021-09-29"
+                    }
+                ]
+            },
+            {
+                "name": "20202021",
+                "stages": [
+                    {
+                        "end_date": "2021-07-07",
+                        "name": "playoffs",
+                        "start_date": "2021-05-15"
+                    },
+                    {
+                        "end_date": "2021-05-19",
+                        "name": "regular",
+                        "start_date": "2021-01-13"
+                    }
+                ]
+            },
+            {
+                "name": "20192020",
+                "stages": [
+                    {
+                        "end_date": "2020-09-28",
+                        "name": "playoffs",
+                        "start_date": "2020-08-01"
+                    },
+                    {
+                        "end_date": "2020-03-11",
+                        "name": "regular",
+                        "start_date": "2019-10-02"
+                    },
+                    {
+                        "end_date": "2020-07-29",
+                        "name": "preseason",
+                        "start_date": "2019-09-15"
+                    }
+                ]
+            },
+            {
+                "name": "20182019",
+                "stages": [
+                    {
+                        "end_date": "2019-06-12",
+                        "name": "playoffs",
+                        "start_date": "2019-04-10"
+                    },
+                    {
+                        "end_date": "2019-04-06",
+                        "name": "regular",
+                        "start_date": "2018-10-03"
+                    },
+                    {
+                        "end_date": "2018-09-29",
+                        "name": "preseason",
+                        "start_date": "2018-09-16"
+                    }
+                ]
+            },
+            {
+                "name": "20172018",
+                "stages": [
+                    {
+                        "end_date": "2018-06-07",
+                        "name": "playoffs",
+                        "start_date": "2018-04-11"
+                    },
+                    {
+                        "end_date": "2018-04-08",
+                        "name": "regular",
+                        "start_date": "2017-10-04"
+                    },
+                    {
+                        "end_date": "2017-10-01",
+                        "name": "preseason",
+                        "start_date": "2017-09-18"
+                    }
+                ]
+            },
+            {
+                "name": "20162017",
+                "stages": [
+                    {
+                        "end_date": "2017-06-11",
+                        "name": "playoffs",
+                        "start_date": "2017-04-12"
+                    },
+                    {
+                        "end_date": "2017-04-09",
+                        "name": "regular",
+                        "start_date": "2016-10-12"
+                    },
+                    {
+                        "end_date": "2016-10-08",
+                        "name": "preseason",
+                        "start_date": "2016-09-27"
+                    }
+                ]
+            },
+            {
+                "name": "20152016",
+                "stages": [
+                    {
+                        "end_date": "2016-06-12",
+                        "name": "playoffs",
+                        "start_date": "2016-04-13"
+                    },
+                    {
+                        "end_date": "2016-04-10",
+                        "name": "regular",
+                        "start_date": "2015-10-07"
+                    },
+                    {
+                        "end_date": "2015-09-24",
+                        "name": "preseason",
+                        "start_date": "2015-09-22"
+                    }
+                ]
+            }
+        ]
+    },
+    "100": {
+        "id": "100",
+        "name": "2019 Women's Under-22 Series",
+        "seasons": [
+            {
+                "name": "20192020",
+                "stages": [
+                    {
+                        "end_date": "2019-08-17",
+                        "name": "regular",
+                        "start_date": "2019-08-14"
+                    }
+                ]
+            }
+        ]
+    },
+    "101": {
+        "id": "101",
+        "name": "Sirius World Cup",
+        "seasons": [
+            {
+                "name": "20192020",
+                "stages": [
+                    {
+                        "end_date": "2019-08-31",
+                        "name": "regular",
+                        "start_date": "2019-08-23"
+                    }
+                ]
+            }
+        ]
+    },
+    "103": {
+        "id": "103",
+        "name": "PWHPA",
+        "seasons": [
+            {
+                "name": "20222023",
+                "stages": [
+                    {
+                        "end_date": "2023-03-12",
+                        "name": "playoffs",
+                        "start_date": "2023-03-10"
+                    },
+                    {
+                        "end_date": "2023-03-05",
+                        "name": "regular",
+                        "start_date": "2022-10-15"
+                    }
+                ]
+            },
+            {
+                "name": "20212022",
+                "stages": [
+                    {
+                        "end_date": "2022-04-03",
+                        "name": "regular",
+                        "start_date": "2021-11-12"
+                    }
+                ]
+            },
+            {
+                "name": "20202021",
+                "stages": [
+                    {
+                        "end_date": "2021-05-30",
+                        "name": "regular",
+                        "start_date": "2021-02-27"
+                    }
+                ]
+            },
+            {
+                "name": "20192020",
+                "stages": [
+                    {
+                        "end_date": "2020-02-29",
+                        "name": "regular",
+                        "start_date": "2019-09-21"
+                    }
+                ]
+            }
+        ]
+    },
+    "104": {
+        "id": "104",
+        "name": "Chance Liga",
+        "seasons": [
+            {
+                "name": "20202021",
+                "stages": [
+                    {
+                        "end_date": "2021-02-20",
+                        "name": "regular",
+                        "start_date": "2020-09-19"
+                    }
+                ]
+            },
+            {
+                "name": "20192020",
+                "stages": [
+                    {
+                        "end_date": "2020-01-22",
+                        "name": "regular",
+                        "start_date": "2019-10-21"
+                    }
+                ]
+            }
+        ]
+    },
+    "105": {
+        "id": "105",
+        "name": "4 Nations Tournament U20",
+        "seasons": [
+            {
+                "name": "20222023",
+                "stages": [
+                    {
+                        "end_date": "2022-11-13",
+                        "name": "regular",
+                        "start_date": "2022-08-25"
+                    }
+                ]
+            },
+            {
+                "name": "20212022",
+                "stages": [
+                    {
+                        "end_date": "2021-11-14",
+                        "name": "regular",
+                        "start_date": "2021-11-12"
+                    }
+                ]
+            },
+            {
+                "name": "20192020",
+                "stages": [
+                    {
+                        "end_date": "2019-11-10",
+                        "name": "regular",
+                        "start_date": "2019-11-08"
+                    }
+                ]
+            }
+        ]
+    },
+    "106": {
+        "id": "106",
+        "name": "Spengler Cup",
+        "seasons": [
+            {
+                "name": "20242025",
+                "stages": [
+                    {
+                        "end_date": "2024-12-31",
+                        "name": "regular",
+                        "start_date": "2024-12-26"
+                    }
+                ]
+            },
+            {
+                "name": "20232024",
+                "stages": [
+                    {
+                        "end_date": "2023-12-31",
+                        "name": "regular",
+                        "start_date": "2023-12-26"
+                    }
+                ]
+            },
+            {
+                "name": "20222023",
+                "stages": [
+                    {
+                        "end_date": "2022-12-31",
+                        "name": "regular",
+                        "start_date": "2022-12-27"
+                    }
+                ]
+            },
+            {
+                "name": "20192020",
+                "stages": [
+                    {
+                        "end_date": "2019-12-30",
+                        "name": "regular",
+                        "start_date": "2019-12-26"
+                    }
+                ]
+            }
+        ]
+    },
+    "11": {
+        "id": "11",
+        "name": "National League",
+        "seasons": [
+            {
+                "name": "20252026",
+                "stages": [
+                    {
+                        "end_date": "2025-09-09",
+                        "name": "regular",
+                        "start_date": "2025-09-09"
+                    }
+                ]
+            },
+            {
+                "name": "20242025",
+                "stages": [
+                    {
+                        "end_date": "2025-04-24",
+                        "name": "playoffs",
+                        "start_date": "2025-03-04"
+                    },
+                    {
+                        "end_date": "2025-03-01",
+                        "name": "regular",
+                        "start_date": "2024-09-17"
+                    }
+                ]
+            },
+            {
+                "name": "20232024",
+                "stages": [
+                    {
+                        "end_date": "2024-04-30",
+                        "name": "playoffs",
+                        "start_date": "2024-03-07"
+                    },
+                    {
+                        "end_date": "2024-03-04",
+                        "name": "regular",
+                        "start_date": "2023-09-13"
+                    }
+                ]
+            },
+            {
+                "name": "20222023",
+                "stages": [
+                    {
+                        "end_date": "2023-04-27",
+                        "name": "playoffs",
+                        "start_date": "2023-03-07"
+                    },
+                    {
+                        "end_date": "2023-03-04",
+                        "name": "regular",
+                        "start_date": "2022-09-16"
+                    }
+                ]
+            },
+            {
+                "name": "20212022",
+                "stages": [
+                    {
+                        "end_date": "2021-10-26",
+                        "name": "regular",
+                        "start_date": "2021-10-02"
+                    }
+                ]
+            },
+            {
+                "name": "20202021",
+                "stages": [
+                    {
+                        "end_date": "2021-04-25",
+                        "name": "regular",
+                        "start_date": "2021-04-03"
+                    }
+                ]
+            }
+        ]
+    },
+    "12": {
+        "id": "12",
+        "name": "Liiga",
+        "seasons": [
+            {
+                "name": "20252026",
+                "stages": [
+                    {
+                        "end_date": "2025-09-09",
+                        "name": "regular",
+                        "start_date": "2025-09-09"
+                    }
+                ]
+            },
+            {
+                "name": "20242025",
+                "stages": [
+                    {
+                        "end_date": "2025-05-03",
+                        "name": "playoffs",
+                        "start_date": "2025-03-18"
+                    },
+                    {
+                        "end_date": "2025-03-15",
+                        "name": "regular",
+                        "start_date": "2024-09-10"
+                    }
+                ]
+            },
+            {
+                "name": "20232024",
+                "stages": [
+                    {
+                        "end_date": "2024-04-28",
+                        "name": "playoffs",
+                        "start_date": "2024-03-15"
+                    },
+                    {
+                        "end_date": "2024-03-12",
+                        "name": "regular",
+                        "start_date": "2023-09-12"
+                    }
+                ]
+            },
+            {
+                "name": "20222023",
+                "stages": [
+                    {
+                        "end_date": "2023-03-04",
+                        "name": "regular",
+                        "start_date": "2022-10-12"
+                    }
+                ]
+            },
+            {
+                "name": "20212022",
+                "stages": [
+                    {
+                        "end_date": "2022-01-18",
+                        "name": "regular",
+                        "start_date": "2021-09-17"
+                    }
+                ]
+            },
+            {
+                "name": "20202021",
+                "stages": [
+                    {
+                        "end_date": "2021-04-14",
+                        "name": "regular",
+                        "start_date": "2020-10-10"
+                    }
+                ]
+            },
+            {
+                "name": "20192020",
+                "stages": [
+                    {
+                        "end_date": "2020-03-12",
+                        "name": "regular",
+                        "start_date": "2019-11-02"
+                    }
+                ]
+            },
+            {
+                "name": "20182019",
+                "stages": [
+                    {
+                        "end_date": "2019-03-23",
+                        "name": "playoffs",
+                        "start_date": "2019-03-17"
+                    },
+                    {
+                        "end_date": "2019-03-23",
+                        "name": "regular",
+                        "start_date": "2018-11-21"
+                    }
+                ]
+            },
+            {
+                "name": "20172018",
+                "stages": [
+                    {
+                        "end_date": "2018-03-10",
+                        "name": "regular",
+                        "start_date": "2017-10-18"
+                    }
+                ]
+            }
+        ]
+    },
+    "13": {
+        "id": "13",
+        "name": "SHL",
+        "seasons": [
+            {
+                "name": "20252026",
+                "stages": [
+                    {
+                        "end_date": "2026-04-16",
+                        "name": "playoffs",
+                        "start_date": "2026-03-17"
+                    },
+                    {
+                        "end_date": "2026-03-14",
+                        "name": "regular",
+                        "start_date": "2025-09-13"
+                    }
+                ]
+            },
+            {
+                "name": "20242025",
+                "stages": [
+                    {
+                        "end_date": "2025-05-01",
+                        "name": "playoffs",
+                        "start_date": "2025-03-13"
+                    },
+                    {
+                        "end_date": "2025-03-11",
+                        "name": "regular",
+                        "start_date": "2024-09-21"
+                    },
+                    {
+                        "end_date": "2024-09-06",
+                        "name": "preseason",
+                        "start_date": "2024-09-06"
+                    }
+                ]
+            },
+            {
+                "name": "20232024",
+                "stages": [
+                    {
+                        "end_date": "2024-04-29",
+                        "name": "playoffs",
+                        "start_date": "2024-03-14"
+                    },
+                    {
+                        "end_date": "2024-03-12",
+                        "name": "regular",
+                        "start_date": "2023-09-14"
+                    },
+                    {
+                        "end_date": "2023-09-07",
+                        "name": "preseason",
+                        "start_date": "2023-08-31"
+                    }
+                ]
+            },
+            {
+                "name": "20222023",
+                "stages": [
+                    {
+                        "end_date": "2023-04-24",
+                        "name": "playoffs",
+                        "start_date": "2023-03-11"
+                    },
+                    {
+                        "end_date": "2023-03-09",
+                        "name": "regular",
+                        "start_date": "2022-09-17"
+                    },
+                    {
+                        "end_date": "2022-09-07",
+                        "name": "preseason",
+                        "start_date": "2022-09-07"
+                    }
+                ]
+            },
+            {
+                "name": "20212022",
+                "stages": [
+                    {
+                        "end_date": "2022-05-12",
+                        "name": "playoffs",
+                        "start_date": "2022-03-26"
+                    },
+                    {
+                        "end_date": "2022-03-24",
+                        "name": "regular",
+                        "start_date": "2021-09-11"
+                    }
+                ]
+            },
+            {
+                "name": "20202021",
+                "stages": [
+                    {
+                        "end_date": "2021-05-10",
+                        "name": "playoffs",
+                        "start_date": "2021-04-05"
+                    },
+                    {
+                        "end_date": "2021-04-03",
+                        "name": "regular",
+                        "start_date": "2020-09-19"
+                    },
+                    {
+                        "end_date": "2020-08-27",
+                        "name": "preseason",
+                        "start_date": "2020-08-27"
+                    }
+                ]
+            },
+            {
+                "name": "20192020",
+                "stages": [
+                    {
+                        "end_date": "2020-03-12",
+                        "name": "regular",
+                        "start_date": "2019-09-14"
+                    }
+                ]
+            },
+            {
+                "name": "20182019",
+                "stages": [
+                    {
+                        "end_date": "2019-05-02",
+                        "name": "playoffs",
+                        "start_date": "2019-03-16"
+                    },
+                    {
+                        "end_date": "2019-03-14",
+                        "name": "regular",
+                        "start_date": "2018-09-15"
+                    },
+                    {
+                        "end_date": "2018-09-11",
+                        "name": "preseason",
+                        "start_date": "2018-08-22"
+                    }
+                ]
+            },
+            {
+                "name": "20172018",
+                "stages": [
+                    {
+                        "end_date": "2018-03-26",
+                        "name": "playoffs",
+                        "start_date": "2018-03-12"
+                    },
+                    {
+                        "end_date": "2018-03-10",
+                        "name": "regular",
+                        "start_date": "2017-09-16"
+                    },
+                    {
+                        "end_date": "2017-09-10",
+                        "name": "preseason",
+                        "start_date": "2017-08-10"
+                    }
+                ]
+            },
+            {
+                "name": "20162017",
+                "stages": [
+                    {
+                        "end_date": "2017-04-06",
+                        "name": "playoffs",
+                        "start_date": "2017-03-18"
+                    },
+                    {
+                        "end_date": "2017-03-09",
+                        "name": "regular",
+                        "start_date": "2016-09-17"
+                    }
+                ]
+            }
+        ]
+    },
+    "140": {
+        "id": "140",
+        "name": "National Women's Hockey Events",
+        "seasons": [
+            {
+                "name": "20252026",
+                "stages": [
+                    {
+                        "end_date": "2025-07-30",
+                        "name": "regular",
+                        "start_date": "2025-07-26"
+                    }
+                ]
+            },
+            {
+                "name": "20242025",
+                "stages": [
+                    {
+                        "end_date": "2025-04-06",
+                        "name": "regular",
+                        "start_date": "2024-07-25"
+                    }
+                ]
+            },
+            {
+                "name": "20232024",
+                "stages": [
+                    {
+                        "end_date": "2024-05-27",
+                        "name": "regular",
+                        "start_date": "2023-07-25"
+                    }
+                ]
+            },
+            {
+                "name": "20222023",
+                "stages": [
+                    {
+                        "end_date": "2023-05-27",
+                        "name": "regular",
+                        "start_date": "2022-08-20"
+                    }
+                ]
+            },
+            {
+                "name": "20212022",
+                "stages": [
+                    {
+                        "end_date": "2022-04-14",
+                        "name": "regular",
+                        "start_date": "2021-08-18"
+                    }
+                ]
+            },
+            {
+                "name": "20202021",
+                "stages": [
+                    {
+                        "end_date": "2021-04-19",
+                        "name": "regular",
+                        "start_date": "2021-04-18"
+                    }
+                ]
+            },
+            {
+                "name": "20192020",
+                "stages": [
+                    {
+                        "end_date": "2019-11-10",
+                        "name": "regular",
+                        "start_date": "2019-11-08"
+                    }
+                ]
+            },
+            {
+                "name": "20182019",
+                "stages": [
+                    {
+                        "end_date": "2019-02-17",
+                        "name": "regular",
+                        "start_date": "2018-11-04"
+                    }
+                ]
+            }
+        ]
+    },
+    "141": {
+        "id": "141",
+        "name": "U18 Women's Hockey Events",
+        "seasons": [
+            {
+                "name": "20252026",
+                "stages": [
+                    {
+                        "end_date": "2025-08-13",
+                        "name": "regular",
+                        "start_date": "2025-08-13"
+                    }
+                ]
+            },
+            {
+                "name": "20242025",
+                "stages": [
+                    {
+                        "end_date": "2025-06-01",
+                        "name": "regular",
+                        "start_date": "2024-08-14"
+                    }
+                ]
+            },
+            {
+                "name": "20232024",
+                "stages": [
+                    {
+                        "end_date": "2024-01-31",
+                        "name": "regular",
+                        "start_date": "2023-08-10"
+                    }
+                ]
+            },
+            {
+                "name": "20222023",
+                "stages": [
+                    {
+                        "end_date": "2023-01-15",
+                        "name": "regular",
+                        "start_date": "2022-11-10"
+                    }
+                ]
+            },
+            {
+                "name": "20212022",
+                "stages": [
+                    {
+                        "end_date": "2022-06-13",
+                        "name": "regular",
+                        "start_date": "2022-06-06"
+                    }
+                ]
+            },
+            {
+                "name": "20192020",
+                "stages": [
+                    {
+                        "end_date": "2020-01-02",
+                        "name": "regular",
+                        "start_date": "2020-01-02"
+                    }
+                ]
+            }
+        ]
+    },
+    "142": {
+        "id": "142",
+        "name": "U22 Women's Hockey Events",
+        "seasons": [
+            {
+                "name": "20252026",
+                "stages": [
+                    {
+                        "end_date": "2025-08-13",
+                        "name": "regular",
+                        "start_date": "2025-08-13"
+                    }
+                ]
+            },
+            {
+                "name": "20242025",
+                "stages": [
+                    {
+                        "end_date": "2024-08-17",
+                        "name": "regular",
+                        "start_date": "2024-08-14"
+                    }
+                ]
+            }
+        ]
+    },
+    "143": {
+        "id": "143",
+        "name": "5 Nations Tournament U19",
+        "seasons": [
+            {
+                "name": "20242025",
+                "stages": [
+                    {
+                        "end_date": "2025-04-20",
+                        "name": "regular",
+                        "start_date": "2025-02-06"
+                    }
+                ]
+            },
+            {
+                "name": "20232024",
+                "stages": [
+                    {
+                        "end_date": "2024-04-21",
+                        "name": "regular",
+                        "start_date": "2024-02-06"
+                    }
+                ]
+            },
+            {
+                "name": "20222023",
+                "stages": [
+                    {
+                        "end_date": "2023-02-11",
+                        "name": "regular",
+                        "start_date": "2023-02-07"
+                    }
+                ]
+            },
+            {
+                "name": "20192020",
+                "stages": [
+                    {
+                        "end_date": "2020-02-08",
+                        "name": "regular",
+                        "start_date": "2020-02-04"
+                    }
+                ]
+            }
+        ]
+    },
+    "144": {
+        "id": "144",
+        "name": "Swedish National Team Camp",
+        "seasons": [
+            {
+                "name": "20212022",
+                "stages": [
+                    {
+                        "end_date": "2022-04-18",
+                        "name": "regular",
+                        "start_date": "2022-04-18"
+                    }
+                ]
+            },
+            {
+                "name": "20202021",
+                "stages": [
+                    {
+                        "end_date": "2021-05-14",
+                        "name": "regular",
+                        "start_date": "2021-02-11"
+                    }
+                ]
+            },
+            {
+                "name": "20192020",
+                "stages": [
+                    {
+                        "end_date": "2020-08-28",
+                        "name": "regular",
+                        "start_date": "2020-08-25"
+                    }
+                ]
+            }
+        ]
+    },
+    "15": {
+        "id": "15",
+        "name": "Czech Extraliga",
+        "seasons": [
+            {
+                "name": "20242025",
+                "stages": [
+                    {
+                        "end_date": "2025-04-29",
+                        "name": "playoffs",
+                        "start_date": "2025-03-07"
+                    },
+                    {
+                        "end_date": "2025-03-04",
+                        "name": "regular",
+                        "start_date": "2024-09-17"
+                    }
+                ]
+            },
+            {
+                "name": "20232024",
+                "stages": [
+                    {
+                        "end_date": "2024-04-28",
+                        "name": "playoffs",
+                        "start_date": "2024-03-06"
+                    },
+                    {
+                        "end_date": "2024-03-03",
+                        "name": "regular",
+                        "start_date": "2023-09-14"
+                    }
+                ]
+            },
+            {
+                "name": "20222023",
+                "stages": [
+                    {
+                        "end_date": "2023-04-28",
+                        "name": "playoffs",
+                        "start_date": "2023-03-08"
+                    },
+                    {
+                        "end_date": "2023-03-05",
+                        "name": "regular",
+                        "start_date": "2022-09-15"
+                    }
+                ]
+            },
+            {
+                "name": "20212022",
+                "stages": [
+                    {
+                        "end_date": "2022-03-14",
+                        "name": "regular",
+                        "start_date": "2021-09-10"
+                    }
+                ]
+            },
+            {
+                "name": "20202021",
+                "stages": [
+                    {
+                        "end_date": "2021-03-21",
+                        "name": "regular",
+                        "start_date": "2020-10-11"
+                    }
+                ]
+            },
+            {
+                "name": "20192020",
+                "stages": [
+                    {
+                        "end_date": "2019-12-01",
+                        "name": "regular",
+                        "start_date": "2019-09-13"
+                    }
+                ]
+            },
+            {
+                "name": "20182019",
+                "stages": [
+                    {
+                        "end_date": "2019-03-05",
+                        "name": "regular",
+                        "start_date": "2018-10-05"
+                    }
+                ]
+            },
+            {
+                "name": "20172018",
+                "stages": [
+                    {
+                        "end_date": "2018-03-25",
+                        "name": "regular",
+                        "start_date": "2018-02-27"
+                    }
+                ]
+            }
+        ]
+    },
+    "16": {
+        "id": "16",
+        "name": "MHL",
+        "seasons": [
+            {
+                "name": "20242025",
+                "stages": [
+                    {
+                        "end_date": "2025-05-24",
+                        "name": "playoffs",
+                        "start_date": "2025-03-25"
+                    },
+                    {
+                        "end_date": "2025-03-22",
+                        "name": "regular",
+                        "start_date": "2024-09-01"
+                    }
+                ]
+            },
+            {
+                "name": "20232024",
+                "stages": [
+                    {
+                        "end_date": "2024-04-25",
+                        "name": "playoffs",
+                        "start_date": "2024-02-28"
+                    },
+                    {
+                        "end_date": "2024-02-27",
+                        "name": "regular",
+                        "start_date": "2023-09-03"
+                    }
+                ]
+            },
+            {
+                "name": "20222023",
+                "stages": [
+                    {
+                        "end_date": "2023-04-25",
+                        "name": "playoffs",
+                        "start_date": "2023-03-02"
+                    },
+                    {
+                        "end_date": "2023-03-02",
+                        "name": "regular",
+                        "start_date": "2022-09-03"
+                    }
+                ]
+            },
+            {
+                "name": "20212022",
+                "stages": [
+                    {
+                        "end_date": "2022-03-29",
+                        "name": "regular",
+                        "start_date": "2021-09-10"
+                    }
+                ]
+            },
+            {
+                "name": "20202021",
+                "stages": [
+                    {
+                        "end_date": "2021-03-23",
+                        "name": "regular",
+                        "start_date": "2020-09-05"
+                    }
+                ]
+            },
+            {
+                "name": "20192020",
+                "stages": [
+                    {
+                        "end_date": "2020-03-16",
+                        "name": "regular",
+                        "start_date": "2019-09-03"
+                    }
+                ]
+            },
+            {
+                "name": "20182019",
+                "stages": [
+                    {
+                        "end_date": "2019-04-17",
+                        "name": "playoffs",
+                        "start_date": "2019-04-01"
+                    },
+                    {
+                        "end_date": "2019-03-21",
+                        "name": "regular",
+                        "start_date": "2018-09-05"
+                    }
+                ]
+            },
+            {
+                "name": "20172018",
+                "stages": [
+                    {
+                        "end_date": "2018-03-05",
+                        "name": "regular",
+                        "start_date": "2017-09-04"
+                    }
+                ]
+            }
+        ]
+    },
+    "17": {
+        "id": "17",
+        "name": "Hockey Allsvenskan",
+        "seasons": [
+            {
+                "name": "20252026",
+                "stages": [
+                    {
+                        "end_date": "2026-04-20",
+                        "name": "playoffs",
+                        "start_date": "2026-03-09"
+                    },
+                    {
+                        "end_date": "2026-03-06",
+                        "name": "regular",
+                        "start_date": "2025-09-19"
+                    }
+                ]
+            },
+            {
+                "name": "20242025",
+                "stages": [
+                    {
+                        "end_date": "2025-04-25",
+                        "name": "playoffs",
+                        "start_date": "2025-03-10"
+                    },
+                    {
+                        "end_date": "2025-03-07",
+                        "name": "regular",
+                        "start_date": "2024-09-20"
+                    }
+                ]
+            },
+            {
+                "name": "20232024",
+                "stages": [
+                    {
+                        "end_date": "2024-04-23",
+                        "name": "playoffs",
+                        "start_date": "2024-03-11"
+                    },
+                    {
+                        "end_date": "2024-03-08",
+                        "name": "regular",
+                        "start_date": "2023-09-22"
+                    }
+                ]
+            },
+            {
+                "name": "20222023",
+                "stages": [
+                    {
+                        "end_date": "2023-04-30",
+                        "name": "playoffs",
+                        "start_date": "2023-03-12"
+                    },
+                    {
+                        "end_date": "2023-03-10",
+                        "name": "regular",
+                        "start_date": "2022-09-23"
+                    }
+                ]
+            },
+            {
+                "name": "20212022",
+                "stages": [
+                    {
+                        "end_date": "2022-05-04",
+                        "name": "playoffs",
+                        "start_date": "2022-03-18"
+                    },
+                    {
+                        "end_date": "2022-03-16",
+                        "name": "regular",
+                        "start_date": "2021-09-24"
+                    }
+                ]
+            },
+            {
+                "name": "20182019",
+                "stages": [
+                    {
+                        "end_date": "2018-12-12",
+                        "name": "regular",
+                        "start_date": "2018-12-12"
+                    }
+                ]
+            },
+            {
+                "name": "20172018",
+                "stages": [
+                    {
+                        "end_date": "2018-04-06",
+                        "name": "regular",
+                        "start_date": "2018-04-04"
+                    }
+                ]
+            },
+            {
+                "name": "20162017",
+                "stages": [
+                    {
+                        "end_date": "2017-03-08",
+                        "name": "regular",
+                        "start_date": "2017-03-06"
+                    }
+                ]
+            }
+        ]
+    },
+    "2": {
+        "id": "2",
+        "name": "AHL",
+        "seasons": [
+            {
+                "name": "20252026",
+                "stages": [
+                    {
+                        "end_date": "2025-10-10",
+                        "name": "regular",
+                        "start_date": "2025-10-10"
+                    }
+                ]
+            },
+            {
+                "name": "20242025",
+                "stages": [
+                    {
+                        "end_date": "2025-06-23",
+                        "name": "playoffs",
+                        "start_date": "2025-04-22"
+                    },
+                    {
+                        "end_date": "2025-04-20",
+                        "name": "regular",
+                        "start_date": "2024-10-11"
+                    }
+                ]
+            },
+            {
+                "name": "20232024",
+                "stages": [
+                    {
+                        "end_date": "2024-06-24",
+                        "name": "playoffs",
+                        "start_date": "2024-04-23"
+                    },
+                    {
+                        "end_date": "2024-04-21",
+                        "name": "regular",
+                        "start_date": "2023-10-13"
+                    }
+                ]
+            },
+            {
+                "name": "20222023",
+                "stages": [
+                    {
+                        "end_date": "2023-06-21",
+                        "name": "playoffs",
+                        "start_date": "2023-04-18"
+                    },
+                    {
+                        "end_date": "2023-04-16",
+                        "name": "regular",
+                        "start_date": "2022-10-14"
+                    }
+                ]
+            },
+            {
+                "name": "20212022",
+                "stages": [
+                    {
+                        "end_date": "2022-06-25",
+                        "name": "playoffs",
+                        "start_date": "2022-05-02"
+                    },
+                    {
+                        "end_date": "2022-04-30",
+                        "name": "regular",
+                        "start_date": "2021-10-15"
+                    }
+                ]
+            },
+            {
+                "name": "20202021",
+                "stages": [
+                    {
+                        "end_date": "2021-05-29",
+                        "name": "playoffs",
+                        "start_date": "2021-05-18"
+                    },
+                    {
+                        "end_date": "2021-05-20",
+                        "name": "regular",
+                        "start_date": "2021-02-05"
+                    }
+                ]
+            },
+            {
+                "name": "20192020",
+                "stages": [
+                    {
+                        "end_date": "2020-03-11",
+                        "name": "regular",
+                        "start_date": "2019-10-04"
+                    }
+                ]
+            },
+            {
+                "name": "20182019",
+                "stages": [
+                    {
+                        "end_date": "2019-06-08",
+                        "name": "playoffs",
+                        "start_date": "2019-04-17"
+                    },
+                    {
+                        "end_date": "2019-04-14",
+                        "name": "regular",
+                        "start_date": "2018-10-05"
+                    }
+                ]
+            },
+            {
+                "name": "20172018",
+                "stages": [
+                    {
+                        "end_date": "2018-05-25",
+                        "name": "playoffs",
+                        "start_date": "2018-04-20"
+                    },
+                    {
+                        "end_date": "2018-04-15",
+                        "name": "regular",
+                        "start_date": "2017-10-06"
+                    }
+                ]
+            },
+            {
+                "name": "20162017",
+                "stages": [
+                    {
+                        "end_date": "2017-04-30",
+                        "name": "playoffs",
+                        "start_date": "2017-04-21"
+                    },
+                    {
+                        "end_date": "2017-04-15",
+                        "name": "regular",
+                        "start_date": "2016-10-14"
+                    }
+                ]
+            },
+            {
+                "name": "20152016",
+                "stages": [
+                    {
+                        "end_date": "2016-04-16",
+                        "name": "regular",
+                        "start_date": "2016-04-16"
+                    }
+                ]
+            }
+        ]
+    },
+    "213": {
+        "id": "213",
+        "name": "IIHF World Championship",
+        "seasons": [
+            {
+                "name": "20252026",
+                "stages": [
+                    {
+                        "end_date": "2026-05-15",
+                        "name": "regular",
+                        "start_date": "2026-05-15"
+                    }
+                ]
+            },
+            {
+                "name": "20242025",
+                "stages": [
+                    {
+                        "end_date": "2025-05-25",
+                        "name": "regular",
+                        "start_date": "2025-05-09"
+                    }
+                ]
+            },
+            {
+                "name": "20232024",
+                "stages": [
+                    {
+                        "end_date": "2024-05-26",
+                        "name": "regular",
+                        "start_date": "2024-05-10"
+                    }
+                ]
+            },
+            {
+                "name": "20222023",
+                "stages": [
+                    {
+                        "end_date": "2023-05-28",
+                        "name": "regular",
+                        "start_date": "2023-05-12"
+                    }
+                ]
+            },
+            {
+                "name": "20212022",
+                "stages": [
+                    {
+                        "end_date": "2022-05-29",
+                        "name": "regular",
+                        "start_date": "2022-05-13"
+                    }
+                ]
+            },
+            {
+                "name": "20202021",
+                "stages": [
+                    {
+                        "end_date": "2021-06-06",
+                        "name": "regular",
+                        "start_date": "2021-05-21"
+                    }
+                ]
+            },
+            {
+                "name": "20182019",
+                "stages": [
+                    {
+                        "end_date": "2019-05-26",
+                        "name": "playoffs",
+                        "start_date": "2019-05-23"
+                    },
+                    {
+                        "end_date": "2019-05-26",
+                        "name": "regular",
+                        "start_date": "2019-05-10"
+                    }
+                ]
+            },
+            {
+                "name": "20172018",
+                "stages": [
+                    {
+                        "end_date": "2018-05-20",
+                        "name": "regular",
+                        "start_date": "2018-05-08"
+                    }
+                ]
+            }
+        ]
+    },
+    "215": {
+        "id": "215",
+        "name": "Hlinka Gretzky Cup",
+        "seasons": [
+            {
+                "name": "20252026",
+                "stages": [
+                    {
+                        "end_date": "2025-08-09",
+                        "name": "regular",
+                        "start_date": "2025-08-09"
+                    }
+                ]
+            },
+            {
+                "name": "20242025",
+                "stages": [
+                    {
+                        "end_date": "2024-08-10",
+                        "name": "regular",
+                        "start_date": "2024-08-05"
+                    }
+                ]
+            },
+            {
+                "name": "20232024",
+                "stages": [
+                    {
+                        "end_date": "2023-08-05",
+                        "name": "regular",
+                        "start_date": "2023-07-31"
+                    }
+                ]
+            },
+            {
+                "name": "20222023",
+                "stages": [
+                    {
+                        "end_date": "2022-08-06",
+                        "name": "regular",
+                        "start_date": "2022-07-31"
+                    },
+                    {
+                        "end_date": "2022-07-29",
+                        "name": "preseason",
+                        "start_date": "2022-07-29"
+                    }
+                ]
+            },
+            {
+                "name": "20212022",
+                "stages": [
+                    {
+                        "end_date": "2021-08-07",
+                        "name": "regular",
+                        "start_date": "2021-07-31"
+                    }
+                ]
+            },
+            {
+                "name": "20192020",
+                "stages": [
+                    {
+                        "end_date": "2019-08-10",
+                        "name": "regular",
+                        "start_date": "2019-08-03"
+                    }
+                ]
+            },
+            {
+                "name": "20182019",
+                "stages": [
+                    {
+                        "end_date": "2018-08-11",
+                        "name": "regular",
+                        "start_date": "2018-08-06"
+                    }
+                ]
+            }
+        ]
+    },
+    "218": {
+        "id": "218",
+        "name": "4 Nations Tournament U17",
+        "seasons": [
+            {
+                "name": "20222023",
+                "stages": [
+                    {
+                        "end_date": "2022-12-17",
+                        "name": "regular",
+                        "start_date": "2022-12-15"
+                    }
+                ]
+            },
+            {
+                "name": "20212022",
+                "stages": [
+                    {
+                        "end_date": "2022-04-17",
+                        "name": "regular",
+                        "start_date": "2021-11-11"
+                    }
+                ]
+            }
+        ]
+    },
+    "219": {
+        "id": "219",
+        "name": "Olympic Games",
+        "seasons": [
+            {
+                "name": "20212022",
+                "stages": [
+                    {
+                        "end_date": "2022-02-19",
+                        "name": "regular",
+                        "start_date": "2022-02-09"
+                    }
+                ]
+            },
+            {
+                "name": "20132014",
+                "stages": [
+                    {
+                        "end_date": "2014-02-23",
+                        "name": "regular",
+                        "start_date": "2014-02-16"
+                    }
+                ]
+            },
+            {
+                "name": "20092010",
+                "stages": [
+                    {
+                        "end_date": "2010-02-28",
+                        "name": "regular",
+                        "start_date": "2010-02-18"
+                    }
+                ]
+            }
+        ]
+    },
+    "22": {
+        "id": "22",
+        "name": "KHL",
+        "seasons": [
+            {
+                "name": "20242025",
+                "stages": [
+                    {
+                        "end_date": "2025-05-21",
+                        "name": "playoffs",
+                        "start_date": "2025-03-26"
+                    },
+                    {
+                        "end_date": "2025-03-23",
+                        "name": "regular",
+                        "start_date": "2024-09-03"
+                    }
+                ]
+            },
+            {
+                "name": "20232024",
+                "stages": [
+                    {
+                        "end_date": "2024-04-24",
+                        "name": "playoffs",
+                        "start_date": "2024-02-29"
+                    },
+                    {
+                        "end_date": "2024-02-26",
+                        "name": "regular",
+                        "start_date": "2023-09-01"
+                    }
+                ]
+            },
+            {
+                "name": "20222023",
+                "stages": [
+                    {
+                        "end_date": "2023-04-29",
+                        "name": "playoffs",
+                        "start_date": "2023-03-01"
+                    },
+                    {
+                        "end_date": "2023-02-26",
+                        "name": "regular",
+                        "start_date": "2022-09-01"
+                    }
+                ]
+            },
+            {
+                "name": "20212022",
+                "stages": [
+                    {
+                        "end_date": "2021-11-17",
+                        "name": "regular",
+                        "start_date": "2021-09-03"
+                    }
+                ]
+            },
+            {
+                "name": "20202021",
+                "stages": [
+                    {
+                        "end_date": "2021-03-06",
+                        "name": "regular",
+                        "start_date": "2020-11-12"
+                    }
+                ]
+            },
+            {
+                "name": "20192020",
+                "stages": [
+                    {
+                        "end_date": "2020-03-08",
+                        "name": "regular",
+                        "start_date": "2019-09-01"
+                    }
+                ]
+            },
+            {
+                "name": "20182019",
+                "stages": [
+                    {
+                        "end_date": "2019-03-17",
+                        "name": "regular",
+                        "start_date": "2018-09-06"
+                    }
+                ]
+            },
+            {
+                "name": "20172018",
+                "stages": [
+                    {
+                        "end_date": "2018-04-05",
+                        "name": "regular",
+                        "start_date": "2017-11-30"
+                    }
+                ]
+            }
+        ]
+    },
+    "220": {
+        "id": "220",
+        "name": "Swiss U20-Elit",
+        "seasons": [
+            {
+                "name": "20242025",
+                "stages": [
+                    {
+                        "end_date": "2024-11-17",
+                        "name": "regular",
+                        "start_date": "2024-09-06"
+                    }
+                ]
+            },
+            {
+                "name": "20212022",
+                "stages": [
+                    {
+                        "end_date": "2021-10-24",
+                        "name": "regular",
+                        "start_date": "2021-10-24"
+                    }
+                ]
+            }
+        ]
+    },
+    "221": {
+        "id": "221",
+        "name": "Sweden Prospect Camp U16",
+        "seasons": [
+            {
+                "name": "20242025",
+                "stages": [
+                    {
+                        "end_date": "2024-12-15",
+                        "name": "regular",
+                        "start_date": "2024-11-15"
+                    }
+                ]
+            },
+            {
+                "name": "20232024",
+                "stages": [
+                    {
+                        "end_date": "2023-12-17",
+                        "name": "regular",
+                        "start_date": "2023-12-15"
+                    }
+                ]
+            },
+            {
+                "name": "20222023",
+                "stages": [
+                    {
+                        "end_date": "2022-12-18",
+                        "name": "regular",
+                        "start_date": "2022-12-16"
+                    }
+                ]
+            },
+            {
+                "name": "20212022",
+                "stages": [
+                    {
+                        "end_date": "2021-12-19",
+                        "name": "regular",
+                        "start_date": "2021-12-17"
+                    }
+                ]
+            }
+        ]
+    },
+    "23": {
+        "id": "23",
+        "name": "WCoH",
+        "seasons": [
+            {
+                "name": "20162017",
+                "stages": [
+                    {
+                        "end_date": "2016-09-29",
+                        "name": "regular",
+                        "start_date": "2016-09-19"
+                    }
+                ]
+            }
+        ]
+    },
+    "255": {
+        "id": "255",
+        "name": "4 Nations Tournament U16",
+        "seasons": [
+            {
+                "name": "20242025",
+                "stages": [
+                    {
+                        "end_date": "2025-04-20",
+                        "name": "regular",
+                        "start_date": "2025-04-18"
+                    }
+                ]
+            },
+            {
+                "name": "20232024",
+                "stages": [
+                    {
+                        "end_date": "2024-04-21",
+                        "name": "regular",
+                        "start_date": "2024-04-19"
+                    }
+                ]
+            },
+            {
+                "name": "20222023",
+                "stages": [
+                    {
+                        "end_date": "2023-04-16",
+                        "name": "regular",
+                        "start_date": "2023-04-14"
+                    }
+                ]
+            },
+            {
+                "name": "20212022",
+                "stages": [
+                    {
+                        "end_date": "2022-04-16",
+                        "name": "regular",
+                        "start_date": "2022-04-14"
+                    }
+                ]
+            }
+        ]
+    },
+    "256": {
+        "id": "256",
+        "name": "Sweden National Team Events",
+        "seasons": [
+            {
+                "name": "20252026",
+                "stages": [
+                    {
+                        "end_date": "2025-07-31",
+                        "name": "regular",
+                        "start_date": "2025-07-31"
+                    }
+                ]
+            },
+            {
+                "name": "20242025",
+                "stages": [
+                    {
+                        "end_date": "2025-05-04",
+                        "name": "regular",
+                        "start_date": "2024-07-26"
+                    }
+                ]
+            },
+            {
+                "name": "20232024",
+                "stages": [
+                    {
+                        "end_date": "2024-05-05",
+                        "name": "regular",
+                        "start_date": "2023-08-25"
+                    }
+                ]
+            },
+            {
+                "name": "20222023",
+                "stages": [
+                    {
+                        "end_date": "2023-05-07",
+                        "name": "regular",
+                        "start_date": "2022-08-26"
+                    }
+                ]
+            },
+            {
+                "name": "20212022",
+                "stages": [
+                    {
+                        "end_date": "2022-05-01",
+                        "name": "regular",
+                        "start_date": "2022-04-13"
+                    }
+                ]
+            }
+        ]
+    },
+    "257": {
+        "id": "257",
+        "name": "4 Nations Tournament U19",
+        "seasons": [
+            {
+                "name": "20212022",
+                "stages": [
+                    {
+                        "end_date": "2022-04-16",
+                        "name": "regular",
+                        "start_date": "2022-04-14"
+                    }
+                ]
+            }
+        ]
+    },
+    "262": {
+        "id": "262",
+        "name": "Northern Ontario Junior Hockey League",
+        "seasons": [
+            {
+                "name": "20252026",
+                "stages": [
+                    {
+                        "end_date": "2025-09-11",
+                        "name": "regular",
+                        "start_date": "2025-09-11"
+                    }
+                ]
+            },
+            {
+                "name": "20242025",
+                "stages": [
+                    {
+                        "end_date": "2025-04-30",
+                        "name": "playoffs",
+                        "start_date": "2025-03-20"
+                    },
+                    {
+                        "end_date": "2025-03-16",
+                        "name": "regular",
+                        "start_date": "2024-09-12"
+                    }
+                ]
+            },
+            {
+                "name": "20232024",
+                "stages": [
+                    {
+                        "end_date": "2024-04-25",
+                        "name": "playoffs",
+                        "start_date": "2024-04-18"
+                    }
+                ]
+            }
+        ]
+    },
+    "267": {
+        "id": "267",
+        "name": "Hockeyettan",
+        "seasons": [
+            {
+                "name": "20252026",
+                "stages": [
+                    {
+                        "end_date": "2025-10-01",
+                        "name": "regular",
+                        "start_date": "2025-10-01"
+                    }
+                ]
+            },
+            {
+                "name": "20242025",
+                "stages": [
+                    {
+                        "end_date": "2025-04-20",
+                        "name": "playoffs",
+                        "start_date": "2025-02-25"
+                    },
+                    {
+                        "end_date": "2025-03-29",
+                        "name": "regular",
+                        "start_date": "2024-09-20"
+                    }
+                ]
+            },
+            {
+                "name": "20232024",
+                "stages": [
+                    {
+                        "end_date": "2024-03-24",
+                        "name": "playoffs",
+                        "start_date": "2024-02-27"
+                    },
+                    {
+                        "end_date": "2024-04-20",
+                        "name": "regular",
+                        "start_date": "2023-09-29"
+                    }
+                ]
+            },
+            {
+                "name": "20222023",
+                "stages": [
+                    {
+                        "end_date": "2023-04-22",
+                        "name": "playoffs",
+                        "start_date": "2023-02-28"
+                    },
+                    {
+                        "end_date": "2023-03-01",
+                        "name": "regular",
+                        "start_date": "2022-09-30"
+                    }
+                ]
+            }
+        ]
+    },
+    "29": {
+        "id": "29",
+        "name": "British Columbia Hockey League",
+        "seasons": [
+            {
+                "name": "20252026",
+                "stages": [
+                    {
+                        "end_date": "2025-09-19",
+                        "name": "regular",
+                        "start_date": "2025-09-19"
+                    }
+                ]
+            },
+            {
+                "name": "20242025",
+                "stages": [
+                    {
+                        "end_date": "2025-05-25",
+                        "name": "playoffs",
+                        "start_date": "2025-04-03"
+                    },
+                    {
+                        "end_date": "2025-03-30",
+                        "name": "regular",
+                        "start_date": "2024-09-20"
+                    }
+                ]
+            },
+            {
+                "name": "20232024",
+                "stages": [
+                    {
+                        "end_date": "2024-06-01",
+                        "name": "playoffs",
+                        "start_date": "2024-04-05"
+                    },
+                    {
+                        "end_date": "2024-04-07",
+                        "name": "regular",
+                        "start_date": "2023-09-22"
+                    }
+                ]
+            },
+            {
+                "name": "20222023",
+                "stages": [
+                    {
+                        "end_date": "2023-02-24",
+                        "name": "regular",
+                        "start_date": "2022-11-12"
+                    }
+                ]
+            },
+            {
+                "name": "20212022",
+                "stages": [
+                    {
+                        "end_date": "2022-05-04",
+                        "name": "regular",
+                        "start_date": "2022-03-25"
+                    }
+                ]
+            },
+            {
+                "name": "20202021",
+                "stages": [
+                    {
+                        "end_date": "2020-11-14",
+                        "name": "regular",
+                        "start_date": "2020-10-09"
+                    }
+                ]
+            },
+            {
+                "name": "20192020",
+                "stages": [
+                    {
+                        "end_date": "2020-02-23",
+                        "name": "regular",
+                        "start_date": "2019-08-24"
+                    }
+                ]
+            },
+            {
+                "name": "20182019",
+                "stages": [
+                    {
+                        "end_date": "2019-04-01",
+                        "name": "playoffs",
+                        "start_date": "2019-03-16"
+                    },
+                    {
+                        "end_date": "2019-04-02",
+                        "name": "regular",
+                        "start_date": "2018-10-12"
+                    }
+                ]
+            },
+            {
+                "name": "20172018",
+                "stages": [
+                    {
+                        "end_date": "2017-11-24",
+                        "name": "regular",
+                        "start_date": "2017-09-23"
+                    }
+                ]
+            }
+        ]
+    },
+    "300": {
+        "id": "300",
+        "name": "Sweden J18",
+        "seasons": [
+            {
+                "name": "20242025",
+                "stages": [
+                    {
+                        "end_date": "2025-04-13",
+                        "name": "playoffs",
+                        "start_date": "2025-03-13"
+                    },
+                    {
+                        "end_date": "2025-04-06",
+                        "name": "regular",
+                        "start_date": "2024-09-14"
+                    }
+                ]
+            },
+            {
+                "name": "20232024",
+                "stages": [
+                    {
+                        "end_date": "2024-04-13",
+                        "name": "playoffs",
+                        "start_date": "2024-03-21"
+                    },
+                    {
+                        "end_date": "2024-04-07",
+                        "name": "regular",
+                        "start_date": "2023-09-13"
+                    }
+                ]
+            },
+            {
+                "name": "20222023",
+                "stages": [
+                    {
+                        "end_date": "2023-04-08",
+                        "name": "playoffs",
+                        "start_date": "2023-03-15"
+                    },
+                    {
+                        "end_date": "2023-03-12",
+                        "name": "regular",
+                        "start_date": "2022-09-17"
+                    }
+                ]
+            }
+        ]
+    },
+    "302": {
+        "id": "302",
+        "name": "4 Nations Tournament U18",
+        "seasons": [
+            {
+                "name": "20222023",
+                "stages": [
+                    {
+                        "end_date": "2023-02-12",
+                        "name": "regular",
+                        "start_date": "2023-02-10"
+                    }
+                ]
+            }
+        ]
+    },
+    "303": {
+        "id": "303",
+        "name": "5 Nations Tournament U17",
+        "seasons": [
+            {
+                "name": "20242025",
+                "stages": [
+                    {
+                        "end_date": "2025-04-19",
+                        "name": "regular",
+                        "start_date": "2025-02-05"
+                    }
+                ]
+            },
+            {
+                "name": "20232024",
+                "stages": [
+                    {
+                        "end_date": "2024-04-21",
+                        "name": "regular",
+                        "start_date": "2023-12-28"
+                    }
+                ]
+            },
+            {
+                "name": "20222023",
+                "stages": [
+                    {
+                        "end_date": "2023-04-16",
+                        "name": "regular",
+                        "start_date": "2023-02-07"
+                    }
+                ]
+            }
+        ]
+    },
+    "306": {
+        "id": "306",
+        "name": "5 Nations Tournament U20",
+        "seasons": [
+            {
+                "name": "20242025",
+                "stages": [
+                    {
+                        "end_date": "2024-11-10",
+                        "name": "regular",
+                        "start_date": "2024-08-27"
+                    }
+                ]
+            },
+            {
+                "name": "20232024",
+                "stages": [
+                    {
+                        "end_date": "2023-11-12",
+                        "name": "regular",
+                        "start_date": "2023-08-23"
+                    }
+                ]
+            },
+            {
+                "name": "20222023",
+                "stages": [
+                    {
+                        "end_date": "2023-04-16",
+                        "name": "regular",
+                        "start_date": "2023-04-13"
+                    }
+                ]
+            }
+        ]
+    },
+    "307": {
+        "id": "307",
+        "name": "World Under 17 Hockey Challenge",
+        "seasons": [
+            {
+                "name": "20242025",
+                "stages": [
+                    {
+                        "end_date": "2024-11-09",
+                        "name": "regular",
+                        "start_date": "2024-11-01"
+                    }
+                ]
+            },
+            {
+                "name": "20232024",
+                "stages": [
+                    {
+                        "end_date": "2023-11-11",
+                        "name": "regular",
+                        "start_date": "2023-11-02"
+                    }
+                ]
+            }
+        ]
+    },
+    "309": {
+        "id": "309",
+        "name": "PWHL",
+        "seasons": [
+            {
+                "name": "20242025",
+                "stages": [
+                    {
+                        "end_date": "2025-05-26",
+                        "name": "playoffs",
+                        "start_date": "2025-05-07"
+                    },
+                    {
+                        "end_date": "2025-05-03",
+                        "name": "regular",
+                        "start_date": "2024-11-30"
+                    },
+                    {
+                        "end_date": "2024-11-22",
+                        "name": "preseason",
+                        "start_date": "2024-11-20"
+                    }
+                ]
+            },
+            {
+                "name": "20232024",
+                "stages": [
+                    {
+                        "end_date": "2024-05-29",
+                        "name": "playoffs",
+                        "start_date": "2024-05-08"
+                    },
+                    {
+                        "end_date": "2024-05-05",
+                        "name": "regular",
+                        "start_date": "2024-01-01"
+                    }
+                ]
+            }
+        ]
+    },
+    "31": {
+        "id": "31",
+        "name": "WJC",
+        "seasons": [
+            {
+                "name": "20242025",
+                "stages": [
+                    {
+                        "end_date": "2025-01-05",
+                        "name": "regular",
+                        "start_date": "2024-12-21"
+                    }
+                ]
+            },
+            {
+                "name": "20232024",
+                "stages": [
+                    {
+                        "end_date": "2024-01-05",
+                        "name": "regular",
+                        "start_date": "2023-12-26"
+                    }
+                ]
+            },
+            {
+                "name": "20222023",
+                "stages": [
+                    {
+                        "end_date": "2023-01-05",
+                        "name": "regular",
+                        "start_date": "2022-12-26"
+                    }
+                ]
+            },
+            {
+                "name": "20212022",
+                "stages": [
+                    {
+                        "end_date": "2022-08-08",
+                        "name": "preseason",
+                        "start_date": "2022-08-04"
+                    },
+                    {
+                        "end_date": "2022-08-20",
+                        "name": "regular",
+                        "start_date": "2021-12-23"
+                    }
+                ]
+            },
+            {
+                "name": "20202021",
+                "stages": [
+                    {
+                        "end_date": "2021-01-05",
+                        "name": "regular",
+                        "start_date": "2020-12-22"
+                    }
+                ]
+            },
+            {
+                "name": "20192020",
+                "stages": [
+                    {
+                        "end_date": "2020-01-05",
+                        "name": "regular",
+                        "start_date": "2019-12-11"
+                    }
+                ]
+            },
+            {
+                "name": "20182019",
+                "stages": [
+                    {
+                        "end_date": "2019-01-05",
+                        "name": "playoffs",
+                        "start_date": "2018-12-26"
+                    }
+                ]
+            },
+            {
+                "name": "20172018",
+                "stages": [
+                    {
+                        "end_date": "2018-01-05",
+                        "name": "regular",
+                        "start_date": "2017-12-26"
+                    }
+                ]
+            }
+        ]
+    },
+    "310": {
+        "id": "310",
+        "name": "EliteHockey Ligaen",
+        "seasons": [
+            {
+                "name": "20232024",
+                "stages": [
+                    {
+                        "end_date": "2024-03-23",
+                        "name": "regular",
+                        "start_date": "2024-01-06"
+                    }
+                ]
+            }
+        ]
+    },
+    "313": {
+        "id": "313",
+        "name": "Women's World Championship",
+        "seasons": [
+            {
+                "name": "20242025",
+                "stages": [
+                    {
+                        "end_date": "2025-04-20",
+                        "name": "regular",
+                        "start_date": "2025-04-09"
+                    }
+                ]
+            },
+            {
+                "name": "20232024",
+                "stages": [
+                    {
+                        "end_date": "2024-04-14",
+                        "name": "regular",
+                        "start_date": "2024-03-30"
+                    }
+                ]
+            },
+            {
+                "name": "20222023",
+                "stages": [
+                    {
+                        "end_date": "2023-04-16",
+                        "name": "regular",
+                        "start_date": "2022-08-25"
+                    }
+                ]
+            },
+            {
+                "name": "20212022",
+                "stages": [
+                    {
+                        "end_date": "2021-08-31",
+                        "name": "regular",
+                        "start_date": "2021-08-20"
+                    }
+                ]
+            },
+            {
+                "name": "20182019",
+                "stages": [
+                    {
+                        "end_date": "2019-04-14",
+                        "name": "playoffs",
+                        "start_date": "2019-04-14"
+                    },
+                    {
+                        "end_date": "2019-04-13",
+                        "name": "regular",
+                        "start_date": "2019-04-04"
+                    }
+                ]
+            }
+        ]
+    },
+    "314": {
+        "id": "314",
+        "name": "Beijer Hockey Games",
+        "seasons": [
+            {
+                "name": "20242025",
+                "stages": [
+                    {
+                        "end_date": "2025-02-09",
+                        "name": "regular",
+                        "start_date": "2025-02-06"
+                    }
+                ]
+            },
+            {
+                "name": "20232024",
+                "stages": [
+                    {
+                        "end_date": "2024-02-11",
+                        "name": "regular",
+                        "start_date": "2024-02-08"
+                    }
+                ]
+            },
+            {
+                "name": "20222023",
+                "stages": [
+                    {
+                        "end_date": "2023-02-12",
+                        "name": "regular",
+                        "start_date": "2023-02-09"
+                    }
+                ]
+            },
+            {
+                "name": "20212022",
+                "stages": [
+                    {
+                        "end_date": "2022-05-08",
+                        "name": "regular",
+                        "start_date": "2022-05-05"
+                    }
+                ]
+            }
+        ]
+    },
+    "315": {
+        "id": "315",
+        "name": "4 Nations Women's Tournament U16",
+        "seasons": [
+            {
+                "name": "20232024",
+                "stages": [
+                    {
+                        "end_date": "2024-04-21",
+                        "name": "regular",
+                        "start_date": "2024-04-19"
+                    }
+                ]
+            }
+        ]
+    },
+    "33": {
+        "id": "33",
+        "name": "CHL Top Prospects",
+        "seasons": [
+            {
+                "name": "20232024",
+                "stages": [
+                    {
+                        "end_date": "2024-01-24",
+                        "name": "regular",
+                        "start_date": "2024-01-24"
+                    }
+                ]
+            },
+            {
+                "name": "20222023",
+                "stages": [
+                    {
+                        "end_date": "2023-01-25",
+                        "name": "regular",
+                        "start_date": "2023-01-25"
+                    }
+                ]
+            },
+            {
+                "name": "20212022",
+                "stages": [
+                    {
+                        "end_date": "2022-03-23",
+                        "name": "regular",
+                        "start_date": "2022-03-23"
+                    }
+                ]
+            },
+            {
+                "name": "20192020",
+                "stages": [
+                    {
+                        "end_date": "2020-01-16",
+                        "name": "regular",
+                        "start_date": "2020-01-16"
+                    }
+                ]
+            },
+            {
+                "name": "20182019",
+                "stages": [
+                    {
+                        "end_date": "2019-01-23",
+                        "name": "regular",
+                        "start_date": "2019-01-23"
+                    }
+                ]
+            },
+            {
+                "name": "20172018",
+                "stages": [
+                    {
+                        "end_date": "2018-01-25",
+                        "name": "regular",
+                        "start_date": "2018-01-25"
+                    }
+                ]
+            }
+        ]
+    },
+    "351": {
+        "id": "351",
+        "name": "USA Hockey Camps",
+        "seasons": [
+            {
+                "name": "20242025",
+                "stages": [
+                    {
+                        "end_date": "2025-06-24",
+                        "name": "regular",
+                        "start_date": "2025-06-16"
+                    }
+                ]
+            },
+            {
+                "name": "20232024",
+                "stages": [
+                    {
+                        "end_date": "2024-06-25",
+                        "name": "regular",
+                        "start_date": "2024-06-17"
+                    }
+                ]
+            }
+        ]
+    },
+    "353": {
+        "id": "353",
+        "name": "NCAA Women",
+        "seasons": [
+            {
+                "name": "20242025",
+                "stages": [
+                    {
+                        "end_date": "2025-03-21",
+                        "name": "regular",
+                        "start_date": "2024-09-21"
+                    }
+                ]
+            }
+        ]
+    },
+    "356": {
+        "id": "356",
+        "name": "NCAA Exhibition",
+        "seasons": [
+            {
+                "name": "20242025",
+                "stages": [
+                    {
+                        "end_date": "2025-03-02",
+                        "name": "regular",
+                        "start_date": "2024-10-04"
+                    }
+                ]
+            }
+        ]
+    },
+    "37": {
+        "id": "37",
+        "name": "Mestis",
+        "seasons": [
+            {
+                "name": "20232024",
+                "stages": [
+                    {
+                        "end_date": "2023-10-13",
+                        "name": "regular",
+                        "start_date": "2023-10-11"
+                    }
+                ]
+            },
+            {
+                "name": "20192020",
+                "stages": [
+                    {
+                        "end_date": "2020-01-04",
+                        "name": "regular",
+                        "start_date": "2019-12-11"
+                    }
+                ]
+            },
+            {
+                "name": "20182019",
+                "stages": [
+                    {
+                        "end_date": "2019-01-26",
+                        "name": "regular",
+                        "start_date": "2019-01-23"
+                    }
+                ]
+            },
+            {
+                "name": "20172018",
+                "stages": [
+                    {
+                        "end_date": "2018-03-17",
+                        "name": "regular",
+                        "start_date": "2018-02-07"
+                    }
+                ]
+            }
+        ]
+    },
+    "38": {
+        "id": "38",
+        "name": "SM-Sarja U20",
+        "seasons": [
+            {
+                "name": "20242025",
+                "stages": [
+                    {
+                        "end_date": "2025-04-12",
+                        "name": "playoffs",
+                        "start_date": "2025-03-12"
+                    },
+                    {
+                        "end_date": "2025-03-08",
+                        "name": "regular",
+                        "start_date": "2024-09-06"
+                    }
+                ]
+            },
+            {
+                "name": "20232024",
+                "stages": [
+                    {
+                        "end_date": "2024-04-14",
+                        "name": "playoffs",
+                        "start_date": "2024-03-13"
+                    },
+                    {
+                        "end_date": "2024-03-10",
+                        "name": "regular",
+                        "start_date": "2023-09-01"
+                    }
+                ]
+            },
+            {
+                "name": "20222023",
+                "stages": [
+                    {
+                        "end_date": "2023-04-05",
+                        "name": "playoffs",
+                        "start_date": "2023-03-06"
+                    },
+                    {
+                        "end_date": "2023-03-05",
+                        "name": "regular",
+                        "start_date": "2022-08-31"
+                    }
+                ]
+            },
+            {
+                "name": "20212022",
+                "stages": [
+                    {
+                        "end_date": "2022-03-26",
+                        "name": "regular",
+                        "start_date": "2021-09-18"
+                    }
+                ]
+            },
+            {
+                "name": "20202021",
+                "stages": [
+                    {
+                        "end_date": "2021-04-09",
+                        "name": "regular",
+                        "start_date": "2020-09-11"
+                    }
+                ]
+            },
+            {
+                "name": "20192020",
+                "stages": [
+                    {
+                        "end_date": "2020-03-11",
+                        "name": "regular",
+                        "start_date": "2019-09-13"
+                    }
+                ]
+            },
+            {
+                "name": "20182019",
+                "stages": [
+                    {
+                        "end_date": "2019-03-09",
+                        "name": "playoffs",
+                        "start_date": "2019-03-08"
+                    },
+                    {
+                        "end_date": "2019-03-11",
+                        "name": "regular",
+                        "start_date": "2018-11-23"
+                    }
+                ]
+            },
+            {
+                "name": "20172018",
+                "stages": [
+                    {
+                        "end_date": "2018-04-06",
+                        "name": "regular",
+                        "start_date": "2018-04-02"
+                    },
+                    {
+                        "end_date": "2018-04-01",
+                        "name": "playoffs",
+                        "start_date": "2018-04-01"
+                    }
+                ]
+            }
+        ]
+    },
+    "39": {
+        "id": "39",
+        "name": "IIHF Under 18",
+        "seasons": [
+            {
+                "name": "20242025",
+                "stages": [
+                    {
+                        "end_date": "2025-05-03",
+                        "name": "regular",
+                        "start_date": "2025-04-19"
+                    }
+                ]
+            },
+            {
+                "name": "20232024",
+                "stages": [
+                    {
+                        "end_date": "2024-05-05",
+                        "name": "regular",
+                        "start_date": "2024-04-25"
+                    }
+                ]
+            },
+            {
+                "name": "20222023",
+                "stages": [
+                    {
+                        "end_date": "2023-04-30",
+                        "name": "regular",
+                        "start_date": "2023-04-20"
+                    }
+                ]
+            },
+            {
+                "name": "20212022",
+                "stages": [
+                    {
+                        "end_date": "2022-05-01",
+                        "name": "regular",
+                        "start_date": "2022-04-23"
+                    }
+                ]
+            },
+            {
+                "name": "20202021",
+                "stages": [
+                    {
+                        "end_date": "2021-05-06",
+                        "name": "regular",
+                        "start_date": "2021-04-26"
+                    }
+                ]
+            },
+            {
+                "name": "20182019",
+                "stages": [
+                    {
+                        "end_date": "2019-04-28",
+                        "name": "playoffs",
+                        "start_date": "2019-04-18"
+                    }
+                ]
+            },
+            {
+                "name": "20172018",
+                "stages": [
+                    {
+                        "end_date": "2018-04-29",
+                        "name": "regular",
+                        "start_date": "2018-04-19"
+                    }
+                ]
+            }
+        ]
+    },
+    "390": {
+        "id": "390",
+        "name": "Rivalry Series",
+        "seasons": [
+            {
+                "name": "20242025",
+                "stages": [
+                    {
+                        "end_date": "2025-02-08",
+                        "name": "regular",
+                        "start_date": "2024-11-06"
+                    }
+                ]
+            },
+            {
+                "name": "20232024",
+                "stages": [
+                    {
+                        "end_date": "2024-02-11",
+                        "name": "regular",
+                        "start_date": "2023-11-08"
+                    }
+                ]
+            },
+            {
+                "name": "20222023",
+                "stages": [
+                    {
+                        "end_date": "2023-02-22",
+                        "name": "regular",
+                        "start_date": "2022-11-15"
+                    }
+                ]
+            },
+            {
+                "name": "20212022",
+                "stages": [
+                    {
+                        "end_date": "2021-12-17",
+                        "name": "regular",
+                        "start_date": "2021-10-22"
+                    }
+                ]
+            },
+            {
+                "name": "20192020",
+                "stages": [
+                    {
+                        "end_date": "2020-02-08",
+                        "name": "regular",
+                        "start_date": "2019-12-14"
+                    }
+                ]
+            }
+        ]
+    },
+    "391": {
+        "id": "391",
+        "name": "U16 Women's Hockey Events",
+        "seasons": [
+            {
+                "name": "20242025",
+                "stages": [
+                    {
+                        "end_date": "2025-04-20",
+                        "name": "regular",
+                        "start_date": "2024-11-29"
+                    }
+                ]
+            }
+        ]
+    },
+    "392": {
+        "id": "392",
+        "name": "4 Nations Face-Off",
+        "seasons": [
+            {
+                "name": "20242025",
+                "stages": [
+                    {
+                        "end_date": "2025-02-20",
+                        "name": "regular",
+                        "start_date": "2025-02-12"
+                    }
+                ]
+            }
+        ]
+    },
+    "393": {
+        "id": "393",
+        "name": "6 Nations Tournament U17",
+        "seasons": [
+            {
+                "name": "20242025",
+                "stages": [
+                    {
+                        "end_date": "2024-12-15",
+                        "name": "regular",
+                        "start_date": "2024-12-11"
+                    }
+                ]
+            }
+        ]
+    },
+    "394": {
+        "id": "394",
+        "name": "5 Nations Tournament U16",
+        "seasons": [
+            {
+                "name": "20242025",
+                "stages": [
+                    {
+                        "end_date": "2025-02-07",
+                        "name": "regular",
+                        "start_date": "2025-02-04"
+                    }
+                ]
+            }
+        ]
+    },
+    "4": {
+        "id": "4",
+        "name": "USHL",
+        "seasons": [
+            {
+                "name": "20252026",
+                "stages": [
+                    {
+                        "end_date": "2025-09-17",
+                        "name": "regular",
+                        "start_date": "2025-09-17"
+                    }
+                ]
+            },
+            {
+                "name": "20242025",
+                "stages": [
+                    {
+                        "end_date": "2025-05-20",
+                        "name": "playoffs",
+                        "start_date": "2025-04-14"
+                    },
+                    {
+                        "end_date": "2025-04-12",
+                        "name": "regular",
+                        "start_date": "2024-09-18"
+                    }
+                ]
+            },
+            {
+                "name": "20232024",
+                "stages": [
+                    {
+                        "end_date": "2024-05-18",
+                        "name": "playoffs",
+                        "start_date": "2024-04-15"
+                    },
+                    {
+                        "end_date": "2024-04-13",
+                        "name": "regular",
+                        "start_date": "2023-09-20"
+                    },
+                    {
+                        "end_date": "2023-09-16",
+                        "name": "preseason",
+                        "start_date": "2023-09-08"
+                    }
+                ]
+            },
+            {
+                "name": "20222023",
+                "stages": [
+                    {
+                        "end_date": "2023-05-19",
+                        "name": "playoffs",
+                        "start_date": "2023-04-24"
+                    },
+                    {
+                        "end_date": "2023-04-22",
+                        "name": "regular",
+                        "start_date": "2022-09-22"
+                    },
+                    {
+                        "end_date": "2022-09-16",
+                        "name": "preseason",
+                        "start_date": "2022-09-08"
+                    }
+                ]
+            },
+            {
+                "name": "20212022",
+                "stages": [
+                    {
+                        "end_date": "2022-05-21",
+                        "name": "playoffs",
+                        "start_date": "2022-04-25"
+                    },
+                    {
+                        "end_date": "2022-04-23",
+                        "name": "regular",
+                        "start_date": "2021-09-23"
+                    },
+                    {
+                        "end_date": "2021-09-19",
+                        "name": "preseason",
+                        "start_date": "2021-09-10"
+                    }
+                ]
+            },
+            {
+                "name": "20202021",
+                "stages": [
+                    {
+                        "end_date": "2021-05-22",
+                        "name": "playoffs",
+                        "start_date": "2021-04-30"
+                    },
+                    {
+                        "end_date": "2021-04-24",
+                        "name": "regular",
+                        "start_date": "2020-11-06"
+                    },
+                    {
+                        "end_date": "2020-10-30",
+                        "name": "preseason",
+                        "start_date": "2020-10-16"
+                    }
+                ]
+            },
+            {
+                "name": "20192020",
+                "stages": [
+                    {
+                        "end_date": "2020-03-11",
+                        "name": "regular",
+                        "start_date": "2019-09-26"
+                    }
+                ]
+            },
+            {
+                "name": "20182019",
+                "stages": [
+                    {
+                        "end_date": "2019-04-23",
+                        "name": "playoffs",
+                        "start_date": "2019-04-20"
+                    },
+                    {
+                        "end_date": "2019-04-24",
+                        "name": "regular",
+                        "start_date": "2018-09-29"
+                    }
+                ]
+            },
+            {
+                "name": "20172018",
+                "stages": [
+                    {
+                        "end_date": "2018-03-31",
+                        "name": "regular",
+                        "start_date": "2017-10-20"
+                    },
+                    {
+                        "end_date": "2017-09-30",
+                        "name": "preseason",
+                        "start_date": "2017-09-29"
+                    }
+                ]
+            }
+        ]
+    },
+    "40": {
+        "id": "40",
+        "name": "5 Nations Tournament U18",
+        "seasons": [
+            {
+                "name": "20242025",
+                "stages": [
+                    {
+                        "end_date": "2025-02-09",
+                        "name": "regular",
+                        "start_date": "2024-11-06"
+                    }
+                ]
+            },
+            {
+                "name": "20232024",
+                "stages": [
+                    {
+                        "end_date": "2024-02-10",
+                        "name": "regular",
+                        "start_date": "2023-11-08"
+                    }
+                ]
+            },
+            {
+                "name": "20222023",
+                "stages": [
+                    {
+                        "end_date": "2022-11-12",
+                        "name": "regular",
+                        "start_date": "2022-11-08"
+                    }
+                ]
+            },
+            {
+                "name": "20212022",
+                "stages": [
+                    {
+                        "end_date": "2021-11-14",
+                        "name": "regular",
+                        "start_date": "2021-11-10"
+                    }
+                ]
+            },
+            {
+                "name": "20192020",
+                "stages": [
+                    {
+                        "end_date": "2020-02-09",
+                        "name": "regular",
+                        "start_date": "2019-11-06"
+                    }
+                ]
+            },
+            {
+                "name": "20182019",
+                "stages": [
+                    {
+                        "end_date": "2019-02-09",
+                        "name": "regular",
+                        "start_date": "2018-11-07"
+                    }
+                ]
+            },
+            {
+                "name": "20172018",
+                "stages": [
+                    {
+                        "end_date": "2018-02-17",
+                        "name": "regular",
+                        "start_date": "2018-02-13"
+                    }
+                ]
+            }
+        ]
+    },
+    "43": {
+        "id": "43",
+        "name": "2018 World Junior Showcase",
+        "seasons": [
+            {
+                "name": "20182019",
+                "stages": [
+                    {
+                        "end_date": "2018-08-04",
+                        "name": "regular",
+                        "start_date": "2018-08-02"
+                    }
+                ]
+            }
+        ]
+    },
+    "48": {
+        "id": "48",
+        "name": "USA Hockey All American Prospects Game",
+        "seasons": [
+            {
+                "name": "20242025",
+                "stages": [
+                    {
+                        "end_date": "2025-01-16",
+                        "name": "regular",
+                        "start_date": "2025-01-16"
+                    }
+                ]
+            },
+            {
+                "name": "20232024",
+                "stages": [
+                    {
+                        "end_date": "2024-01-15",
+                        "name": "regular",
+                        "start_date": "2024-01-15"
+                    }
+                ]
+            },
+            {
+                "name": "20222023",
+                "stages": [
+                    {
+                        "end_date": "2023-01-16",
+                        "name": "regular",
+                        "start_date": "2023-01-16"
+                    }
+                ]
+            },
+            {
+                "name": "20212022",
+                "stages": [
+                    {
+                        "end_date": "2022-01-17",
+                        "name": "regular",
+                        "start_date": "2022-01-17"
+                    }
+                ]
+            },
+            {
+                "name": "20202021",
+                "stages": [
+                    {
+                        "end_date": "2021-04-07",
+                        "name": "regular",
+                        "start_date": "2021-04-07"
+                    }
+                ]
+            },
+            {
+                "name": "20192020",
+                "stages": [
+                    {
+                        "end_date": "2020-01-20",
+                        "name": "regular",
+                        "start_date": "2020-01-20"
+                    }
+                ]
+            },
+            {
+                "name": "20182019",
+                "stages": [
+                    {
+                        "end_date": "2018-09-19",
+                        "name": "regular",
+                        "start_date": "2018-09-19"
+                    }
+                ]
+            }
+        ]
+    },
+    "49": {
+        "id": "49",
+        "name": "DEL",
+        "seasons": [
+            {
+                "name": "20192020",
+                "stages": [
+                    {
+                        "end_date": "2020-03-08",
+                        "name": "regular",
+                        "start_date": "2019-09-20"
+                    }
+                ]
+            },
+            {
+                "name": "20182019",
+                "stages": [
+                    {
+                        "end_date": "2019-03-24",
+                        "name": "regular",
+                        "start_date": "2018-09-14"
+                    }
+                ]
+            }
+        ]
+    },
+    "50": {
+        "id": "50",
+        "name": "VHL",
+        "seasons": [
+            {
+                "name": "20242025",
+                "stages": [
+                    {
+                        "end_date": "2025-05-27",
+                        "name": "playoffs",
+                        "start_date": "2025-03-22"
+                    },
+                    {
+                        "end_date": "2025-03-18",
+                        "name": "regular",
+                        "start_date": "2024-09-02"
+                    }
+                ]
+            },
+            {
+                "name": "20232024",
+                "stages": [
+                    {
+                        "end_date": "2023-12-24",
+                        "name": "regular",
+                        "start_date": "2023-10-01"
+                    }
+                ]
+            },
+            {
+                "name": "20222023",
+                "stages": [
+                    {
+                        "end_date": "2023-02-17",
+                        "name": "regular",
+                        "start_date": "2022-09-13"
+                    }
+                ]
+            },
+            {
+                "name": "20212022",
+                "stages": [
+                    {
+                        "end_date": "2022-01-21",
+                        "name": "regular",
+                        "start_date": "2021-09-09"
+                    }
+                ]
+            },
+            {
+                "name": "20202021",
+                "stages": [
+                    {
+                        "end_date": "2021-02-17",
+                        "name": "regular",
+                        "start_date": "2020-09-18"
+                    }
+                ]
+            },
+            {
+                "name": "20192020",
+                "stages": [
+                    {
+                        "end_date": "2020-02-27",
+                        "name": "regular",
+                        "start_date": "2019-11-23"
+                    }
+                ]
+            },
+            {
+                "name": "20182019",
+                "stages": [
+                    {
+                        "end_date": "2019-03-23",
+                        "name": "regular",
+                        "start_date": "2018-10-17"
+                    }
+                ]
+            }
+        ]
+    },
+    "52": {
+        "id": "52",
+        "name": "Karjala Tournament",
+        "seasons": [
+            {
+                "name": "20242025",
+                "stages": [
+                    {
+                        "end_date": "2024-11-10",
+                        "name": "regular",
+                        "start_date": "2024-11-07"
+                    }
+                ]
+            },
+            {
+                "name": "20232024",
+                "stages": [
+                    {
+                        "end_date": "2023-11-12",
+                        "name": "regular",
+                        "start_date": "2023-11-09"
+                    }
+                ]
+            },
+            {
+                "name": "20222023",
+                "stages": [
+                    {
+                        "end_date": "2022-11-13",
+                        "name": "regular",
+                        "start_date": "2022-11-10"
+                    }
+                ]
+            },
+            {
+                "name": "20212022",
+                "stages": [
+                    {
+                        "end_date": "2021-11-14",
+                        "name": "regular",
+                        "start_date": "2021-11-10"
+                    }
+                ]
+            },
+            {
+                "name": "20202021",
+                "stages": [
+                    {
+                        "end_date": "2020-11-08",
+                        "name": "regular",
+                        "start_date": "2020-11-05"
+                    }
+                ]
+            },
+            {
+                "name": "20182019",
+                "stages": [
+                    {
+                        "end_date": "2018-11-11",
+                        "name": "regular",
+                        "start_date": "2018-11-08"
+                    }
+                ]
+            }
+        ]
+    },
+    "53": {
+        "id": "53",
+        "name": "CHL  Russia Series",
+        "seasons": [
+            {
+                "name": "20192020",
+                "stages": [
+                    {
+                        "end_date": "2019-11-14",
+                        "name": "regular",
+                        "start_date": "2019-11-04"
+                    }
+                ]
+            },
+            {
+                "name": "20182019",
+                "stages": [
+                    {
+                        "end_date": "2018-11-15",
+                        "name": "regular",
+                        "start_date": "2018-11-05"
+                    }
+                ]
+            }
+        ]
+    },
+    "54": {
+        "id": "54",
+        "name": "World Junior A Challenge",
+        "seasons": [
+            {
+                "name": "20242025",
+                "stages": [
+                    {
+                        "end_date": "2024-12-15",
+                        "name": "regular",
+                        "start_date": "2024-12-07"
+                    }
+                ]
+            },
+            {
+                "name": "20232024",
+                "stages": [
+                    {
+                        "end_date": "2023-12-17",
+                        "name": "regular",
+                        "start_date": "2023-12-08"
+                    }
+                ]
+            },
+            {
+                "name": "20222023",
+                "stages": [
+                    {
+                        "end_date": "2022-12-18",
+                        "name": "regular",
+                        "start_date": "2022-12-08"
+                    }
+                ]
+            },
+            {
+                "name": "20192020",
+                "stages": [
+                    {
+                        "end_date": "2019-12-15",
+                        "name": "regular",
+                        "start_date": "2019-12-07"
+                    }
+                ]
+            },
+            {
+                "name": "20182019",
+                "stages": [
+                    {
+                        "end_date": "2018-12-16",
+                        "name": "regular",
+                        "start_date": "2018-12-09"
+                    }
+                ]
+            }
+        ]
+    },
+    "55": {
+        "id": "55",
+        "name": "Channel One Cup",
+        "seasons": [
+            {
+                "name": "20212022",
+                "stages": [
+                    {
+                        "end_date": "2021-12-19",
+                        "name": "regular",
+                        "start_date": "2021-12-15"
+                    }
+                ]
+            },
+            {
+                "name": "20182019",
+                "stages": [
+                    {
+                        "end_date": "2018-12-16",
+                        "name": "regular",
+                        "start_date": "2018-12-13"
+                    }
+                ]
+            }
+        ]
+    },
+    "56": {
+        "id": "56",
+        "name": "Sweden J20 Nationell",
+        "seasons": [
+            {
+                "name": "20242025",
+                "stages": [
+                    {
+                        "end_date": "2025-04-11",
+                        "name": "playoffs",
+                        "start_date": "2025-03-13"
+                    },
+                    {
+                        "end_date": "2025-04-13",
+                        "name": "regular",
+                        "start_date": "2024-09-06"
+                    }
+                ]
+            },
+            {
+                "name": "20232024",
+                "stages": [
+                    {
+                        "end_date": "2024-04-12",
+                        "name": "playoffs",
+                        "start_date": "2024-03-14"
+                    },
+                    {
+                        "end_date": "2024-04-14",
+                        "name": "regular",
+                        "start_date": "2023-09-02"
+                    }
+                ]
+            },
+            {
+                "name": "20222023",
+                "stages": [
+                    {
+                        "end_date": "2023-04-12",
+                        "name": "playoffs",
+                        "start_date": "2023-03-16"
+                    },
+                    {
+                        "end_date": "2023-03-19",
+                        "name": "regular",
+                        "start_date": "2022-09-07"
+                    }
+                ]
+            },
+            {
+                "name": "20212022",
+                "stages": [
+                    {
+                        "end_date": "2022-04-10",
+                        "name": "regular",
+                        "start_date": "2021-09-10"
+                    }
+                ]
+            },
+            {
+                "name": "20202021",
+                "stages": [
+                    {
+                        "end_date": "2020-11-01",
+                        "name": "regular",
+                        "start_date": "2020-09-13"
+                    }
+                ]
+            },
+            {
+                "name": "20192020",
+                "stages": [
+                    {
+                        "end_date": "2020-03-08",
+                        "name": "regular",
+                        "start_date": "2019-10-06"
+                    }
+                ]
+            },
+            {
+                "name": "20182019",
+                "stages": [
+                    {
+                        "end_date": "2019-04-07",
+                        "name": "playoffs",
+                        "start_date": "2019-03-22"
+                    },
+                    {
+                        "end_date": "2019-03-27",
+                        "name": "regular",
+                        "start_date": "2018-10-27"
+                    }
+                ]
+            }
+        ]
+    },
+    "57": {
+        "id": "57",
+        "name": "Tipos Extraliga",
+        "seasons": [
+            {
+                "name": "20242025",
+                "stages": [
+                    {
+                        "end_date": "2025-03-02",
+                        "name": "regular",
+                        "start_date": "2024-10-13"
+                    }
+                ]
+            },
+            {
+                "name": "20222023",
+                "stages": [
+                    {
+                        "end_date": "2022-12-04",
+                        "name": "regular",
+                        "start_date": "2022-10-21"
+                    }
+                ]
+            },
+            {
+                "name": "20212022",
+                "stages": [
+                    {
+                        "end_date": "2022-04-04",
+                        "name": "regular",
+                        "start_date": "2021-09-28"
+                    }
+                ]
+            },
+            {
+                "name": "20182019",
+                "stages": [
+                    {
+                        "end_date": "2018-12-05",
+                        "name": "regular",
+                        "start_date": "2018-11-29"
+                    }
+                ]
+            }
+        ]
+    },
+    "58": {
+        "id": "58",
+        "name": "Champions Hockey League",
+        "seasons": [
+            {
+                "name": "20182019",
+                "stages": [
+                    {
+                        "end_date": "2019-02-05",
+                        "name": "regular",
+                        "start_date": "2019-02-05"
+                    }
+                ]
+            }
+        ]
+    },
+    "6": {
+        "id": "6",
+        "name": "NCAA",
+        "seasons": [
+            {
+                "name": "20252026",
+                "stages": [
+                    {
+                        "end_date": "2025-10-03",
+                        "name": "regular",
+                        "start_date": "2025-10-03"
+                    }
+                ]
+            },
+            {
+                "name": "20242025",
+                "stages": [
+                    {
+                        "end_date": "2025-04-12",
+                        "name": "regular",
+                        "start_date": "2024-10-04"
+                    }
+                ]
+            },
+            {
+                "name": "20232024",
+                "stages": [
+                    {
+                        "end_date": "2024-04-13",
+                        "name": "regular",
+                        "start_date": "2023-09-30"
+                    }
+                ]
+            },
+            {
+                "name": "20222023",
+                "stages": [
+                    {
+                        "end_date": "2023-04-08",
+                        "name": "regular",
+                        "start_date": "2022-10-01"
+                    }
+                ]
+            },
+            {
+                "name": "20212022",
+                "stages": [
+                    {
+                        "end_date": "2022-04-09",
+                        "name": "regular",
+                        "start_date": "2021-10-02"
+                    }
+                ]
+            },
+            {
+                "name": "20202021",
+                "stages": [
+                    {
+                        "end_date": "2021-03-26",
+                        "name": "regular",
+                        "start_date": "2020-11-14"
+                    }
+                ]
+            },
+            {
+                "name": "20192020",
+                "stages": [
+                    {
+                        "end_date": "2020-02-29",
+                        "name": "regular",
+                        "start_date": "2019-10-26"
+                    }
+                ]
+            },
+            {
+                "name": "20182019",
+                "stages": [
+                    {
+                        "end_date": "2019-04-11",
+                        "name": "regular",
+                        "start_date": "2018-10-13"
+                    }
+                ]
+            },
+            {
+                "name": "20172018",
+                "stages": [
+                    {
+                        "end_date": "2018-03-25",
+                        "name": "regular",
+                        "start_date": "2017-10-23"
+                    }
+                ]
+            }
+        ]
+    },
+    "7": {
+        "id": "7",
+        "name": "WHL",
+        "seasons": [
+            {
+                "name": "20252026",
+                "stages": [
+                    {
+                        "end_date": "2025-09-19",
+                        "name": "regular",
+                        "start_date": "2025-09-19"
+                    }
+                ]
+            },
+            {
+                "name": "20242025",
+                "stages": [
+                    {
+                        "end_date": "2025-05-16",
+                        "name": "playoffs",
+                        "start_date": "2025-03-28"
+                    },
+                    {
+                        "end_date": "2025-03-23",
+                        "name": "regular",
+                        "start_date": "2024-09-20"
+                    }
+                ]
+            },
+            {
+                "name": "20232024",
+                "stages": [
+                    {
+                        "end_date": "2024-05-15",
+                        "name": "playoffs",
+                        "start_date": "2024-03-28"
+                    },
+                    {
+                        "end_date": "2024-03-24",
+                        "name": "regular",
+                        "start_date": "2023-09-22"
+                    }
+                ]
+            },
+            {
+                "name": "20222023",
+                "stages": [
+                    {
+                        "end_date": "2023-05-19",
+                        "name": "playoffs",
+                        "start_date": "2023-03-31"
+                    },
+                    {
+                        "end_date": "2023-03-26",
+                        "name": "regular",
+                        "start_date": "2022-09-23"
+                    }
+                ]
+            },
+            {
+                "name": "20212022",
+                "stages": [
+                    {
+                        "end_date": "2022-06-13",
+                        "name": "playoffs",
+                        "start_date": "2022-04-21"
+                    },
+                    {
+                        "end_date": "2022-04-17",
+                        "name": "regular",
+                        "start_date": "2021-10-01"
+                    }
+                ]
+            },
+            {
+                "name": "20202021",
+                "stages": [
+                    {
+                        "end_date": "2021-05-12",
+                        "name": "regular",
+                        "start_date": "2021-02-26"
+                    }
+                ]
+            },
+            {
+                "name": "20192020",
+                "stages": [
+                    {
+                        "end_date": "2020-03-11",
+                        "name": "regular",
+                        "start_date": "2019-09-20"
+                    }
+                ]
+            },
+            {
+                "name": "20182019",
+                "stages": [
+                    {
+                        "end_date": "2019-04-24",
+                        "name": "playoffs",
+                        "start_date": "2019-03-26"
+                    },
+                    {
+                        "end_date": "2019-04-09",
+                        "name": "regular",
+                        "start_date": "2018-09-21"
+                    }
+                ]
+            },
+            {
+                "name": "20172018",
+                "stages": [
+                    {
+                        "end_date": "2018-03-17",
+                        "name": "regular",
+                        "start_date": "2017-10-14"
+                    }
+                ]
+            }
+        ]
+    },
+    "9": {
+        "id": "9",
+        "name": "QMJHL",
+        "seasons": [
+            {
+                "name": "20252026",
+                "stages": [
+                    {
+                        "end_date": "2025-09-18",
+                        "name": "regular",
+                        "start_date": "2025-09-18"
+                    }
+                ]
+            },
+            {
+                "name": "20242025",
+                "stages": [
+                    {
+                        "end_date": "2025-05-19",
+                        "name": "playoffs",
+                        "start_date": "2025-03-27"
+                    },
+                    {
+                        "end_date": "2025-03-22",
+                        "name": "regular",
+                        "start_date": "2024-09-20"
+                    }
+                ]
+            },
+            {
+                "name": "20232024",
+                "stages": [
+                    {
+                        "end_date": "2024-05-14",
+                        "name": "playoffs",
+                        "start_date": "2024-03-29"
+                    },
+                    {
+                        "end_date": "2024-03-23",
+                        "name": "regular",
+                        "start_date": "2023-09-22"
+                    }
+                ]
+            },
+            {
+                "name": "20222023",
+                "stages": [
+                    {
+                        "end_date": "2023-05-21",
+                        "name": "playoffs",
+                        "start_date": "2023-03-31"
+                    },
+                    {
+                        "end_date": "2023-03-25",
+                        "name": "regular",
+                        "start_date": "2022-09-22"
+                    }
+                ]
+            },
+            {
+                "name": "20212022",
+                "stages": [
+                    {
+                        "end_date": "2022-06-11",
+                        "name": "playoffs",
+                        "start_date": "2022-05-05"
+                    },
+                    {
+                        "end_date": "2022-05-01",
+                        "name": "regular",
+                        "start_date": "2021-10-01"
+                    }
+                ]
+            },
+            {
+                "name": "20202021",
+                "stages": [
+                    {
+                        "end_date": "2021-06-05",
+                        "name": "playoffs",
+                        "start_date": "2021-04-20"
+                    },
+                    {
+                        "end_date": "2021-04-18",
+                        "name": "regular",
+                        "start_date": "2020-10-02"
+                    }
+                ]
+            },
+            {
+                "name": "20192020",
+                "stages": [
+                    {
+                        "end_date": "2020-03-11",
+                        "name": "regular",
+                        "start_date": "2019-09-19"
+                    }
+                ]
+            },
+            {
+                "name": "20182019",
+                "stages": [
+                    {
+                        "end_date": "2019-04-09",
+                        "name": "playoffs",
+                        "start_date": "2019-03-23"
+                    },
+                    {
+                        "end_date": "2019-04-02",
+                        "name": "regular",
+                        "start_date": "2018-09-21"
+                    }
+                ]
+            },
+            {
+                "name": "20172018",
+                "stages": [
+                    {
+                        "end_date": "2018-03-17",
+                        "name": "regular",
+                        "start_date": "2017-11-09"
+                    }
+                ]
+            }
+        ]
+    },
+    "96": {
+        "id": "96",
+        "name": "3 Nations Tournament",
+        "seasons": [
+            {
+                "name": "20232024",
+                "stages": [
+                    {
+                        "end_date": "2024-02-11",
+                        "name": "regular",
+                        "start_date": "2024-02-06"
+                    }
+                ]
+            },
+            {
+                "name": "20222023",
+                "stages": [
+                    {
+                        "end_date": "2023-02-11",
+                        "name": "regular",
+                        "start_date": "2023-02-07"
+                    }
+                ]
+            },
+            {
+                "name": "20192020",
+                "stages": [
+                    {
+                        "end_date": "2019-07-23",
+                        "name": "regular",
+                        "start_date": "2019-07-22"
+                    }
+                ]
+            }
+        ]
+    },
+    "97": {
+        "id": "97",
+        "name": "World Junior Summer Showcase",
+        "seasons": [
+            {
+                "name": "20252026",
+                "stages": [
+                    {
+                        "end_date": "2025-07-28",
+                        "name": "regular",
+                        "start_date": "2025-07-27"
+                    }
+                ]
+            },
+            {
+                "name": "20242025",
+                "stages": [
+                    {
+                        "end_date": "2024-08-03",
+                        "name": "regular",
+                        "start_date": "2024-07-28"
+                    }
+                ]
+            },
+            {
+                "name": "20232024",
+                "stages": [
+                    {
+                        "end_date": "2023-08-04",
+                        "name": "regular",
+                        "start_date": "2023-07-29"
+                    }
+                ]
+            },
+            {
+                "name": "20192020",
+                "stages": [
+                    {
+                        "end_date": "2019-08-03",
+                        "name": "regular",
+                        "start_date": "2019-07-27"
+                    }
+                ]
+            }
+        ]
+    },
+    "99": {
+        "id": "99",
+        "name": "Under-18 Women's World Championship",
+        "seasons": [
+            {
+                "name": "20242025",
+                "stages": [
+                    {
+                        "end_date": "2025-01-12",
+                        "name": "regular",
+                        "start_date": "2025-01-04"
+                    }
+                ]
+            },
+            {
+                "name": "20232024",
+                "stages": [
+                    {
+                        "end_date": "2024-01-14",
+                        "name": "regular",
+                        "start_date": "2024-01-06"
+                    }
+                ]
+            },
+            {
+                "name": "20192020",
+                "stages": [
+                    {
+                        "end_date": "2020-01-01",
+                        "name": "regular",
+                        "start_date": "2019-08-14"
+                    }
+                ]
+            }
+        ]
+    }
+}

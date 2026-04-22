@@ -10,6 +10,7 @@ from pathlib import Path
 from tqdm import tqdm
 from hockey.helpers.pretty_print import *
 from datetime import datetime
+from hockey.io.raw_competition import RawCompetition
 settings = Settings.from_env(project_root=Path(__file__).resolve().parent)
 import pandas as pd
 from sqlalchemy import create_engine
@@ -26,7 +27,8 @@ def get_table_columns(cursor, table_name):
 
 
 def ingest_game(games):
-    db = database.open_database()
+    #db = database.open_database()
+    db = database.open_database_azure()
     cursor = db.cursor()
     #columns = ['id', 'home_team', 'away_team', 'score', 'date']  # your actual column names
     #columns = get_table_columns(cursor, 'game')
@@ -49,7 +51,10 @@ def ingest_game(games):
             'event_status': record['event_status'],
             'sl_reference_id': record['reference_id'],
             'sl_reference_name': record['reference_name'],
-            'last_metrics_full_process_time': datetime.fromisoformat(record['last_metrics_full_process_time'].replace('Z', '+00:00'))
+            'last_metrics_full_process_time': datetime.fromisoformat(record['last_metrics_full_process_time'].replace('Z', '+00:00')),
+            'home_team_goals': record['score'][record['home_team_id']],
+            'away_team_goals': record['score'][record['away_team_id']]
+
         }
         try:
             # Build the SQL dynamically
@@ -79,5 +84,6 @@ if __name__ == "__main__":
     # TODO: Replace with your Azure tenant ID
 
     #leagues = json.load(open("/home/veronica/hockeystats/ver3/leagues/leagues.json", "r"))
-    game = json.load(open(settings.data_root_dir / 'leagues' / '13' / '20252026' / 'games.json' ))
+
+    game = json.load(open(settings.data_root_dir / 'leagues' / '213' / '20242025' / 'games.json' ))
     ingest_game(game)

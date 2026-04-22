@@ -13,12 +13,12 @@ def open_database(db_name="hockeystats_ver3"):
     )
     return stats_db
 
-def open_database_azure(db_name="hockeystats_ver3"):
+def open_database_azure(db_name="sportlogiq"):
     stats_db = mysql.connector.connect(
-        host="localhost",
-        user="apa",
+        host="mysql-flex-public.mysql.database.azure.com",
+        user="mysqladmin",
         auth_plugin='mysql_native_password',
-        password="apa",
+        password="B1llyfjant.1",
         database=db_name,
     )
     return stats_db
@@ -26,10 +26,14 @@ def open_database_azure(db_name="hockeystats_ver3"):
 def sqlalchemy_engine():
     #engine = create_engine("mysql://localhost/mysql/mysql-5.1.1-10.1.")
     engine = create_engine("mysql+mysqlconnector://apa:apa@localhost:3306/hockeystats_ver3")
-    # engine = create_engine(
-    #     f"mysql+mysqlconnector://mysqladmin:B1llyfjant.1@mysql-flex-public.mysql.database.azure.com:3306/your_database",
-    #     connect_args={"ssl_ca": "~/DigiCertGlobalRootCA.crt.pem"}
-    # )
+    return engine
+
+def sqlalchemy_engine_azure():
+    #engine = create_engine("mysql://localhost/mysql/mysql-5.1.1-10.1.")
+    engine = create_engine(
+        f"mysql+mysqlconnector://mysqladmin:B1llyfjant.1@mysql-flex-public.mysql.database.azure.com:3306/sportlogiq",
+        connect_args={"ssl_ca": "~/DigiCertGlobalRootCA.crt.pem"}
+    )
     return engine
 
 def create_map(table, cursor=None, values: list[int] = None):

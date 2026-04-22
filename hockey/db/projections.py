@@ -19,6 +19,7 @@ def game_row(game: Game) -> dict:
         "away_team_sl_id": i.away_team.id,
         "home_team_display": i.home_team.display_name,
         "away_team_display": i.away_team.display_name,
+        ""
     }
 
 

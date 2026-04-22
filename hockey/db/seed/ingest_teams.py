@@ -36,7 +36,8 @@ def ingest_teams(teams: List[Dict]):
         tenant_id: Azure tenant ID (optional)
     """
 
-    db = database.open_database()
+    #db = database.open_database()
+    db = database.open_database_azure()
     cursor = db.cursor()
     ctr=0
 

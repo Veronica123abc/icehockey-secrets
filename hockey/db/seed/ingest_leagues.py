@@ -30,7 +30,8 @@ def ingest_leagues(league_records: List[Dict]):
         tenant_id: Azure tenant ID (optional)
     """
 
-    db = database.open_database()
+    #db = database.open_database()
+    db = database.open_database_azure()
     cursor = db.cursor()
     try:
         for record in league_records:

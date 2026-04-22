@@ -24,7 +24,8 @@ __all__ = [
 ]
 
 def ingest_events(game: Game):
-    db = database.open_database()
+    #db = database.open_database()
+    db = database.open_database_azure()
     cursor = db.cursor()
     player_map = database.create_map('player', cursor)
     team_map = database.create_map('team', cursor)
@@ -67,17 +68,23 @@ def ingest_events(game: Game):
     df['team'] = df['team'].fillna('').apply(lambda x: team_map.get(x) if x else None)
     #df['game_id'] = df['game_id'].fillna('').apply(lambda x: game_map.get(x) if x else None)
     df['team_in_possession'] = df['team_in_possession'].fillna('').apply(lambda x: team_map.get(x) if x else None)
-    df.insert(0, "game_id", [game_map.get(e.game_id) for e in game.events])
+    df.insert(0, "game_id", [game_map.get(int(e.game_id)) for e in game.events])
     columns = database.get_table_columns('event', cursor)
     df.drop([c for c in df.columns if c not in columns], axis='columns', inplace=True)
-    engine = create_engine(
-        "mysql+mysqlconnector://apa:apa@localhost:3306/hockeystats_ver3"
-    )
-    engine = database.sqlalchemy_engine()
-    df.to_sql('event', engine, if_exists='append', index=False)
+
+
+    engine = database.sqlalchemy_engine_azure()
+    try:
+        df.to_sql('event', engine, if_exists='append', index=False)
+    except Exception as e:
+        print(f"Failed to ingest events for game {game.game_id} to database\n {e}")
+
 
 
 if __name__ == "__main__":
-    raw = RawGame(game_id=202403, root_dir=settings.data_root_dir)
-    game = build_game(raw)
-    ingest_events(game)
+    games = json.load(open(settings.data_root_dir / 'leagues' / '213' / '20242025' / 'games.json'))
+    game_ids = [g['id'] for g in games['games']]
+    for game in [170659]: #tqmd(game)_ids: #[:1]:
+        raw = RawGame(game_id=game, root_dir=settings.data_root_dir)
+        game = build_game(raw)
+        ingest_events(game)
