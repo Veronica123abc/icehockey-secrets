@@ -49,8 +49,10 @@ def ingest_players(players: List[Dict]):
 
 
 if __name__ == "__main__":
-    # TODO: Replace with your Azure tenant ID
+    from hockey.catalog import DataCatalog
 
-    #leagues = json.load(open("/home/veronica/hockeystats/ver3/leagues/leagues.json", "r"))
-    players = json.load(open(settings.data_root_dir / 'leagues' / '213' / '20242025' / 'players.json' ))
-    ingest_players(players['players'])
+    LEAGUE_ID = 213
+    SEASON = "20242025"
+
+    catalog = DataCatalog(settings.data_root_dir)
+    ingest_players(catalog.season_players(LEAGUE_ID, SEASON))

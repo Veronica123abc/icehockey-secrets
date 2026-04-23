@@ -22,6 +22,7 @@ Thumbs.db
 .azure/
 
 # Claude Code (keep settings.json, ignore personal/generated files)
+.claude
 .claude/settings.local.json
 .claude/memory/
 .claude/todos/

@@ -74,8 +74,7 @@ def ingest_teams(teams: List[Dict]):
 
 
 if __name__ == "__main__":
-    # TODO: Replace with your Azure tenant ID
+    from hockey.catalog import DataCatalog
 
-    #leagues = json.load(open("/home/veronica/hockeystats/ver3/leagues/leagues.json", "r"))
-    teams = json.load(open(settings.data_root_dir / 'teams.json' ))
-    ingest_teams(teams['teams'])
+    catalog = DataCatalog(settings.data_root_dir)
+    ingest_teams(catalog.teams())

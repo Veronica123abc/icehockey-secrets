@@ -58,7 +58,15 @@ def ingest_shifts(game:Game):
 
 
 if __name__ == "__main__":
+    from hockey.catalog import DataCatalog
 
-    raw = RawGame(game_id=202403, root_dir=settings.data_root_dir)
-    game = build_game(raw)
-    ingest_shifts(game)
+    LEAGUE_ID = 213
+    SEASON = "20242025"
+
+    catalog = DataCatalog(settings.data_root_dir)
+    for game_id in catalog.scheduled_game_ids(LEAGUE_ID, SEASON):
+        try:
+            game = build_game(catalog.raw_game(game_id))
+            ingest_shifts(game)
+        except Exception as e:
+            print(f"Skipping game {game_id}: {e}")

@@ -1,46 +1,46 @@
-import json
-import os
-import time
-from concurrent.futures import ThreadPoolExecutor, as_completed
-from pathlib import Path
+#!/usr/bin/python
+from __future__ import annotations
 
-from pandas.io.common import file_exists
+from pathlib import Path
 
 from sportlogiq_api import SportlogiqApi
 from hockey.config.settings import Settings
+from hockey.catalog import DataCatalog
 
 settings = Settings.from_env(project_root=Path(__file__).resolve().parent)
-__all__ = [
-    'settings',
-]
 
-def download_competitions(league_id, conn=None):
-    if not conn:
+
+def download_competitions(
+    league_id: int,
+    catalog: DataCatalog,
+    conn: SportlogiqApi | None = None,
+) -> None:
+    if conn is None:
         conn = SportlogiqApi()
+    print(f"Fetching competitions for league {league_id}")
     try:
-        print(f"Fetching competitions for league: {league_id}")
-        data = conn.req.get(conn.apiurl + f"/v1/hockey/competitions/{league_id}")
+        data = conn.get_competitions(league_id).json()
+        catalog.save_competition(league_id, data)
     except Exception as e:
         print(f"Error fetching competitions for league {league_id}: {e}")
-        return
-    with open(settings.data_root_dir / 'leagues' / str(league_id) / "competitions.json", "w") as f:
-        json.dump(data.json(), f, indent=4)
 
-def update_all_competitions(league_ids: list[int|str]):
+
+def update_all_competitions(catalog: DataCatalog) -> None:
+    """Aggregate all per-league competitions.json into a single all_competitions.json."""
     all_competitions = {}
-    league_ids = os.listdir(settings.data_root_dir / 'leagues')
-    league_ids = [l for l in league_ids if l.isnumeric()]
-    for league_id in league_ids:
-        #check if file exists
-        if file_exists(settings.data_root_dir / 'leagues' / str(league_id) / 'competitions.json'):
-            all_competitions[league_id] = json.load(open(settings.data_root_dir / 'leagues' / str(league_id) / 'competitions.json'))
-    with open(settings.data_root_dir / 'all_competitions.json', 'w') as f:
-        json.dump(all_competitions, f, indent=4, sort_keys=True)
+    for league_id in catalog.known_league_ids():
+        try:
+            comp = catalog.raw_competition(league_id)
+            all_competitions[str(league_id)] = comp.info
+        except Exception as e:
+            print(f"Skipping league {league_id}: {e}")
+    catalog.save_all_competitions(all_competitions)
+    print(f"Updated all_competitions.json for {len(all_competitions)} leagues.")
 
 
 if __name__ == "__main__":
-    # update_all_competitions([1,13,17,213])
-    download_competitions(1)
-    download_competitions(13)
-    download_competitions(17)
-    download_competitions(213)
+    catalog = DataCatalog(settings.data_root_dir)
+    conn = SportlogiqApi()
+    for league_id in [1, 13, 17, 213]:
+        download_competitions(league_id, catalog, conn)
+    update_all_competitions(catalog)
