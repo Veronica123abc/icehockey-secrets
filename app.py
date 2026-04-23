@@ -13,13 +13,11 @@ Deploy to Azure Web App:
 from __future__ import annotations
 
 import json
-import logging
 import os
 from pathlib import Path
 
 from flask import Flask, render_template, abort, jsonify, redirect, url_for, request
 
-logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 
@@ -143,7 +141,7 @@ def _game_exists(game_id: int) -> bool:
 
 def _load_game(game_id: int):
     if game_id in _game_cache:
-        logger.info("game %s: cache hit", game_id)
+        app.logger.warning("game %s: cache hit", game_id)
         return _game_cache[game_id]
     conn = _db_conn()
     if conn is not None:
@@ -151,10 +149,10 @@ def _load_game(game_id: int):
             from hockey.normalize.build_game_db import build_game_from_db
             game = build_game_from_db(game_id, conn)
             _game_cache[game_id] = game
-            logger.info("game %s: loaded from database", game_id)
+            app.logger.warning("game %s: loaded from database", game_id)
             return game
         except Exception as e:
-            logger.warning("game %s: db load failed (%s), falling back to filesystem", game_id, e)
+            app.logger.warning("game %s: db load failed (%s), falling back to filesystem", game_id, e)
         finally:
             conn.close()
     root = _data_root()
@@ -166,7 +164,7 @@ def _load_game(game_id: int):
         raw = RawGame(game_id=game_id, root_dir=root)
         game = build_game(raw)
         _game_cache[game_id] = game
-        logger.info("game %s: loaded from filesystem", game_id)
+        app.logger.warning("game %s: loaded from filesystem", game_id)
         return game
     except Exception:
         return None
