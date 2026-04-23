@@ -24,7 +24,7 @@ def open_database_azure(db_name: str | None = None):
         user=os.environ["DATABASE_USERNAME_AZURE"],
         auth_plugin='mysql_native_password',
         password=os.environ["DATABASE_PWD_AZURE"],
-        database=db_name or os.getenv("DATABASE_NAME", "sportlogiq"),
+        database=db_name or os.getenv("DATABASE_NAME_AZURE", "sportlogiq"),
     )
     return stats_db
 

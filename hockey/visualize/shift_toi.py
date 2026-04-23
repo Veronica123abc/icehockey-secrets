@@ -165,7 +165,8 @@ def plot_shift_toi_with_grades(
     graded = [
         e for e in game.events
         if getattr(e, "grade", None) in {"A", "B", "C"} and
-           e.raw['team_skaters_on_ice'] == 5 and e.raw['opposing_team_skaters_on_ice'] == 5
+           e.get_raw('team_skaters_on_ice', 5) == 5 and
+           e.get_raw('opposing_team_skaters_on_ice', 5) == 5
     ]
 
     y_top = float(np.max(home_mean)) if len(home_mean) else 0.0

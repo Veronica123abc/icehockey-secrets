@@ -12,6 +12,12 @@ def build_game_from_db(game_sl_id: int, conn) -> Game:
 
     IDs on the returned model objects use SportLogIQ sl_ids (not DB PKs),
     matching the convention established by build_game() from JSON.
+
+    e.raw is populated with the full event row (all columns), mirroring the
+    JSON path where e.raw is the complete supplier payload. Note that FK
+    columns (team_in_possession, team, player_reference_id, etc.) contain
+    integer DB PKs in raw rather than sl_ids or display strings — use the
+    structured Event fields (e.team_id, e.player_id, …) for identity lookups.
     """
     cursor = conn.cursor()
     try:
@@ -104,18 +110,15 @@ def build_game_from_db(game_sl_id: int, conn) -> Game:
         ]
 
         # --- 5. Events ---------------------------------------------------
-        cursor.execute(
-            """
-            SELECT game_time, type, name, team_in_possession, team,
-                   player_reference_id, team_defencemen_on_ice_refs,
-                   expected_goals_all_shots_grade,
-                   team_skaters_on_ice, opposing_team_skaters_on_ice
-            FROM event
-            WHERE game_id = %s
-            ORDER BY game_time
-            """,
-            (game_db_id,),
-        )
+        dict_cursor = conn.cursor(dictionary=True)
+        try:
+            dict_cursor.execute(
+                "SELECT * FROM event WHERE game_id = %s ORDER BY game_time",
+                (game_db_id,),
+            )
+            rows = dict_cursor.fetchall()
+        finally:
+            dict_cursor.close()
 
         def _parse_refs(s: str | None) -> list[int] | None:
             if not s:
@@ -135,22 +138,17 @@ def build_game_from_db(game_sl_id: int, conn) -> Game:
         events = [
             Event(
                 game_id=game_id,
-                t=float(game_time),
-                type=ev_type or "",
-                name=ev_name or "",
-                team_id_in_possession=team_db_to_sl.get(team_in_poss) if team_in_poss else None,
-                team_id=team_db_to_sl.get(ev_team) if ev_team else None,
-                player_id=player_db_to_sl.get(player_ref) if player_ref else None,
-                team_defencemen_on_ice_refs=_parse_refs(def_refs),
-                grade=grade,
-                raw={
-                    'team_skaters_on_ice': team_skaters,
-                    'opposing_team_skaters_on_ice': opp_skaters,
-                },
+                t=float(row['game_time']),
+                type=row.get('type') or "",
+                name=row.get('name') or "",
+                team_id_in_possession=team_db_to_sl.get(row['team_in_possession']) if row.get('team_in_possession') else None,
+                team_id=team_db_to_sl.get(row['team']) if row.get('team') else None,
+                player_id=player_db_to_sl.get(row['player_reference_id']) if row.get('player_reference_id') else None,
+                team_defencemen_on_ice_refs=_parse_refs(row.get('team_defencemen_on_ice_refs')),
+                grade=row.get('expected_goals_all_shots_grade'),
+                raw=dict(row),
             )
-            for game_time, ev_type, ev_name, team_in_poss, ev_team, player_ref, def_refs, grade,
-                team_skaters, opp_skaters
-            in cursor.fetchall()
+            for row in rows
         ]
 
         return Game(info=info, events=events, toi=toi, roster=roster)
