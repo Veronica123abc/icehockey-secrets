@@ -17,7 +17,7 @@ from hockey.normalize.build_competition import build_competition
 from hockey.model.game import Game
 from pathlib import Path
 from hockey.derive.current_shift_series import find_intervals, find_intervals, current_shift_toi_series
-settings = Settings.from_env(project_root=Path(__file__).resolve().parent)
+
 def _game_end_time_seconds(game: Game, default: int = 3600) -> int:
     if game.events:
         return int(np.ceil(max(e.t for e in game.events)))
@@ -294,6 +294,7 @@ def plot_shift_toi_with_grades(
 
 
 if __name__ == "__main__":
+    settings = Settings.from_env(project_root=Path(__file__).resolve().parent)
     raw = RawGame(game_id=202401, root_dir=settings.data_root_dir)
     game = build_game(raw)
     plot_shift_toi_with_grades(game=game, filename="shift_toi.html")

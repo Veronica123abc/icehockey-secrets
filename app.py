@@ -48,14 +48,17 @@ def _db_conn():
     host = os.getenv("DATABASE_HOST_AZURE")
     if not host:
         return None
-    import mysql.connector
-    return mysql.connector.connect(
-        host=host,
-        user=os.environ["DATABASE_USERNAME_AZURE"],
-        password=os.environ["DATABASE_PWD_AZURE"],
-        database=os.getenv("DATABASE_NAME_AZURE", "sportlogiq"),
-        auth_plugin="mysql_native_password",
-    )
+    try:
+        import mysql.connector
+        return mysql.connector.connect(
+            host=host,
+            user=os.environ["DATABASE_USERNAME_AZURE"],
+            password=os.environ["DATABASE_PWD_AZURE"],
+            database=os.getenv("DATABASE_NAME_AZURE", "sportlogiq"),
+            auth_plugin="mysql_native_password",
+        )
+    except Exception:
+        return None
 
 
 # ---------------------------------------------------------------------------
