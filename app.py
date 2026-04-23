@@ -43,6 +43,21 @@ _game_cache: dict[int, object] = {}
 _plotly_cache: dict[int, str] = {}
 
 
+def _db_conn():
+    """Open a fresh DB connection when Azure credentials are available, else None."""
+    host = os.getenv("DATABASE_HOST_AZURE")
+    if not host:
+        return None
+    import mysql.connector
+    return mysql.connector.connect(
+        host=host,
+        user=os.environ["DATABASE_USERNAME_AZURE"],
+        password=os.environ["DATABASE_PWD_AZURE"],
+        database=os.getenv("DATABASE_NAME_AZURE", "sportlogiq"),
+        auth_plugin="mysql_native_password",
+    )
+
+
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
@@ -61,6 +76,19 @@ def _list_game_ids() -> list[int]:
     global _game_ids_cache
     if _game_ids_cache is not None:
         return _game_ids_cache
+    conn = _db_conn()
+    if conn is not None:
+        try:
+            cursor = conn.cursor()
+            cursor.execute("SELECT sl_id FROM game ORDER BY sl_id")
+            ids = [row[0] for row in cursor.fetchall()]
+            cursor.close()
+            _game_ids_cache = ids
+            return ids
+        except Exception:
+            return []
+        finally:
+            conn.close()
     root = _data_root()
     if root is None:
         return []
@@ -87,6 +115,19 @@ def _invalidate_game_caches(game_id: int) -> None:
 def _game_exists(game_id: int) -> bool:
     if _game_ids_cache is not None:
         return game_id in _game_ids_cache
+    conn = _db_conn()
+    if conn is not None:
+        try:
+            cursor = conn.cursor()
+            cursor.execute("SELECT 1 FROM game WHERE sl_id = %s LIMIT 1", (game_id,))
+            exists = cursor.fetchone() is not None
+            cursor.close()
+            if exists:
+                return True
+        except Exception:
+            pass
+        finally:
+            conn.close()
     root = _data_root()
     if root is None:
         return False
@@ -97,13 +138,23 @@ def _game_exists(game_id: int) -> bool:
 def _load_game(game_id: int):
     if game_id in _game_cache:
         return _game_cache[game_id]
+    conn = _db_conn()
+    if conn is not None:
+        try:
+            from hockey.normalize.build_game_db import build_game_from_db
+            game = build_game_from_db(game_id, conn)
+            _game_cache[game_id] = game
+            return game
+        except Exception:
+            pass
+        finally:
+            conn.close()
     root = _data_root()
     if root is None:
         return None
     try:
         from hockey.io.raw_game import RawGame
         from hockey.normalize.build_game import build_game
-
         raw = RawGame(game_id=game_id, root_dir=root)
         game = build_game(raw)
         _game_cache[game_id] = game
