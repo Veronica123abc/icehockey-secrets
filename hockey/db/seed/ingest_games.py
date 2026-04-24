@@ -1,19 +1,11 @@
-import struct
-from azure.identity import InteractiveBrowserCredential
-import pyodbc
-import json
-from typing import List, Dict
-import database
+from hockey.db import database
 from hockey.config.settings import Settings
-import pathlib
 from pathlib import Path
 from tqdm import tqdm
 from hockey.helpers.pretty_print import *
 from datetime import datetime
-from hockey.io.raw_competition import RawCompetition
+
 settings = Settings.from_env(project_root=Path(__file__).resolve().parent)
-import pandas as pd
-from sqlalchemy import create_engine
 __all__ = [
     'settings',
 ]
@@ -45,7 +37,7 @@ def ingest_participation(cursor, league_id: int, season: str, team_map: dict, ga
 
 
 def ingest_game(games):
-    db = database.open_database_azure()
+    db = database.open_database_azure("sportlogiq")
     cursor = db.cursor()
     team_map = database.create_map('team', cursor)
     league_map = database.create_map('league', cursor)
@@ -53,6 +45,7 @@ def ingest_game(games):
     season = games['season']
     error_ctr = 0
     for record in tqdm(games['games']):
+
         record_data = {
             'sl_id': record['id'],
             'home_team_id': team_map[int(record['home_team_id'])],
@@ -66,7 +59,7 @@ def ingest_game(games):
             'event_status': record['event_status'],
             'sl_reference_id': record['reference_id'],
             'sl_reference_name': record['reference_name'],
-            'last_metrics_full_process_time': datetime.fromisoformat(record['last_metrics_full_process_time'].replace('Z', '+00:00')),
+            'last_metrics_full_process_time': None if not record['last_metrics_full_process_time'] else datetime.fromisoformat(record['last_metrics_full_process_time'].replace('Z', '+00:00')),
             'home_team_goals': record['score'][record['home_team_id']],
             'away_team_goals': record['score'][record['away_team_id']]
         }
@@ -94,8 +87,8 @@ def ingest_game(games):
 if __name__ == "__main__":
     from hockey.catalog import DataCatalog
 
-    LEAGUE_ID = 213
-    SEASON = "20232024"
+    LEAGUE_ID = 39
+    SEASON = "20252026"
 
     catalog = DataCatalog(settings.data_root_dir)
     ingest_game(catalog.season_schedule(LEAGUE_ID, SEASON))

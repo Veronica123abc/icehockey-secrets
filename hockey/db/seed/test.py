@@ -1,23 +1,11 @@
 import struct
 from azure.identity import InteractiveBrowserCredential
-import pyodbc
-import json
-from typing import List, Dict
-import database
-from hockey.config.settings import Settings
-import pathlib
+from hockey.db import database
 from pathlib import Path
-import json
-from tqdm import tqdm
-from typing import Any, Optional, TYPE_CHECKING
 from hockey.config.settings import Settings
 from hockey.io.raw_game import RawGame
-from collections import defaultdict
-from hockey.io.raw_competition import RawCompetition
 from hockey.normalize.build_game import  build_game
-from hockey.normalize.build_competition import build_competition
 from hockey.model.game import Game
-import time
 
 settings = Settings.from_env(project_root=Path(__file__).resolve().parent)
 from tqdm import tqdm

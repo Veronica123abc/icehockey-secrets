@@ -1,11 +1,10 @@
 from __future__ import annotations
 
 import numpy as np
-import pandas as pd
 from pathlib import Path
 from tqdm import tqdm
 
-import database
+from hockey.db import database
 from hockey.config.settings import Settings
 from hockey.model.game import Game
 from hockey.normalize.build_game import build_game
@@ -155,8 +154,8 @@ def ingest_events(game: Game) -> None:
 if __name__ == "__main__":
     from hockey.catalog import DataCatalog
 
-    LEAGUE_ID = 213
-    SEASON = "20232024"
+    LEAGUE_ID = 39
+    SEASON = "20252026"
 
     catalog = DataCatalog(settings.data_root_dir)
     for game_id in tqdm(catalog.scheduled_game_ids(LEAGUE_ID, SEASON), desc="Ingesting games"):

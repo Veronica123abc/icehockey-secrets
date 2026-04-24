@@ -41,6 +41,6 @@ def update_all_competitions(catalog: DataCatalog) -> None:
 if __name__ == "__main__":
     catalog = DataCatalog(settings.data_root_dir)
     conn = SportlogiqApi()
-    for league_id in [1, 13, 17, 213]:
+    for league_id in [1, 13, 17,39, 213]:
         download_competitions(league_id, catalog, conn)
     update_all_competitions(catalog)

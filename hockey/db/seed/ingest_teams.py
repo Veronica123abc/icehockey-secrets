@@ -1,11 +1,8 @@
 import struct
 from azure.identity import InteractiveBrowserCredential
-import pyodbc
-import json
 from typing import List, Dict
-import database
+from hockey.db import database
 from hockey.config.settings import Settings
-import pathlib
 from pathlib import Path
 settings = Settings.from_env(project_root=Path(__file__).resolve().parent)
 from tqdm import tqdm

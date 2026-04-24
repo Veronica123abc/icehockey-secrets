@@ -4,8 +4,8 @@ Step 1. Fetch token from API and store in cookies.txt
 curl -X POST https://api.sportlogiq.com/v1/hockey/login   -H "Content-Type: application/json"   -d '{"username":"user@gmail.com","password":"xyz..."}' -c cookies.txt
 
 Step 2. Fetch data
-curl -X GET   'https://api.sportlogiq.com/v1/hockey/games/202401/events/compiled'
-                -H 'accept: application/json' -b cookies.txt
+curl -X GET   'https://api.sportlogiq.com/v1/hockey/games/202401/events/compiled' -H 'accept: application/json' -b cookies.txt
+
 
 USING BROWSER
 Paste the URL in browser. Somehow I need to login first.

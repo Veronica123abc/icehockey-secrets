@@ -24,13 +24,13 @@ def download_missing_games(
         print(f"No missing games for league {league_id} season {season}.")
         return []
     print(f"Downloading {len(missing)} missing games for league {league_id} season {season}.")
-    download_complete_games(game_ids=missing, root_dir=catalog._root, conn=conn, verbose=verbose)
+    download_complete_games(game_ids=missing, root_dir=catalog._root, verbose=verbose)
     return missing
 
 
 if __name__ == "__main__":
-    LEAGUE_ID = 213
-    SEASON = "20242025"
+    LEAGUE_ID = 39
+    SEASON = "20252026"
 
     catalog = DataCatalog(settings.data_root_dir)
     download_missing_games(LEAGUE_ID, SEASON, catalog)

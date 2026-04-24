@@ -1,22 +1,11 @@
-import struct
-from azure.identity import InteractiveBrowserCredential
-import pyodbc
 import json
-from typing import List, Dict
-import database
+from hockey.db import database
 from hockey.config.settings import Settings
-import pathlib
 from pathlib import Path
-from tqdm import tqdm
-from hockey.helpers.pretty_print import *
-from datetime import datetime
-import pandas as pd
-from sqlalchemy import create_engine
 import numpy as np
 from hockey.model.game import Game
 from hockey.io.raw_game import RawGame
 from hockey.normalize.build_game import  build_game
-from hockey.normalize.team_resolution import TeamResolver
 
 settings = Settings.from_env(project_root=Path(__file__).resolve().parent)
 __all__ = [
