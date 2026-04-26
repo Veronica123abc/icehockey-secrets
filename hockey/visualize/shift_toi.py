@@ -18,6 +18,23 @@ from hockey.model.game import Game
 from pathlib import Path
 from hockey.derive.current_shift_series import find_intervals, find_intervals, current_shift_toi_series
 
+PLOT_VERSION = 3  # bump to invalidate _plotly_cache after visualization changes
+
+_TEAM_COLORS: dict[str, str] | None = None
+
+def _team_color(team_id: int, default: str) -> str:
+    global _TEAM_COLORS
+    if _TEAM_COLORS is None:
+        try:
+            import json
+            from pathlib import Path
+            path = Path(__file__).resolve().parent.parent / "config" / "team_colors.json"
+            _TEAM_COLORS = {k: v for k, v in json.loads(path.read_text()).items() if not k.startswith("_")}
+        except Exception:
+            _TEAM_COLORS = {}
+    return _TEAM_COLORS.get(str(team_id), default)
+
+
 def _game_end_time_seconds(game: Game, default: int = 3600) -> int:
     if game.events:
         return int(np.ceil(max(e.t for e in game.events)))
@@ -127,6 +144,9 @@ def plot_shift_toi_with_grades(
 
     home_name = game.info.home_team.display_name
     away_name = game.info.away_team.display_name
+    home_color = _team_color(game.info.home_team.id, "#60a5fa")
+    away_color = _team_color(game.info.away_team.id, "#f87171")
+
     fig.add_trace(
         go.Scatter(
             x=times,
@@ -134,7 +154,7 @@ def plot_shift_toi_with_grades(
             mode="lines",
             name=f"{home_name} mean shift TOI",
             hovertemplate="%{y:.0f} s<extra></extra>",
-            line=dict(color="#60a5fa", width=2),
+            line=dict(color=home_color, width=2),
         )
     )
 
@@ -144,9 +164,9 @@ def plot_shift_toi_with_grades(
             y=[-t for t in away_mean],
             mode="lines",
             name=f"{away_name} mean shift TOI",
-            hovertext = [f"{y:.0f}" for y in away_mean],
+            hovertext=[f"{y:.0f}" for y in away_mean],
             hovertemplate="%{hovertext} s<extra></extra>",
-            line=dict(color="#f87171", width=2),
+            line=dict(color=away_color, width=2),
         )
     )
     fig.add_trace(

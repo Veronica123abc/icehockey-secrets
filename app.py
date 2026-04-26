@@ -41,7 +41,7 @@ DATA_ROOT_DIR = os.getenv("DATA_ROOT_DIR", "")
 
 _game_ids_cache: list[int] | None = None
 _game_cache: dict[int, object] = {}
-_plotly_cache: dict[int, str] = {}
+_plotly_cache: dict[tuple, str] = {}
 
 
 def _db_conn():
@@ -171,13 +171,13 @@ def _load_game(game_id: int):
 
 
 def _build_plotly_html(game) -> str:
-    game_id = game.info.game_id
-    if game_id in _plotly_cache:
-        return _plotly_cache[game_id]
-    from hockey.visualize.shift_toi import plot_shift_toi_with_grades
+    from hockey.visualize.shift_toi import plot_shift_toi_with_grades, PLOT_VERSION
+    cache_key = (game.info.game_id, PLOT_VERSION)
+    if cache_key in _plotly_cache:
+        return _plotly_cache[cache_key]
     fig = plot_shift_toi_with_grades(game=game, filename=None)
     html = fig.to_html(full_html=False, include_plotlyjs="cdn")
-    _plotly_cache[game_id] = html
+    _plotly_cache[cache_key] = html
     return html
 
 
