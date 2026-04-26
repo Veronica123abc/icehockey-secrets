@@ -110,6 +110,7 @@ def _format_games(game_list: list, teams: dict) -> list[dict]:
             "id": _get(g, "id", "game_id", "gameId"),
             "date": _get(g, "date", "gameDate", "game_date"),
             "stage": g.get("stage", ""),
+            "status": g.get("event_status", ""),
             "home_team_name": teams.get(home_id, "Team " + home_id),
             "away_team_name": teams.get(away_id, "Team " + away_id),
             "home_score": home_score,
@@ -167,13 +168,14 @@ def api_stage_games(league_id: str, season: str, stage: str):
 
 @filter_bp.route("/api/leagues/<league_id>/seasons/<season>/games")
 def api_season_games(league_id: str, season: str):
-    """Games for a season, filling from playoffs → regular → preseason until limit."""
+    """Games for a season, filling from playoffs → regular → preseason."""
     if not (_is_safe_segment(league_id) and _is_safe_segment(season)):
         return jsonify({"games": []})
+    limit_param = request.args.get("limit")
     try:
-        limit = min(int(request.args.get("limit", 30)), 200)
+        limit = min(int(limit_param), 2000) if limit_param else None
     except (ValueError, TypeError):
-        limit = 30
+        limit = None
 
     comp = _load_competition(league_id)
     if not comp:
@@ -200,13 +202,12 @@ def api_season_games(league_id: str, season: str):
         return jsonify({"games": []})
 
     for stage in ordered_stages:
-        if len(result) >= limit:
-            break
-        remaining = limit - len(result)
         game_list = [g for g in all_games if g.get("stage", "").lower() == stage.lower()]
         game_list_sorted = sorted(game_list, key=lambda g: g.get("date", ""), reverse=True)
-        result.extend(_format_games(game_list_sorted[:remaining], teams))
+        result.extend(_format_games(game_list_sorted, teams))
 
+    if limit is not None:
+        result = result[:limit]
     return jsonify({"games": result})
 
 
