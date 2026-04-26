@@ -155,16 +155,10 @@ def api_stages(league_id: str, season: str):
 def api_stage_games(league_id: str, season: str, stage: str):
     if not all(_is_safe_segment(s) for s in (league_id, season, stage)):
         return jsonify({"games": []})
-    stage_path = _MANIFEST_DIR / league_id / season / stage / "games.json"
     season_path = _MANIFEST_DIR / league_id / season / "games.json"
     try:
-        if stage_path.exists():
-            game_list = _extract_list(json.load(stage_path.open("r", encoding="utf-8")))
-        else:
-            game_list = []
-        if not game_list:
-            with season_path.open("r", encoding="utf-8") as f:
-                game_list = [g for g in _extract_list(json.load(f)) if g.get("stage", "").lower() == stage.lower()]
+        with season_path.open("r", encoding="utf-8") as f:
+            game_list = [g for g in _extract_list(json.load(f)) if g.get("stage", "").lower() == stage.lower()]
     except Exception:
         return jsonify({"games": []})
     teams = _load_teams()
@@ -198,26 +192,18 @@ def api_season_games(league_id: str, season: str):
     teams = _load_teams()
     result = []
     season_path = _MANIFEST_DIR / league_id / season / "games.json"
-    season_cache = None
+
+    try:
+        with season_path.open("r", encoding="utf-8") as f:
+            all_games = _extract_list(json.load(f))
+    except Exception:
+        return jsonify({"games": []})
 
     for stage in ordered_stages:
         if len(result) >= limit:
             break
         remaining = limit - len(result)
-        stage_path = _MANIFEST_DIR / league_id / season / stage / "games.json"
-        try:
-            if stage_path.exists():
-                with stage_path.open("r", encoding="utf-8") as f:
-                    game_list = _extract_list(json.load(f))
-            else:
-                game_list = []
-            if not game_list:
-                if season_cache is None:
-                    with season_path.open("r", encoding="utf-8") as f:
-                        season_cache = _extract_list(json.load(f))
-                game_list = [g for g in season_cache if g.get("stage", "").lower() == stage.lower()]
-        except Exception:
-            continue
+        game_list = [g for g in all_games if g.get("stage", "").lower() == stage.lower()]
         game_list_sorted = sorted(game_list, key=lambda g: g.get("date", ""), reverse=True)
         result.extend(_format_games(game_list_sorted[:remaining], teams))
 

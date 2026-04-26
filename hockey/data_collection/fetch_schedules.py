@@ -20,7 +20,7 @@ def download_game_index(
     print(f"Fetching schedule: league={league_id} season={season} stage={stage or 'all'}")
     if conn is None:
         conn = SportlogiqApi()
-    url = f"/v1/hockey/games?season={season}&competition_id={league_id}&withvidparams=true"
+    url = f"/v1/hockey/games?season={season}&competition_id={league_id}&include_upcoming=1&withvidparams=true"
     if stage:
         url += f"&stage={stage}"
     data = conn.req.get(conn.apiurl + url).json()
