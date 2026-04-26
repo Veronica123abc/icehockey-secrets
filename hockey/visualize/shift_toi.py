@@ -112,11 +112,12 @@ def plot_shift_toi_with_grades(
 
     marker_y_spacing = 25
     marker_min_x_spacing = 25
-    chance_colors = {"A": "green",
-                     "B": "orange",
-                     "C": "red"}
+    chance_colors = {"A": "#4ade80", "B": "#fb923c", "C": "#f87171"}
 
     end_time = _game_end_time_seconds(game, default=3600)
+    num_periods = max(3, (end_time + 1199) // 1200)
+    tick_vals = list(range(0, end_time + 1, 300))
+    tick_text = [str((t % 1200) // 60) for t in tick_vals]
     times = list(range(end_time))
     line_toi = game.shift_toi_series(range(end_time))
     home_mean = [t[game.info.home_team.id]['average_team_shift_toi'] for t in line_toi]
@@ -133,7 +134,7 @@ def plot_shift_toi_with_grades(
             mode="lines",
             name=f"{home_name} mean shift TOI",
             hovertemplate="%{y:.0f} s<extra></extra>",
-            line=dict(color="royalblue", width=2),
+            line=dict(color="#60a5fa", width=2),
         )
     )
 
@@ -145,7 +146,7 @@ def plot_shift_toi_with_grades(
             name=f"{away_name} mean shift TOI",
             hovertext = [f"{y:.0f}" for y in away_mean],
             hovertemplate="%{hovertext} s<extra></extra>",
-            line=dict(color="firebrick", width=2),
+            line=dict(color="#f87171", width=2),
         )
     )
     fig.add_trace(
@@ -155,7 +156,7 @@ def plot_shift_toi_with_grades(
             mode="lines",
             name=f"Difference ({home_name} - {away_name})",
             hovertemplate="%{y:.0f} s<extra></extra>",
-            line=dict(color="black", width=3),
+            line=dict(color="#cbd5e1", width=2),
         )
     )
 
@@ -174,6 +175,23 @@ def plot_shift_toi_with_grades(
     pad = 0
 
     shapes = []
+    for p in range(num_periods):
+        if p % 2 == 1:
+            shapes.append(dict(
+                type="rect", xref="x", yref="paper",
+                x0=p * 1200, x1=min((p + 1) * 1200, end_time),
+                y0=0, y1=1,
+                fillcolor="rgba(255,255,255,0.04)",
+                line_width=0, layer="below",
+            ))
+    for p in range(1, num_periods):
+        shapes.append(dict(
+            type="line", xref="x", yref="paper",
+            x0=p * 1200, x1=p * 1200,
+            y0=0, y1=1,
+            line=dict(color="#334155", width=1, dash="dot"),
+        ))
+
     home_x, home_y, home_text, home_marker_color, home_hoover_text = [], [], [], [], []
     away_x, away_y, away_text, away_marker_color, away_hoover_text = [], [], [], [], []
 
@@ -257,7 +275,7 @@ def plot_shift_toi_with_grades(
                 textposition="middle center",
                 hovertext=home_hoover_text,
                 hovertemplate="%{hovertext}<extra></extra>",
-                marker=dict(size=marker_size, color="black", line=dict(width=marker_line_width, color = home_marker_color)),
+                marker=dict(size=marker_size, color="#0f172a", line=dict(width=marker_line_width, color=home_marker_color)),
                 name=f"Grades ({home_name})",
                 showlegend=True,
             )
@@ -274,19 +292,61 @@ def plot_shift_toi_with_grades(
                 textposition="middle center",
                 hovertext=away_hoover_text,
                 hovertemplate="%{hovertext}<extra></extra>",
-                marker=dict(size=marker_size, color="black", line=dict(width=marker_line_width, color=away_marker_color)),
+                marker=dict(size=marker_size, color="#0f172a", line=dict(width=marker_line_width, color=away_marker_color)),
                 name=f"Grades ({away_name})",
                 showlegend=True,
             )
         )
 
+    period_annotations = [
+        dict(
+            x=(p + 0.5) * 1200, y=1.0, yref="paper",
+            text=f"P{p + 1}" if p < 3 else "OT",
+            showarrow=False,
+            font=dict(color="#475569", size=12),
+            xanchor="center", yanchor="bottom",
+        )
+        for p in range(num_periods)
+    ]
+
     fig.update_layout(
-        title="Mean current shift time on ice (skaters) + graded events",
-        xaxis=dict(title="Game time (s)", range=[0, end_time]),
-        yaxis=dict(title="Mean current shift TOI (s)", zeroline=True, zerolinewidth=1, zerolinecolor="gray"),
+        title=dict(
+            text=f"{home_name} vs {away_name} — Shift TOI & Scoring Chances",
+            font=dict(color="#e2e8f0", size=16),
+        ),
+        paper_bgcolor="#0f172a",
+        plot_bgcolor="#0f172a",
+        font=dict(color="#94a3b8"),
+        xaxis=dict(
+            title=None,
+            range=[0, end_time],
+            tickvals=tick_vals,
+            ticktext=tick_text,
+            tickfont=dict(color="#64748b", size=11),
+            gridcolor="#1e293b",
+            zerolinecolor="#334155",
+            showline=False,
+        ),
+        yaxis=dict(
+            title="Shift TOI (s)",
+            titlefont=dict(color="#64748b"),
+            tickfont=dict(color="#64748b"),
+            zeroline=True, zerolinewidth=1, zerolinecolor="#475569",
+            gridcolor="#1e293b",
+            showline=False,
+        ),
+        legend=dict(
+            orientation="h",
+            yanchor="bottom", y=1.02,
+            xanchor="left", x=0,
+            font=dict(color="#94a3b8"),
+            bgcolor="rgba(0,0,0,0)",
+        ),
         shapes=shapes,
-        height=800,
+        annotations=period_annotations,
+        height=750,
         hovermode="x unified",
+        margin=dict(t=80, b=40, l=60, r=20),
     )
 
     if filename is not None:
