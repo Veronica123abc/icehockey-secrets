@@ -7,7 +7,7 @@ __all__ = [
     'settings',
 ]
 
-def copy_manifests(leagues: list[int]=[1,13,17,213]):
+def copy_manifests(leagues: list[int]=[1,13,17,39, 213]):
 
     """Copy manifest files from source to destination directory."""
     for league in leagues:

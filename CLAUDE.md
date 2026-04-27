@@ -70,9 +70,18 @@ This is the computational core between model and visualization. `current_shift_t
 
 The filter API reads exclusively from these manifests, not from `DATA_ROOT_DIR`. They are updated by running `fetch_manifests.py`, which copies from `DATA_ROOT_DIR/leagues/`. Currently covers league IDs 1, 13, 17, 213.
 
+### Game Loading in `app.py`
+
+`_load_game(game_id)` tries sources in order:
+1. DB (`build_game_from_db`) — if `DATABASE_HOST_AZURE` env var is set
+2. Filesystem (`build_game` from JSON) — if `DATA_ROOT_DIR` is set
+3. Redirect to download prompt — fetches from SportLogIQ API, saves to `DATA_ROOT_DIR`
+
 ### Three-Level Cache in `app.py`
 
-Module-level globals: `_game_ids_cache` (list), `_game_cache` (dict by game_id), `_plotly_cache` (dict by game_id). All are invalidated together by `_invalidate_game_caches()` after a download. This is a simple in-process cache — it resets on worker restart.
+Module-level globals: `_game_ids_cache` (list), `_game_cache` (dict by game_id), `_plotly_cache` (dict keyed by `(game_id, PLOT_VERSION)`). All are invalidated together by `_invalidate_game_caches()` after a download. This is a simple in-process cache — it resets on worker restart.
+
+`PLOT_VERSION` is a constant in `shift_toi.py` — bump it to invalidate all cached Plotly HTML after visualization changes.
 
 ### Scoring Chance Display
 
@@ -144,7 +153,7 @@ Game data lives in `/home/data` on Azure (persistent across restarts and redeplo
 
 ## Other Modules
 
-- `hockey/db/` — seed scripts for an Azure MySQL database (not used by the Flask app)
+- `hockey/db/` — seed scripts for ingesting data into an Azure MySQL database; `build_game_from_db` in `hockey/normalize/build_game_db.py` is the DB-backed game loader used by the Flask app
 - `hockey/metrics/` — standalone analytics scripts (cross-center passes, faceoffs, pass length)
 - `hockey/experiments/` — exploratory analyses (e.g. fatigue/grade correlation)
 - `hockey/io/blob_upload.py` — Azure Blob Storage upload utility

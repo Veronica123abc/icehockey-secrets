@@ -1,0 +1,1591 @@
+{
+    "season": "20232024",
+    "stage": "playoffs",
+    "competition_id": "1",
+    "games": [
+        {
+            "id": "137723",
+            "date": "2024-06-24",
+            "scheduled_time": "2024-06-25T00:00:00+00:00",
+            "scheduled_venue_time": "2024-06-24T20:00:00",
+            "stage": "playoffs",
+            "away_team_id": "1",
+            "home_team_id": "25",
+            "venue_id": "2803",
+            "event_status": "over",
+            "score": {
+                "1": 1,
+                "25": 2
+            },
+            "reference_id": "30417",
+            "reference_name": "NHL",
+            "last_metrics_full_process_time": "2024-11-29T06:18:52.046Z"
+        },
+        {
+            "id": "137722",
+            "date": "2024-06-21",
+            "scheduled_time": "2024-06-22T00:00:00+00:00",
+            "scheduled_venue_time": "2024-06-21T18:00:00",
+            "stage": "playoffs",
+            "away_team_id": "25",
+            "home_team_id": "1",
+            "venue_id": "1353",
+            "event_status": "over",
+            "score": {
+                "1": 5,
+                "25": 1
+            },
+            "reference_id": "30416",
+            "reference_name": "NHL",
+            "last_metrics_full_process_time": "2024-11-29T06:18:21.937Z"
+        },
+        {
+            "id": "137721",
+            "date": "2024-06-18",
+            "scheduled_time": "2024-06-19T00:00:00+00:00",
+            "scheduled_venue_time": "2024-06-18T20:00:00",
+            "stage": "playoffs",
+            "away_team_id": "1",
+            "home_team_id": "25",
+            "venue_id": "2803",
+            "event_status": "over",
+            "score": {
+                "1": 5,
+                "25": 3
+            },
+            "reference_id": "30415",
+            "reference_name": "NHL",
+            "last_metrics_full_process_time": "2024-11-29T06:17:50.270Z"
+        },
+        {
+            "id": "137720",
+            "date": "2024-06-15",
+            "scheduled_time": "2024-06-16T00:00:00+00:00",
+            "scheduled_venue_time": "2024-06-15T18:00:00",
+            "stage": "playoffs",
+            "away_team_id": "25",
+            "home_team_id": "1",
+            "venue_id": "1353",
+            "event_status": "over",
+            "score": {
+                "1": 8,
+                "25": 1
+            },
+            "reference_id": "30414",
+            "reference_name": "NHL",
+            "last_metrics_full_process_time": "2024-11-29T06:17:03.118Z"
+        },
+        {
+            "id": "137719",
+            "date": "2024-06-13",
+            "scheduled_time": "2024-06-14T00:00:00+00:00",
+            "scheduled_venue_time": "2024-06-13T18:00:00",
+            "stage": "playoffs",
+            "away_team_id": "25",
+            "home_team_id": "1",
+            "venue_id": "1353",
+            "event_status": "over",
+            "score": {
+                "1": 3,
+                "25": 4
+            },
+            "reference_id": "30413",
+            "reference_name": "NHL",
+            "last_metrics_full_process_time": "2024-11-29T06:16:33.166Z"
+        },
+        {
+            "id": "137718",
+            "date": "2024-06-10",
+            "scheduled_time": "2024-06-11T00:00:00+00:00",
+            "scheduled_venue_time": "2024-06-10T20:00:00",
+            "stage": "playoffs",
+            "away_team_id": "1",
+            "home_team_id": "25",
+            "venue_id": "2803",
+            "event_status": "over",
+            "score": {
+                "1": 1,
+                "25": 4
+            },
+            "reference_id": "30412",
+            "reference_name": "NHL",
+            "last_metrics_full_process_time": "2024-11-29T06:15:46.904Z"
+        },
+        {
+            "id": "137717",
+            "date": "2024-06-08",
+            "scheduled_time": "2024-06-09T00:00:00+00:00",
+            "scheduled_venue_time": "2024-06-08T20:00:00",
+            "stage": "playoffs",
+            "away_team_id": "1",
+            "home_team_id": "25",
+            "venue_id": "2803",
+            "event_status": "over",
+            "score": {
+                "1": 0,
+                "25": 3
+            },
+            "reference_id": "30411",
+            "reference_name": "NHL",
+            "last_metrics_full_process_time": "2024-11-29T06:15:02.988Z"
+        },
+        {
+            "id": "137637",
+            "date": "2024-06-02",
+            "scheduled_time": "2024-06-03T00:00:00+00:00",
+            "scheduled_venue_time": "2024-06-02T18:00:00",
+            "stage": "playoffs",
+            "away_team_id": "13",
+            "home_team_id": "1",
+            "venue_id": "1353",
+            "event_status": "over",
+            "score": {
+                "1": 2,
+                "13": 1
+            },
+            "reference_id": "30326",
+            "reference_name": "NHL",
+            "last_metrics_full_process_time": "2024-11-29T06:13:54.137Z"
+        },
+        {
+            "id": "137610",
+            "date": "2024-06-01",
+            "scheduled_time": "2024-06-02T00:00:00+00:00",
+            "scheduled_venue_time": "2024-06-01T20:00:00",
+            "stage": "playoffs",
+            "away_team_id": "28",
+            "home_team_id": "25",
+            "venue_id": "2803",
+            "event_status": "over",
+            "score": {
+                "25": 2,
+                "28": 1
+            },
+            "reference_id": "30316",
+            "reference_name": "NHL",
+            "last_metrics_full_process_time": "2025-05-04T09:54:35.695Z"
+        },
+        {
+            "id": "137636",
+            "date": "2024-05-31",
+            "scheduled_time": "2024-06-01T00:30:00+00:00",
+            "scheduled_venue_time": "2024-05-31T19:30:00",
+            "stage": "playoffs",
+            "away_team_id": "1",
+            "home_team_id": "13",
+            "venue_id": "1344",
+            "event_status": "over",
+            "score": {
+                "1": 3,
+                "13": 1
+            },
+            "reference_id": "30325",
+            "reference_name": "NHL",
+            "last_metrics_full_process_time": "2024-11-29T06:13:03.353Z"
+        },
+        {
+            "id": "137609",
+            "date": "2024-05-30",
+            "scheduled_time": "2024-05-31T00:00:00+00:00",
+            "scheduled_venue_time": "2024-05-30T20:00:00",
+            "stage": "playoffs",
+            "away_team_id": "25",
+            "home_team_id": "28",
+            "venue_id": "1336",
+            "event_status": "over",
+            "score": {
+                "25": 3,
+                "28": 2
+            },
+            "reference_id": "30315",
+            "reference_name": "NHL",
+            "last_metrics_full_process_time": "2025-05-04T09:54:22.062Z"
+        },
+        {
+            "id": "137635",
+            "date": "2024-05-29",
+            "scheduled_time": "2024-05-30T00:30:00+00:00",
+            "scheduled_venue_time": "2024-05-29T18:30:00",
+            "stage": "playoffs",
+            "away_team_id": "13",
+            "home_team_id": "1",
+            "venue_id": "1353",
+            "event_status": "over",
+            "score": {
+                "1": 5,
+                "13": 2
+            },
+            "reference_id": "30324",
+            "reference_name": "NHL",
+            "last_metrics_full_process_time": "2024-11-29T06:11:32.475Z"
+        },
+        {
+            "id": "137608",
+            "date": "2024-05-28",
+            "scheduled_time": "2024-05-29T00:00:00+00:00",
+            "scheduled_venue_time": "2024-05-28T20:00:00",
+            "stage": "playoffs",
+            "away_team_id": "28",
+            "home_team_id": "25",
+            "venue_id": "2803",
+            "event_status": "over",
+            "score": {
+                "25": 3,
+                "28": 2
+            },
+            "reference_id": "30314",
+            "reference_name": "NHL",
+            "last_metrics_full_process_time": "2025-05-04T09:54:06.500Z"
+        },
+        {
+            "id": "137634",
+            "date": "2024-05-27",
+            "scheduled_time": "2024-05-28T00:30:00+00:00",
+            "scheduled_venue_time": "2024-05-27T18:30:00",
+            "stage": "playoffs",
+            "away_team_id": "13",
+            "home_team_id": "1",
+            "venue_id": "1353",
+            "event_status": "over",
+            "score": {
+                "1": 3,
+                "13": 5
+            },
+            "reference_id": "30323",
+            "reference_name": "NHL",
+            "last_metrics_full_process_time": "2024-11-29T06:10:49.692Z"
+        },
+        {
+            "id": "137607",
+            "date": "2024-05-26",
+            "scheduled_time": "2024-05-26T19:00:00+00:00",
+            "scheduled_venue_time": "2024-05-26T15:00:00",
+            "stage": "playoffs",
+            "away_team_id": "28",
+            "home_team_id": "25",
+            "venue_id": "2803",
+            "event_status": "over",
+            "score": {
+                "25": 4,
+                "28": 5
+            },
+            "reference_id": "30313",
+            "reference_name": "NHL",
+            "last_metrics_full_process_time": "2025-05-04T09:53:48.960Z"
+        },
+        {
+            "id": "137633",
+            "date": "2024-05-25",
+            "scheduled_time": "2024-05-26T00:00:00+00:00",
+            "scheduled_venue_time": "2024-05-25T19:00:00",
+            "stage": "playoffs",
+            "away_team_id": "1",
+            "home_team_id": "13",
+            "venue_id": "1344",
+            "event_status": "over",
+            "score": {
+                "1": 1,
+                "13": 3
+            },
+            "reference_id": "30322",
+            "reference_name": "NHL",
+            "last_metrics_full_process_time": "2024-11-29T06:08:34.643Z"
+        },
+        {
+            "id": "137606",
+            "date": "2024-05-24",
+            "scheduled_time": "2024-05-25T00:00:00+00:00",
+            "scheduled_venue_time": "2024-05-24T20:00:00",
+            "stage": "playoffs",
+            "away_team_id": "25",
+            "home_team_id": "28",
+            "venue_id": "1336",
+            "event_status": "over",
+            "score": {
+                "25": 1,
+                "28": 2
+            },
+            "reference_id": "30312",
+            "reference_name": "NHL",
+            "last_metrics_full_process_time": "2025-05-04T09:53:34.442Z"
+        },
+        {
+            "id": "137632",
+            "date": "2024-05-23",
+            "scheduled_time": "2024-05-24T00:30:00+00:00",
+            "scheduled_venue_time": "2024-05-23T19:30:00",
+            "stage": "playoffs",
+            "away_team_id": "1",
+            "home_team_id": "13",
+            "venue_id": "1344",
+            "event_status": "over",
+            "score": {
+                "1": 3,
+                "13": 2
+            },
+            "reference_id": "30321",
+            "reference_name": "NHL",
+            "last_metrics_full_process_time": "2024-11-29T06:07:13.384Z"
+        },
+        {
+            "id": "137605",
+            "date": "2024-05-22",
+            "scheduled_time": "2024-05-23T00:00:00+00:00",
+            "scheduled_venue_time": "2024-05-22T20:00:00",
+            "stage": "playoffs",
+            "away_team_id": "25",
+            "home_team_id": "28",
+            "venue_id": "1336",
+            "event_status": "over",
+            "score": {
+                "25": 3,
+                "28": 0
+            },
+            "reference_id": "30311",
+            "reference_name": "NHL",
+            "last_metrics_full_process_time": "2025-05-04T09:53:04.256Z"
+        },
+        {
+            "id": "137492",
+            "date": "2024-05-20",
+            "scheduled_time": "2024-05-21T01:00:00+00:00",
+            "scheduled_venue_time": "2024-05-20T18:00:00",
+            "stage": "playoffs",
+            "away_team_id": "1",
+            "home_team_id": "11",
+            "venue_id": "1340",
+            "event_status": "over",
+            "score": {
+                "1": 3,
+                "11": 2
+            },
+            "reference_id": "30247",
+            "reference_name": "NHL",
+            "last_metrics_full_process_time": "2025-05-10T11:21:25.134Z"
+        },
+        {
+            "id": "137490",
+            "date": "2024-05-18",
+            "scheduled_time": "2024-05-19T00:00:00+00:00",
+            "scheduled_venue_time": "2024-05-18T18:00:00",
+            "stage": "playoffs",
+            "away_team_id": "11",
+            "home_team_id": "1",
+            "venue_id": "1353",
+            "event_status": "over",
+            "score": {
+                "1": 5,
+                "11": 1
+            },
+            "reference_id": "30246",
+            "reference_name": "NHL",
+            "last_metrics_full_process_time": "2025-05-10T11:20:55.083Z"
+        },
+        {
+            "id": "137489",
+            "date": "2024-05-17",
+            "scheduled_time": "2024-05-18T02:00:00+00:00",
+            "scheduled_venue_time": "2024-05-17T20:00:00",
+            "stage": "playoffs",
+            "away_team_id": "13",
+            "home_team_id": "14",
+            "venue_id": "1349",
+            "event_status": "over",
+            "score": {
+                "13": 2,
+                "14": 1
+            },
+            "reference_id": "30236",
+            "reference_name": "NHL",
+            "last_metrics_full_process_time": "2025-05-05T07:45:16.515Z"
+        },
+        {
+            "id": "137475",
+            "date": "2024-05-17",
+            "scheduled_time": "2024-05-17T23:00:00+00:00",
+            "scheduled_venue_time": "2024-05-17T19:00:00",
+            "stage": "playoffs",
+            "away_team_id": "25",
+            "home_team_id": "21",
+            "venue_id": "1347",
+            "event_status": "over",
+            "score": {
+                "21": 1,
+                "25": 2
+            },
+            "reference_id": "30216",
+            "reference_name": "NHL",
+            "last_metrics_full_process_time": "2025-05-10T11:20:24.621Z"
+        },
+        {
+            "id": "137488",
+            "date": "2024-05-16",
+            "scheduled_time": "2024-05-17T02:00:00+00:00",
+            "scheduled_venue_time": "2024-05-16T19:00:00",
+            "stage": "playoffs",
+            "away_team_id": "1",
+            "home_team_id": "11",
+            "venue_id": "1340",
+            "event_status": "over",
+            "score": {
+                "1": 2,
+                "11": 3
+            },
+            "reference_id": "30245",
+            "reference_name": "NHL",
+            "last_metrics_full_process_time": "2025-05-10T11:20:10.138Z"
+        },
+        {
+            "id": "137474",
+            "date": "2024-05-16",
+            "scheduled_time": "2024-05-16T23:00:00+00:00",
+            "scheduled_venue_time": "2024-05-16T19:00:00",
+            "stage": "playoffs",
+            "away_team_id": "28",
+            "home_team_id": "32",
+            "venue_id": "1343",
+            "event_status": "over",
+            "score": {
+                "28": 5,
+                "32": 3
+            },
+            "reference_id": "30226",
+            "reference_name": "NHL",
+            "last_metrics_full_process_time": "2025-05-10T11:19:55.985Z"
+        },
+        {
+            "id": "137487",
+            "date": "2024-05-15",
+            "scheduled_time": "2024-05-16T00:00:00+00:00",
+            "scheduled_venue_time": "2024-05-15T19:00:00",
+            "stage": "playoffs",
+            "away_team_id": "14",
+            "home_team_id": "13",
+            "venue_id": "1344",
+            "event_status": "over",
+            "score": {
+                "13": 3,
+                "14": 5
+            },
+            "reference_id": "30235",
+            "reference_name": "NHL",
+            "last_metrics_full_process_time": "2025-05-05T07:44:35.738Z"
+        },
+        {
+            "id": "137486",
+            "date": "2024-05-14",
+            "scheduled_time": "2024-05-15T01:30:00+00:00",
+            "scheduled_venue_time": "2024-05-14T19:30:00",
+            "stage": "playoffs",
+            "away_team_id": "11",
+            "home_team_id": "1",
+            "venue_id": "1353",
+            "event_status": "over",
+            "score": {
+                "1": 3,
+                "11": 2
+            },
+            "reference_id": "30244",
+            "reference_name": "NHL",
+            "last_metrics_full_process_time": "2025-05-10T11:19:17.379Z"
+        },
+        {
+            "id": "137473",
+            "date": "2024-05-14",
+            "scheduled_time": "2024-05-14T23:00:00+00:00",
+            "scheduled_venue_time": "2024-05-14T19:00:00",
+            "stage": "playoffs",
+            "away_team_id": "21",
+            "home_team_id": "25",
+            "venue_id": "2803",
+            "event_status": "over",
+            "score": {
+                "21": 2,
+                "25": 1
+            },
+            "reference_id": "30215",
+            "reference_name": "NHL",
+            "last_metrics_full_process_time": "2025-05-10T11:18:51.854Z"
+        },
+        {
+            "id": "137485",
+            "date": "2024-05-13",
+            "scheduled_time": "2024-05-14T01:30:00+00:00",
+            "scheduled_venue_time": "2024-05-13T19:30:00",
+            "stage": "playoffs",
+            "away_team_id": "13",
+            "home_team_id": "14",
+            "venue_id": "1349",
+            "event_status": "over",
+            "score": {
+                "13": 5,
+                "14": 1
+            },
+            "reference_id": "30234",
+            "reference_name": "NHL",
+            "last_metrics_full_process_time": "2025-05-05T07:44:09.249Z"
+        },
+        {
+            "id": "137472",
+            "date": "2024-05-13",
+            "scheduled_time": "2024-05-13T23:00:00+00:00",
+            "scheduled_venue_time": "2024-05-13T19:00:00",
+            "stage": "playoffs",
+            "away_team_id": "32",
+            "home_team_id": "28",
+            "venue_id": "1336",
+            "event_status": "over",
+            "score": {
+                "28": 1,
+                "32": 4
+            },
+            "reference_id": "30225",
+            "reference_name": "NHL",
+            "last_metrics_full_process_time": "2025-05-10T11:18:36.008Z"
+        },
+        {
+            "id": "137484",
+            "date": "2024-05-12",
+            "scheduled_time": "2024-05-13T01:30:00+00:00",
+            "scheduled_venue_time": "2024-05-12T19:30:00",
+            "stage": "playoffs",
+            "away_team_id": "11",
+            "home_team_id": "1",
+            "venue_id": "1353",
+            "event_status": "over",
+            "score": {
+                "1": 3,
+                "11": 4
+            },
+            "reference_id": "30243",
+            "reference_name": "NHL",
+            "last_metrics_full_process_time": "2025-05-10T11:17:49.895Z"
+        },
+        {
+            "id": "137471",
+            "date": "2024-05-12",
+            "scheduled_time": "2024-05-12T22:30:00+00:00",
+            "scheduled_venue_time": "2024-05-12T18:30:00",
+            "stage": "playoffs",
+            "away_team_id": "25",
+            "home_team_id": "21",
+            "venue_id": "1347",
+            "event_status": "over",
+            "score": {
+                "21": 2,
+                "25": 3
+            },
+            "reference_id": "30214",
+            "reference_name": "NHL",
+            "last_metrics_full_process_time": "2025-05-10T11:18:19.139Z"
+        },
+        {
+            "id": "137483",
+            "date": "2024-05-11",
+            "scheduled_time": "2024-05-12T02:00:00+00:00",
+            "scheduled_venue_time": "2024-05-11T20:00:00",
+            "stage": "playoffs",
+            "away_team_id": "13",
+            "home_team_id": "14",
+            "venue_id": "1349",
+            "event_status": "over",
+            "score": {
+                "13": 4,
+                "14": 1
+            },
+            "reference_id": "30233",
+            "reference_name": "NHL",
+            "last_metrics_full_process_time": "2025-05-05T07:47:48.822Z"
+        },
+        {
+            "id": "137470",
+            "date": "2024-05-11",
+            "scheduled_time": "2024-05-11T23:00:00+00:00",
+            "scheduled_venue_time": "2024-05-11T19:00:00",
+            "stage": "playoffs",
+            "away_team_id": "28",
+            "home_team_id": "32",
+            "venue_id": "1343",
+            "event_status": "over",
+            "score": {
+                "28": 3,
+                "32": 4
+            },
+            "reference_id": "30224",
+            "reference_name": "NHL",
+            "last_metrics_full_process_time": "2025-05-10T11:17:35.382Z"
+        },
+        {
+            "id": "137482",
+            "date": "2024-05-10",
+            "scheduled_time": "2024-05-11T02:00:00+00:00",
+            "scheduled_venue_time": "2024-05-10T19:00:00",
+            "stage": "playoffs",
+            "away_team_id": "1",
+            "home_team_id": "11",
+            "venue_id": "1340",
+            "event_status": "over",
+            "score": {
+                "1": 4,
+                "11": 3
+            },
+            "reference_id": "30242",
+            "reference_name": "NHL",
+            "last_metrics_full_process_time": "2025-05-10T11:17:21.502Z"
+        },
+        {
+            "id": "137469",
+            "date": "2024-05-10",
+            "scheduled_time": "2024-05-10T23:00:00+00:00",
+            "scheduled_venue_time": "2024-05-10T19:00:00",
+            "stage": "playoffs",
+            "away_team_id": "25",
+            "home_team_id": "21",
+            "venue_id": "1347",
+            "event_status": "over",
+            "score": {
+                "21": 2,
+                "25": 6
+            },
+            "reference_id": "30213",
+            "reference_name": "NHL",
+            "last_metrics_full_process_time": "2025-05-10T11:16:53.260Z"
+        },
+        {
+            "id": "137481",
+            "date": "2024-05-09",
+            "scheduled_time": "2024-05-10T01:30:00+00:00",
+            "scheduled_venue_time": "2024-05-09T20:30:00",
+            "stage": "playoffs",
+            "away_team_id": "14",
+            "home_team_id": "13",
+            "venue_id": "1344",
+            "event_status": "over",
+            "score": {
+                "13": 5,
+                "14": 3
+            },
+            "reference_id": "30232",
+            "reference_name": "NHL",
+            "last_metrics_full_process_time": "2025-05-05T07:47:07.980Z"
+        },
+        {
+            "id": "137468",
+            "date": "2024-05-09",
+            "scheduled_time": "2024-05-09T23:00:00+00:00",
+            "scheduled_venue_time": "2024-05-09T19:00:00",
+            "stage": "playoffs",
+            "away_team_id": "28",
+            "home_team_id": "32",
+            "venue_id": "1343",
+            "event_status": "over",
+            "score": {
+                "28": 3,
+                "32": 2
+            },
+            "reference_id": "30223",
+            "reference_name": "NHL",
+            "last_metrics_full_process_time": "2025-05-10T11:16:36.901Z"
+        },
+        {
+            "id": "137480",
+            "date": "2024-05-08",
+            "scheduled_time": "2024-05-09T02:00:00+00:00",
+            "scheduled_venue_time": "2024-05-08T19:00:00",
+            "stage": "playoffs",
+            "away_team_id": "1",
+            "home_team_id": "11",
+            "venue_id": "1340",
+            "event_status": "over",
+            "score": {
+                "1": 4,
+                "11": 5
+            },
+            "reference_id": "30241",
+            "reference_name": "NHL",
+            "last_metrics_full_process_time": "2025-05-10T11:16:05.772Z"
+        },
+        {
+            "id": "137467",
+            "date": "2024-05-08",
+            "scheduled_time": "2024-05-08T23:30:00+00:00",
+            "scheduled_venue_time": "2024-05-08T19:30:00",
+            "stage": "playoffs",
+            "away_team_id": "21",
+            "home_team_id": "25",
+            "venue_id": "2803",
+            "event_status": "over",
+            "score": {
+                "21": 1,
+                "25": 6
+            },
+            "reference_id": "30212",
+            "reference_name": "NHL",
+            "last_metrics_full_process_time": "2025-05-10T11:16:20.549Z"
+        },
+        {
+            "id": "137479",
+            "date": "2024-05-07",
+            "scheduled_time": "2024-05-08T01:30:00+00:00",
+            "scheduled_venue_time": "2024-05-07T20:30:00",
+            "stage": "playoffs",
+            "away_team_id": "14",
+            "home_team_id": "13",
+            "venue_id": "1344",
+            "event_status": "over",
+            "score": {
+                "13": 3,
+                "14": 4
+            },
+            "reference_id": "30231",
+            "reference_name": "NHL",
+            "last_metrics_full_process_time": "2025-05-05T07:46:36.305Z"
+        },
+        {
+            "id": "137466",
+            "date": "2024-05-07",
+            "scheduled_time": "2024-05-07T23:00:00+00:00",
+            "scheduled_venue_time": "2024-05-07T19:00:00",
+            "stage": "playoffs",
+            "away_team_id": "32",
+            "home_team_id": "28",
+            "venue_id": "1336",
+            "event_status": "over",
+            "score": {
+                "28": 4,
+                "32": 3
+            },
+            "reference_id": "30222",
+            "reference_name": "NHL",
+            "last_metrics_full_process_time": "2025-05-10T11:15:27.846Z"
+        },
+        {
+            "id": "137465",
+            "date": "2024-05-06",
+            "scheduled_time": "2024-05-07T00:00:00+00:00",
+            "scheduled_venue_time": "2024-05-06T20:00:00",
+            "stage": "playoffs",
+            "away_team_id": "21",
+            "home_team_id": "25",
+            "venue_id": "2803",
+            "event_status": "over",
+            "score": {
+                "21": 5,
+                "25": 1
+            },
+            "reference_id": "30211",
+            "reference_name": "NHL",
+            "last_metrics_full_process_time": "2025-05-10T11:15:13.353Z"
+        },
+        {
+            "id": "137156",
+            "date": "2024-05-05",
+            "scheduled_time": "2024-05-05T23:30:00+00:00",
+            "scheduled_venue_time": "2024-05-05T18:30:00",
+            "stage": "playoffs",
+            "away_team_id": "322",
+            "home_team_id": "13",
+            "venue_id": "1344",
+            "event_status": "over",
+            "score": {
+                "13": 2,
+                "322": 1
+            },
+            "reference_id": "30157",
+            "reference_name": "NHL",
+            "last_metrics_full_process_time": "2024-11-29T05:38:53.730Z"
+        },
+        {
+            "id": "137447",
+            "date": "2024-05-05",
+            "scheduled_time": "2024-05-05T20:00:00+00:00",
+            "scheduled_venue_time": "2024-05-05T16:00:00",
+            "stage": "playoffs",
+            "away_team_id": "32",
+            "home_team_id": "28",
+            "venue_id": "1336",
+            "event_status": "over",
+            "score": {
+                "28": 4,
+                "32": 3
+            },
+            "reference_id": "30221",
+            "reference_name": "NHL",
+            "last_metrics_full_process_time": "2025-05-10T11:14:59.805Z"
+        },
+        {
+            "id": "137152",
+            "date": "2024-05-04",
+            "scheduled_time": "2024-05-05T00:00:00+00:00",
+            "scheduled_venue_time": "2024-05-04T20:00:00",
+            "stage": "playoffs",
+            "away_team_id": "23",
+            "home_team_id": "21",
+            "venue_id": "1347",
+            "event_status": "over",
+            "score": {
+                "21": 2,
+                "23": 1
+            },
+            "reference_id": "30127",
+            "reference_name": "NHL",
+            "last_metrics_full_process_time": "2025-05-10T11:14:35.437Z"
+        },
+        {
+            "id": "137148",
+            "date": "2024-05-03",
+            "scheduled_time": "2024-05-04T02:00:00+00:00",
+            "scheduled_venue_time": "2024-05-03T19:00:00",
+            "stage": "playoffs",
+            "away_team_id": "13",
+            "home_team_id": "322",
+            "venue_id": "1153",
+            "event_status": "over",
+            "score": {
+                "13": 0,
+                "322": 2
+            },
+            "reference_id": "30156",
+            "reference_name": "NHL",
+            "last_metrics_full_process_time": "2024-11-29T05:36:19.098Z"
+        },
+        {
+            "id": "137149",
+            "date": "2024-05-03",
+            "scheduled_time": "2024-05-03T23:00:00+00:00",
+            "scheduled_venue_time": "2024-05-03T18:00:00",
+            "stage": "playoffs",
+            "away_team_id": "11",
+            "home_team_id": "17",
+            "venue_id": "1355",
+            "event_status": "over",
+            "score": {
+                "11": 1,
+                "17": 0
+            },
+            "reference_id": "30176",
+            "reference_name": "NHL",
+            "last_metrics_full_process_time": "2025-05-10T11:14:24.888Z"
+        },
+        {
+            "id": "137144",
+            "date": "2024-05-02",
+            "scheduled_time": "2024-05-03T00:00:00+00:00",
+            "scheduled_venue_time": "2024-05-02T20:00:00",
+            "stage": "playoffs",
+            "away_team_id": "21",
+            "home_team_id": "23",
+            "venue_id": "1332",
+            "event_status": "over",
+            "score": {
+                "21": 1,
+                "23": 2
+            },
+            "reference_id": "30126",
+            "reference_name": "NHL",
+            "last_metrics_full_process_time": "2025-05-10T11:13:45.758Z"
+        },
+        {
+            "id": "137143",
+            "date": "2024-05-01",
+            "scheduled_time": "2024-05-02T02:00:00+00:00",
+            "scheduled_venue_time": "2024-05-01T20:00:00",
+            "stage": "playoffs",
+            "away_team_id": "7",
+            "home_team_id": "1",
+            "venue_id": "1353",
+            "event_status": "over",
+            "score": {
+                "1": 4,
+                "7": 3
+            },
+            "reference_id": "30185",
+            "reference_name": "NHL",
+            "last_metrics_full_process_time": "2024-11-29T05:32:19.670Z"
+        },
+        {
+            "id": "137142",
+            "date": "2024-05-01",
+            "scheduled_time": "2024-05-01T23:30:00+00:00",
+            "scheduled_venue_time": "2024-05-01T18:30:00",
+            "stage": "playoffs",
+            "away_team_id": "322",
+            "home_team_id": "13",
+            "venue_id": "1344",
+            "event_status": "over",
+            "score": {
+                "13": 3,
+                "322": 2
+            },
+            "reference_id": "30155",
+            "reference_name": "NHL",
+            "last_metrics_full_process_time": "2024-11-29T05:31:53.429Z"
+        },
+        {
+            "id": "137139",
+            "date": "2024-04-30",
+            "scheduled_time": "2024-05-01T02:00:00+00:00",
+            "scheduled_venue_time": "2024-04-30T19:00:00",
+            "stage": "playoffs",
+            "away_team_id": "17",
+            "home_team_id": "11",
+            "venue_id": "1340",
+            "event_status": "over",
+            "score": {
+                "11": 1,
+                "17": 2
+            },
+            "reference_id": "30175",
+            "reference_name": "NHL",
+            "last_metrics_full_process_time": "2025-05-10T11:13:11.889Z"
+        },
+        {
+            "id": "137138",
+            "date": "2024-04-30",
+            "scheduled_time": "2024-05-01T01:30:00+00:00",
+            "scheduled_venue_time": "2024-04-30T20:30:00",
+            "stage": "playoffs",
+            "away_team_id": "14",
+            "home_team_id": "19",
+            "venue_id": "1441",
+            "event_status": "over",
+            "score": {
+                "14": 6,
+                "19": 3
+            },
+            "reference_id": "30165",
+            "reference_name": "NHL",
+            "last_metrics_full_process_time": "2025-05-05T07:45:45.624Z"
+        },
+        {
+            "id": "137137",
+            "date": "2024-04-30",
+            "scheduled_time": "2024-04-30T23:30:00+00:00",
+            "scheduled_venue_time": "2024-04-30T19:30:00",
+            "stage": "playoffs",
+            "away_team_id": "5",
+            "home_team_id": "32",
+            "venue_id": "1343",
+            "event_status": "over",
+            "score": {
+                "5": 3,
+                "32": 6
+            },
+            "reference_id": "30145",
+            "reference_name": "NHL",
+            "last_metrics_full_process_time": "2025-05-10T11:12:44.075Z"
+        },
+        {
+            "id": "137136",
+            "date": "2024-04-30",
+            "scheduled_time": "2024-04-30T23:00:00+00:00",
+            "scheduled_venue_time": "2024-04-30T19:00:00",
+            "stage": "playoffs",
+            "away_team_id": "23",
+            "home_team_id": "21",
+            "venue_id": "1347",
+            "event_status": "over",
+            "score": {
+                "21": 1,
+                "23": 2
+            },
+            "reference_id": "30125",
+            "reference_name": "NHL",
+            "last_metrics_full_process_time": "2025-05-10T11:12:58.766Z"
+        },
+        {
+            "id": "137135",
+            "date": "2024-04-29",
+            "scheduled_time": "2024-04-30T01:30:00+00:00",
+            "scheduled_venue_time": "2024-04-29T18:30:00",
+            "stage": "playoffs",
+            "away_team_id": "13",
+            "home_team_id": "322",
+            "venue_id": "1153",
+            "event_status": "over",
+            "score": {
+                "13": 4,
+                "322": 2
+            },
+            "reference_id": "30154",
+            "reference_name": "NHL",
+            "last_metrics_full_process_time": "2024-11-29T05:28:18.189Z"
+        },
+        {
+            "id": "137134",
+            "date": "2024-04-29",
+            "scheduled_time": "2024-04-29T23:00:00+00:00",
+            "scheduled_venue_time": "2024-04-29T19:00:00",
+            "stage": "playoffs",
+            "away_team_id": "24",
+            "home_team_id": "25",
+            "venue_id": "2803",
+            "event_status": "over",
+            "score": {
+                "24": 1,
+                "25": 6
+            },
+            "reference_id": "30115",
+            "reference_name": "NHL",
+            "last_metrics_full_process_time": "2024-11-29T05:26:55.348Z"
+        },
+        {
+            "id": "137133",
+            "date": "2024-04-28",
+            "scheduled_time": "2024-04-29T02:30:00+00:00",
+            "scheduled_venue_time": "2024-04-28T19:30:00",
+            "stage": "playoffs",
+            "away_team_id": "1",
+            "home_team_id": "7",
+            "venue_id": "2022",
+            "event_status": "over",
+            "score": {
+                "1": 1,
+                "7": 0
+            },
+            "reference_id": "30184",
+            "reference_name": "NHL",
+            "last_metrics_full_process_time": "2024-11-29T05:25:47.589Z"
+        },
+        {
+            "id": "137132",
+            "date": "2024-04-28",
+            "scheduled_time": "2024-04-29T00:00:00+00:00",
+            "scheduled_venue_time": "2024-04-28T20:00:00",
+            "stage": "playoffs",
+            "away_team_id": "28",
+            "home_team_id": "31",
+            "venue_id": "1335",
+            "event_status": "over",
+            "score": {
+                "28": 4,
+                "31": 2
+            },
+            "reference_id": "30134",
+            "reference_name": "NHL",
+            "last_metrics_full_process_time": "2025-05-04T09:47:25.816Z"
+        },
+        {
+            "id": "137131",
+            "date": "2024-04-28",
+            "scheduled_time": "2024-04-28T21:00:00+00:00",
+            "scheduled_venue_time": "2024-04-28T16:00:00",
+            "stage": "playoffs",
+            "away_team_id": "11",
+            "home_team_id": "17",
+            "venue_id": "1355",
+            "event_status": "over",
+            "score": {
+                "11": 4,
+                "17": 3
+            },
+            "reference_id": "30174",
+            "reference_name": "NHL",
+            "last_metrics_full_process_time": "2025-05-10T11:12:30.426Z"
+        },
+        {
+            "id": "137130",
+            "date": "2024-04-28",
+            "scheduled_time": "2024-04-28T18:30:00+00:00",
+            "scheduled_venue_time": "2024-04-28T12:30:00",
+            "stage": "playoffs",
+            "away_team_id": "19",
+            "home_team_id": "14",
+            "venue_id": "1349",
+            "event_status": "over",
+            "score": {
+                "14": 5,
+                "19": 1
+            },
+            "reference_id": "30164",
+            "reference_name": "NHL",
+            "last_metrics_full_process_time": "2025-05-05T07:45:05.406Z"
+        },
+        {
+            "id": "137129",
+            "date": "2024-04-27",
+            "scheduled_time": "2024-04-28T02:30:00+00:00",
+            "scheduled_venue_time": "2024-04-27T19:30:00",
+            "stage": "playoffs",
+            "away_team_id": "13",
+            "home_team_id": "322",
+            "venue_id": "1153",
+            "event_status": "over",
+            "score": {
+                "13": 3,
+                "322": 2
+            },
+            "reference_id": "30153",
+            "reference_name": "NHL",
+            "last_metrics_full_process_time": "2024-11-29T05:23:39.713Z"
+        },
+        {
+            "id": "137128",
+            "date": "2024-04-27",
+            "scheduled_time": "2024-04-28T00:00:00+00:00",
+            "scheduled_venue_time": "2024-04-27T20:00:00",
+            "stage": "playoffs",
+            "away_team_id": "21",
+            "home_team_id": "23",
+            "venue_id": "1332",
+            "event_status": "over",
+            "score": {
+                "21": 3,
+                "23": 1
+            },
+            "reference_id": "30124",
+            "reference_name": "NHL",
+            "last_metrics_full_process_time": "2025-05-10T11:11:24.958Z"
+        },
+        {
+            "id": "137127",
+            "date": "2024-04-27",
+            "scheduled_time": "2024-04-27T21:00:00+00:00",
+            "scheduled_venue_time": "2024-04-27T17:00:00",
+            "stage": "playoffs",
+            "away_team_id": "25",
+            "home_team_id": "24",
+            "venue_id": "1346",
+            "event_status": "over",
+            "score": {
+                "24": 6,
+                "25": 3
+            },
+            "reference_id": "30114",
+            "reference_name": "NHL",
+            "last_metrics_full_process_time": "2024-11-29T06:23:16.111Z"
+        },
+        {
+            "id": "137126",
+            "date": "2024-04-27",
+            "scheduled_time": "2024-04-27T18:00:00+00:00",
+            "scheduled_venue_time": "2024-04-27T14:00:00",
+            "stage": "playoffs",
+            "away_team_id": "32",
+            "home_team_id": "5",
+            "venue_id": "1354",
+            "event_status": "over",
+            "score": {
+                "5": 3,
+                "32": 2
+            },
+            "reference_id": "30144",
+            "reference_name": "NHL",
+            "last_metrics_full_process_time": "2025-05-10T11:11:39.543Z"
+        },
+        {
+            "id": "137125",
+            "date": "2024-04-26",
+            "scheduled_time": "2024-04-27T02:30:00+00:00",
+            "scheduled_venue_time": "2024-04-26T19:30:00",
+            "stage": "playoffs",
+            "away_team_id": "1",
+            "home_team_id": "7",
+            "venue_id": "2022",
+            "event_status": "over",
+            "score": {
+                "1": 6,
+                "7": 1
+            },
+            "reference_id": "30183",
+            "reference_name": "NHL",
+            "last_metrics_full_process_time": "2024-11-29T06:20:59.687Z"
+        },
+        {
+            "id": "137124",
+            "date": "2024-04-26",
+            "scheduled_time": "2024-04-27T02:00:00+00:00",
+            "scheduled_venue_time": "2024-04-26T20:00:00",
+            "stage": "playoffs",
+            "away_team_id": "19",
+            "home_team_id": "14",
+            "venue_id": "1349",
+            "event_status": "over",
+            "score": {
+                "14": 6,
+                "19": 2
+            },
+            "reference_id": "30163",
+            "reference_name": "NHL",
+            "last_metrics_full_process_time": "2025-05-05T07:44:48.895Z"
+        },
+        {
+            "id": "137123",
+            "date": "2024-04-26",
+            "scheduled_time": "2024-04-26T23:30:00+00:00",
+            "scheduled_venue_time": "2024-04-26T18:30:00",
+            "stage": "playoffs",
+            "away_team_id": "11",
+            "home_team_id": "17",
+            "venue_id": "1355",
+            "event_status": "over",
+            "score": {
+                "11": 2,
+                "17": 1
+            },
+            "reference_id": "30173",
+            "reference_name": "NHL",
+            "last_metrics_full_process_time": "2025-05-10T11:10:47.315Z"
+        },
+        {
+            "id": "137122",
+            "date": "2024-04-26",
+            "scheduled_time": "2024-04-26T23:00:00+00:00",
+            "scheduled_venue_time": "2024-04-26T19:00:00",
+            "stage": "playoffs",
+            "away_team_id": "28",
+            "home_team_id": "31",
+            "venue_id": "1335",
+            "event_status": "over",
+            "score": {
+                "28": 3,
+                "31": 1
+            },
+            "reference_id": "30133",
+            "reference_name": "NHL",
+            "last_metrics_full_process_time": "2025-05-04T09:46:40.707Z"
+        },
+        {
+            "id": "137121",
+            "date": "2024-04-25",
+            "scheduled_time": "2024-04-25T23:30:00+00:00",
+            "scheduled_venue_time": "2024-04-25T19:30:00",
+            "stage": "playoffs",
+            "away_team_id": "32",
+            "home_team_id": "5",
+            "venue_id": "1354",
+            "event_status": "over",
+            "score": {
+                "5": 2,
+                "32": 3
+            },
+            "reference_id": "30143",
+            "reference_name": "NHL",
+            "last_metrics_full_process_time": "2025-05-10T11:10:20.339Z"
+        },
+        {
+            "id": "137120",
+            "date": "2024-04-25",
+            "scheduled_time": "2024-04-25T23:00:00+00:00",
+            "scheduled_venue_time": "2024-04-25T19:00:00",
+            "stage": "playoffs",
+            "away_team_id": "25",
+            "home_team_id": "24",
+            "venue_id": "1346",
+            "event_status": "over",
+            "score": {
+                "24": 3,
+                "25": 5
+            },
+            "reference_id": "30113",
+            "reference_name": "NHL",
+            "last_metrics_full_process_time": "2024-11-29T06:17:50.307Z"
+        },
+        {
+            "id": "137119",
+            "date": "2024-04-24",
+            "scheduled_time": "2024-04-25T02:00:00+00:00",
+            "scheduled_venue_time": "2024-04-24T20:00:00",
+            "stage": "playoffs",
+            "away_team_id": "7",
+            "home_team_id": "1",
+            "venue_id": "1353",
+            "event_status": "over",
+            "score": {
+                "1": 4,
+                "7": 5
+            },
+            "reference_id": "30182",
+            "reference_name": "NHL",
+            "last_metrics_full_process_time": "2024-11-29T06:14:52.966Z"
+        },
+        {
+            "id": "137118",
+            "date": "2024-04-24",
+            "scheduled_time": "2024-04-25T01:30:00+00:00",
+            "scheduled_venue_time": "2024-04-24T20:30:00",
+            "stage": "playoffs",
+            "away_team_id": "322",
+            "home_team_id": "13",
+            "venue_id": "1344",
+            "event_status": "over",
+            "score": {
+                "13": 1,
+                "322": 3
+            },
+            "reference_id": "30152",
+            "reference_name": "NHL",
+            "last_metrics_full_process_time": "2024-11-29T06:15:47.895Z"
+        },
+        {
+            "id": "137117",
+            "date": "2024-04-24",
+            "scheduled_time": "2024-04-24T23:00:00+00:00",
+            "scheduled_venue_time": "2024-04-24T19:00:00",
+            "stage": "playoffs",
+            "away_team_id": "21",
+            "home_team_id": "23",
+            "venue_id": "1332",
+            "event_status": "over",
+            "score": {
+                "21": 4,
+                "23": 2
+            },
+            "reference_id": "30123",
+            "reference_name": "NHL",
+            "last_metrics_full_process_time": "2025-05-10T11:09:36.743Z"
+        },
+        {
+            "id": "137116",
+            "date": "2024-04-23",
+            "scheduled_time": "2024-04-24T02:00:00+00:00",
+            "scheduled_venue_time": "2024-04-23T19:00:00",
+            "stage": "playoffs",
+            "away_team_id": "17",
+            "home_team_id": "11",
+            "venue_id": "1340",
+            "event_status": "over",
+            "score": {
+                "11": 1,
+                "17": 4
+            },
+            "reference_id": "30172",
+            "reference_name": "NHL",
+            "last_metrics_full_process_time": "2025-05-10T11:09:10.323Z"
+        },
+        {
+            "id": "137115",
+            "date": "2024-04-23",
+            "scheduled_time": "2024-04-24T01:30:00+00:00",
+            "scheduled_venue_time": "2024-04-23T20:30:00",
+            "stage": "playoffs",
+            "away_team_id": "14",
+            "home_team_id": "19",
+            "venue_id": "1441",
+            "event_status": "over",
+            "score": {
+                "14": 5,
+                "19": 2
+            },
+            "reference_id": "30162",
+            "reference_name": "NHL",
+            "last_metrics_full_process_time": "2024-11-29T06:13:44.850Z"
+        },
+        {
+            "id": "137114",
+            "date": "2024-04-23",
+            "scheduled_time": "2024-04-23T23:30:00+00:00",
+            "scheduled_venue_time": "2024-04-23T19:30:00",
+            "stage": "playoffs",
+            "away_team_id": "24",
+            "home_team_id": "25",
+            "venue_id": "2803",
+            "event_status": "over",
+            "score": {
+                "24": 2,
+                "25": 3
+            },
+            "reference_id": "30112",
+            "reference_name": "NHL",
+            "last_metrics_full_process_time": "2024-11-29T06:14:09.361Z"
+        },
+        {
+            "id": "137113",
+            "date": "2024-04-23",
+            "scheduled_time": "2024-04-23T23:00:00+00:00",
+            "scheduled_venue_time": "2024-04-23T19:00:00",
+            "stage": "playoffs",
+            "away_team_id": "31",
+            "home_team_id": "28",
+            "venue_id": "1336",
+            "event_status": "over",
+            "score": {
+                "28": 4,
+                "31": 3
+            },
+            "reference_id": "30132",
+            "reference_name": "NHL",
+            "last_metrics_full_process_time": "2025-05-04T09:45:46.462Z"
+        },
+        {
+            "id": "137112",
+            "date": "2024-04-22",
+            "scheduled_time": "2024-04-23T02:00:00+00:00",
+            "scheduled_venue_time": "2024-04-22T20:00:00",
+            "stage": "playoffs",
+            "away_team_id": "7",
+            "home_team_id": "1",
+            "venue_id": "1353",
+            "event_status": "over",
+            "score": {
+                "1": 7,
+                "7": 4
+            },
+            "reference_id": "30181",
+            "reference_name": "NHL",
+            "last_metrics_full_process_time": "2024-11-29T06:12:33.876Z"
+        },
+        {
+            "id": "137111",
+            "date": "2024-04-22",
+            "scheduled_time": "2024-04-23T01:30:00+00:00",
+            "scheduled_venue_time": "2024-04-22T20:30:00",
+            "stage": "playoffs",
+            "away_team_id": "322",
+            "home_team_id": "13",
+            "venue_id": "1344",
+            "event_status": "over",
+            "score": {
+                "13": 3,
+                "322": 4
+            },
+            "reference_id": "30151",
+            "reference_name": "NHL",
+            "last_metrics_full_process_time": "2024-11-29T06:11:40.478Z"
+        },
+        {
+            "id": "137110",
+            "date": "2024-04-22",
+            "scheduled_time": "2024-04-22T23:30:00+00:00",
+            "scheduled_venue_time": "2024-04-22T19:30:00",
+            "stage": "playoffs",
+            "away_team_id": "5",
+            "home_team_id": "32",
+            "venue_id": "1343",
+            "event_status": "over",
+            "score": {
+                "5": 3,
+                "32": 5
+            },
+            "reference_id": "30142",
+            "reference_name": "NHL",
+            "last_metrics_full_process_time": "2025-05-10T11:08:56.959Z"
+        },
+        {
+            "id": "137109",
+            "date": "2024-04-22",
+            "scheduled_time": "2024-04-22T23:00:00+00:00",
+            "scheduled_venue_time": "2024-04-22T19:00:00",
+            "stage": "playoffs",
+            "away_team_id": "23",
+            "home_team_id": "21",
+            "venue_id": "1347",
+            "event_status": "over",
+            "score": {
+                "21": 2,
+                "23": 3
+            },
+            "reference_id": "30122",
+            "reference_name": "NHL",
+            "last_metrics_full_process_time": "2025-05-10T11:08:44.580Z"
+        },
+        {
+            "id": "137108",
+            "date": "2024-04-21",
+            "scheduled_time": "2024-04-22T02:00:00+00:00",
+            "scheduled_venue_time": "2024-04-21T19:00:00",
+            "stage": "playoffs",
+            "away_team_id": "17",
+            "home_team_id": "11",
+            "venue_id": "1340",
+            "event_status": "over",
+            "score": {
+                "11": 4,
+                "17": 2
+            },
+            "reference_id": "30171",
+            "reference_name": "NHL",
+            "last_metrics_full_process_time": "2025-05-10T11:08:31.174Z"
+        },
+        {
+            "id": "137107",
+            "date": "2024-04-21",
+            "scheduled_time": "2024-04-21T23:00:00+00:00",
+            "scheduled_venue_time": "2024-04-21T18:00:00",
+            "stage": "playoffs",
+            "away_team_id": "14",
+            "home_team_id": "19",
+            "venue_id": "1441",
+            "event_status": "over",
+            "score": {
+                "14": 6,
+                "19": 7
+            },
+            "reference_id": "30161",
+            "reference_name": "NHL",
+            "last_metrics_full_process_time": "2025-04-25T08:35:42.688Z"
+        },
+        {
+            "id": "137041",
+            "date": "2024-04-21",
+            "scheduled_time": "2024-04-21T19:00:00+00:00",
+            "scheduled_venue_time": "2024-04-21T15:00:00",
+            "stage": "playoffs",
+            "away_team_id": "31",
+            "home_team_id": "28",
+            "venue_id": "1336",
+            "event_status": "over",
+            "score": {
+                "28": 4,
+                "31": 1
+            },
+            "reference_id": "30131",
+            "reference_name": "NHL",
+            "last_metrics_full_process_time": "2025-05-04T09:44:58.352Z"
+        },
+        {
+            "id": "137040",
+            "date": "2024-04-21",
+            "scheduled_time": "2024-04-21T16:30:00+00:00",
+            "scheduled_venue_time": "2024-04-21T12:30:00",
+            "stage": "playoffs",
+            "away_team_id": "24",
+            "home_team_id": "25",
+            "venue_id": "2803",
+            "event_status": "over",
+            "score": {
+                "24": 2,
+                "25": 3
+            },
+            "reference_id": "30111",
+            "reference_name": "NHL",
+            "last_metrics_full_process_time": "2024-11-29T06:09:01.176Z"
+        },
+        {
+            "id": "137039",
+            "date": "2024-04-20",
+            "scheduled_time": "2024-04-21T00:00:00+00:00",
+            "scheduled_venue_time": "2024-04-20T20:00:00",
+            "stage": "playoffs",
+            "away_team_id": "23",
+            "home_team_id": "21",
+            "venue_id": "1347",
+            "event_status": "over",
+            "score": {
+                "21": 5,
+                "23": 1
+            },
+            "reference_id": "30121",
+            "reference_name": "NHL",
+            "last_metrics_full_process_time": "2025-05-10T11:07:00.409Z"
+        },
+        {
+            "id": "137038",
+            "date": "2024-04-20",
+            "scheduled_time": "2024-04-20T21:00:00+00:00",
+            "scheduled_venue_time": "2024-04-20T17:00:00",
+            "stage": "playoffs",
+            "away_team_id": "5",
+            "home_team_id": "32",
+            "venue_id": "1343",
+            "event_status": "over",
+            "score": {
+                "5": 1,
+                "32": 3
+            },
+            "reference_id": "30141",
+            "reference_name": "NHL",
+            "last_metrics_full_process_time": "2025-05-10T11:07:15.590Z"
+        }
+    ]
+}

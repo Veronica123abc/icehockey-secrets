@@ -14,8 +14,6 @@ from hockey.io.raw_game import RawGame
 from collections import defaultdict
 from hockey.io.raw_competition import RawCompetition
 from hockey.normalize.build_game import  build_game
-from hockey.normalize.build_game_db import build_game_from_db
-from hockey.db.database import open_database_azure
 import hockey.db
 from hockey.normalize.build_competition import build_competition
 DFFilter = Callable[[pd.DataFrame], pd.DataFrame]
@@ -63,12 +61,10 @@ def add_baseline_5v5(event_diff: dict, baseline:dict)->dict:
 
 
 def toi_difference(game_ids: list[int] = [], filter_func: Optional[DFFilter] = filter_goal_5v5):
-    conn = open_database_azure("sportlogiq")
     accumulated = defaultdict(lambda: {"for": [], "against": [], "baseline": []})
     for game_id in tqdm(game_ids):
         raw = RawGame(game_id=game_id, root_dir=settings.data_root_dir)
         game = build_game(raw)
-        game_db = build_game_from_db(game_id, conn=conn)
         df_raw = game.events_raw_df()
         df_raw = filter_func(df_raw)
         times = [game.current_shift_toi(t) for t in df_raw['game_time']]

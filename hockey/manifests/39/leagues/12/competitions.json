@@ -1,0 +1,111 @@
+{
+    "id": "12",
+    "name": "Liiga",
+    "seasons": [
+        {
+            "name": "20252026",
+            "stages": [
+                {
+                    "name": "regular",
+                    "start_date": "2025-09-09",
+                    "end_date": "2025-09-09"
+                }
+            ]
+        },
+        {
+            "name": "20242025",
+            "stages": [
+                {
+                    "name": "playoffs",
+                    "start_date": "2025-03-18",
+                    "end_date": "2025-05-03"
+                },
+                {
+                    "name": "regular",
+                    "start_date": "2024-09-10",
+                    "end_date": "2025-03-15"
+                }
+            ]
+        },
+        {
+            "name": "20232024",
+            "stages": [
+                {
+                    "name": "playoffs",
+                    "start_date": "2024-03-15",
+                    "end_date": "2024-04-28"
+                },
+                {
+                    "name": "regular",
+                    "start_date": "2023-09-12",
+                    "end_date": "2024-03-12"
+                }
+            ]
+        },
+        {
+            "name": "20222023",
+            "stages": [
+                {
+                    "name": "regular",
+                    "start_date": "2022-10-12",
+                    "end_date": "2023-03-04"
+                }
+            ]
+        },
+        {
+            "name": "20212022",
+            "stages": [
+                {
+                    "name": "regular",
+                    "start_date": "2021-09-17",
+                    "end_date": "2022-01-18"
+                }
+            ]
+        },
+        {
+            "name": "20202021",
+            "stages": [
+                {
+                    "name": "regular",
+                    "start_date": "2020-10-10",
+                    "end_date": "2021-04-14"
+                }
+            ]
+        },
+        {
+            "name": "20192020",
+            "stages": [
+                {
+                    "name": "regular",
+                    "start_date": "2019-11-02",
+                    "end_date": "2020-03-12"
+                }
+            ]
+        },
+        {
+            "name": "20182019",
+            "stages": [
+                {
+                    "name": "playoffs",
+                    "start_date": "2019-03-17",
+                    "end_date": "2019-03-23"
+                },
+                {
+                    "name": "regular",
+                    "start_date": "2018-11-21",
+                    "end_date": "2019-03-23"
+                }
+            ]
+        },
+        {
+            "name": "20172018",
+            "stages": [
+                {
+                    "name": "regular",
+                    "start_date": "2017-10-18",
+                    "end_date": "2018-03-10"
+                }
+            ]
+        }
+    ]
+}

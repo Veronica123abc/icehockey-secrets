@@ -1,0 +1,97 @@
+{
+    "season": "20162017",
+    "stage": "playoffs",
+    "competition_id": "13",
+    "games": [
+        {
+            "id": "4724",
+            "date": "2017-04-06",
+            "scheduled_time": "2017-04-06T16:00:00+00:00",
+            "scheduled_venue_time": "2017-04-06T12:00:00",
+            "stage": "playoffs",
+            "away_team_id": "308",
+            "home_team_id": "310",
+            "venue_id": "232",
+            "event_status": "over",
+            "score": {
+                "308": 3,
+                "310": 6
+            },
+            "reference_id": "qTH-ATLCmf8Fv",
+            "reference_name": "SHL",
+            "last_metrics_full_process_time": "2025-02-10T07:42:47.277Z"
+        },
+        {
+            "id": "4722",
+            "date": "2017-03-26",
+            "scheduled_time": "2017-03-26T16:00:00+00:00",
+            "scheduled_venue_time": "2017-03-26T12:00:00",
+            "stage": "playoffs",
+            "away_team_id": "308",
+            "home_team_id": "309",
+            "venue_id": "237",
+            "event_status": "over",
+            "score": {
+                "308": 2,
+                "309": 3
+            },
+            "reference_id": "qTH-3EmfxdEbW",
+            "reference_name": "SHL",
+            "last_metrics_full_process_time": "2025-04-25T06:34:57.566Z"
+        },
+        {
+            "id": "4721",
+            "date": "2017-03-24",
+            "scheduled_time": "2017-03-24T16:00:00+00:00",
+            "scheduled_venue_time": "2017-03-24T12:00:00",
+            "stage": "playoffs",
+            "away_team_id": "309",
+            "home_team_id": "308",
+            "venue_id": "229",
+            "event_status": "over",
+            "score": {
+                "308": 1,
+                "309": 0
+            },
+            "reference_id": "qTH-3Emd8raQv",
+            "reference_name": "SHL",
+            "last_metrics_full_process_time": "2025-04-25T06:34:42.215Z"
+        },
+        {
+            "id": "4720",
+            "date": "2017-03-22",
+            "scheduled_time": "2017-03-22T16:00:00+00:00",
+            "scheduled_venue_time": "2017-03-22T12:00:00",
+            "stage": "playoffs",
+            "away_team_id": "308",
+            "home_team_id": "309",
+            "venue_id": "237",
+            "event_status": "over",
+            "score": {
+                "308": 1,
+                "309": 2
+            },
+            "reference_id": "qTH-3Ema14bJ9c",
+            "reference_name": "SHL",
+            "last_metrics_full_process_time": "2025-04-25T06:34:27.513Z"
+        },
+        {
+            "id": "4719",
+            "date": "2017-03-18",
+            "scheduled_time": "2017-03-18T16:00:00+00:00",
+            "scheduled_venue_time": "2017-03-18T12:00:00",
+            "stage": "playoffs",
+            "away_team_id": "308",
+            "home_team_id": "309",
+            "venue_id": "237",
+            "event_status": "over",
+            "score": {
+                "308": 6,
+                "309": 0
+            },
+            "reference_id": "qTH-3EmU1nuWv",
+            "reference_name": "SHL",
+            "last_metrics_full_process_time": "2025-04-25T06:34:56.305Z"
+        }
+    ]
+}

@@ -26,6 +26,15 @@ def _load_dotenv_if_present(dotenv_path: Path) -> None:
         os.environ.setdefault(key, value)
 
 
+def _find_dotenv(start: Path) -> Path | None:
+    """Walk up directory tree from start until a .env file is found."""
+    for directory in [start, *start.parents]:
+        candidate = directory / ".env"
+        if candidate.exists():
+            return candidate
+    return None
+
+
 @dataclass(frozen=True, slots=True)
 class Settings:
     data_root_dir: Path
@@ -36,9 +45,10 @@ class Settings:
 
     @classmethod
     def from_env(cls, *, project_root: Path | None = None) -> "Settings":
-        # If project_root is provided, we try loading project_root/.env
         if project_root is not None:
-            _load_dotenv_if_present(project_root / ".env")
+            dotenv = _find_dotenv(project_root)
+            if dotenv:
+                _load_dotenv_if_present(dotenv)
 
         data_root = os.getenv("DATA_ROOT_DIR") or os.getenv("DATA_ROOT")
         if not data_root:

@@ -1,0 +1,46 @@
+{
+    "id": "143",
+    "name": "5 Nations Tournament U19",
+    "seasons": [
+        {
+            "name": "20242025",
+            "stages": [
+                {
+                    "name": "regular",
+                    "start_date": "2025-02-06",
+                    "end_date": "2025-04-20"
+                }
+            ]
+        },
+        {
+            "name": "20232024",
+            "stages": [
+                {
+                    "name": "regular",
+                    "start_date": "2024-02-06",
+                    "end_date": "2024-04-21"
+                }
+            ]
+        },
+        {
+            "name": "20222023",
+            "stages": [
+                {
+                    "name": "regular",
+                    "start_date": "2023-02-07",
+                    "end_date": "2023-02-11"
+                }
+            ]
+        },
+        {
+            "name": "20192020",
+            "stages": [
+                {
+                    "name": "regular",
+                    "start_date": "2020-02-04",
+                    "end_date": "2020-02-08"
+                }
+            ]
+        }
+    ]
+}

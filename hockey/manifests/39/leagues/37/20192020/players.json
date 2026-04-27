@@ -1,0 +1,947 @@
+{
+    "season": "20192020",
+    "stage": "all",
+    "competition_id": "37",
+    "players": [
+        {
+            "id": "5233",
+            "first_name": "Niko",
+            "last_name": "Hovinen",
+            "current_team_id": "1040",
+            "position": "G",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-09-15T01:02:02.365Z"
+        },
+        {
+            "id": "9310",
+            "first_name": "Aleksi",
+            "last_name": "Halme",
+            "current_team_id": "613",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-02-08T15:53:19.307Z"
+        },
+        {
+            "id": "10648",
+            "first_name": "Otto",
+            "last_name": "Makinen",
+            "current_team_id": "1040",
+            "position": "C",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-02-08T15:53:19.307Z"
+        },
+        {
+            "id": "14686",
+            "first_name": "Eero",
+            "last_name": "Savilahti",
+            "current_team_id": "1040",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2023-09-22T18:03:38.891Z"
+        },
+        {
+            "id": "14724",
+            "first_name": "Matias",
+            "last_name": "Varttinen",
+            "current_team_id": "612",
+            "position": "LW",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-02-08T15:53:19.307Z"
+        },
+        {
+            "id": "14725",
+            "first_name": "Juuso",
+            "last_name": "Walli",
+            "current_team_id": "1042",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-05-31T15:12:40.201Z"
+        },
+        {
+            "id": "14728",
+            "first_name": "Harri",
+            "last_name": "Kainulainen",
+            "current_team_id": "613",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-02-08T15:53:19.307Z"
+        },
+        {
+            "id": "14729",
+            "first_name": "Jaakko",
+            "last_name": "Kuusisto",
+            "current_team_id": "612",
+            "position": "RW",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-02-08T15:53:19.307Z"
+        },
+        {
+            "id": "14763",
+            "first_name": "Julius",
+            "last_name": "Valtonen",
+            "current_team_id": "613",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-05-31T15:02:12.331Z"
+        },
+        {
+            "id": "15017",
+            "first_name": "Tatu",
+            "last_name": "Kokkola",
+            "current_team_id": "612",
+            "position": "C",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2023-09-22T21:20:54.722Z"
+        },
+        {
+            "id": "15036",
+            "first_name": "Jere",
+            "last_name": "Helenius",
+            "current_team_id": "1040",
+            "position": "RW",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-02-08T15:53:19.307Z"
+        },
+        {
+            "id": "15039",
+            "first_name": "Joonas",
+            "last_name": "Niemel\u00e4",
+            "current_team_id": "613",
+            "position": "C",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-02-08T15:53:19.307Z"
+        },
+        {
+            "id": "15041",
+            "first_name": "Ville",
+            "last_name": "Tiitinen",
+            "current_team_id": "1042",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-02-08T15:53:19.307Z"
+        },
+        {
+            "id": "15042",
+            "first_name": "Aleksi",
+            "last_name": "Luhtalampi",
+            "current_team_id": "1040",
+            "position": "C",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-02-08T15:53:19.307Z"
+        },
+        {
+            "id": "15043",
+            "first_name": "Joel",
+            "last_name": "Sund",
+            "current_team_id": "613",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-02-08T15:53:19.307Z"
+        },
+        {
+            "id": "15046",
+            "first_name": "Jesper-Juhani",
+            "last_name": "Ilvessuo",
+            "current_team_id": "1040",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-02-08T15:53:19.307Z"
+        },
+        {
+            "id": "15048",
+            "first_name": "Erik",
+            "last_name": "Ahopelto",
+            "current_team_id": "1040",
+            "position": "C",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-02-08T15:53:19.307Z"
+        },
+        {
+            "id": "15050",
+            "first_name": "Anton",
+            "last_name": "Ollikainen",
+            "current_team_id": "1040",
+            "position": "LW",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-02-08T15:53:19.307Z"
+        },
+        {
+            "id": "15066",
+            "first_name": "Atte",
+            "last_name": "Karppinen",
+            "current_team_id": "1042",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2024-02-14T13:51:51.477Z"
+        },
+        {
+            "id": "15085",
+            "first_name": "Konsta",
+            "last_name": "Hirvonen",
+            "current_team_id": "613",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2023-03-01T21:34:13.842Z"
+        },
+        {
+            "id": "15648",
+            "first_name": "Juuso",
+            "last_name": "Forsstr\u00f6m",
+            "current_team_id": "1042",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-02-08T15:53:19.307Z"
+        },
+        {
+            "id": "15671",
+            "first_name": "Niki",
+            "last_name": "Blomberg",
+            "current_team_id": "612",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-02-08T15:53:19.307Z"
+        },
+        {
+            "id": "15672",
+            "first_name": "Samuel",
+            "last_name": "Sikstus",
+            "current_team_id": "613",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-02-08T15:53:19.307Z"
+        },
+        {
+            "id": "15675",
+            "first_name": "Saku",
+            "last_name": "Kivinen",
+            "current_team_id": "612",
+            "position": "RW",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-02-08T15:53:19.307Z"
+        },
+        {
+            "id": "15690",
+            "first_name": "Erno",
+            "last_name": "Hopponen",
+            "current_team_id": "613",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-02-08T15:53:19.307Z"
+        },
+        {
+            "id": "15711",
+            "first_name": "Tatu",
+            "last_name": "Vihavainen",
+            "current_team_id": "1042",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-02-08T15:53:19.307Z"
+        },
+        {
+            "id": "15713",
+            "first_name": "Wiljami",
+            "last_name": "Kupiainen",
+            "current_team_id": "612",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2023-09-30T20:58:53.958Z"
+        },
+        {
+            "id": "15717",
+            "first_name": "Miro",
+            "last_name": "V\u00e4\u00e4n\u00e4nen",
+            "current_team_id": "612",
+            "position": "C",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-10-20T21:53:49.856Z"
+        },
+        {
+            "id": "15725",
+            "first_name": "Esa",
+            "last_name": "Lehikoinen",
+            "current_team_id": "612",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-02-08T15:53:19.307Z"
+        },
+        {
+            "id": "15732",
+            "first_name": "Joonas",
+            "last_name": "Larinmaa",
+            "current_team_id": "612",
+            "position": "LW",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-10-05T21:30:55.552Z"
+        },
+        {
+            "id": "15814",
+            "first_name": "Kasper",
+            "last_name": "Simontaival",
+            "current_team_id": "1040",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-08-08T18:50:20.852Z"
+        },
+        {
+            "id": "15816",
+            "first_name": "Rasmus",
+            "last_name": "Lahnaviik",
+            "current_team_id": "613",
+            "position": "LW",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-02-08T15:53:19.307Z"
+        },
+        {
+            "id": "15826",
+            "first_name": "Roope",
+            "last_name": "Taponen",
+            "current_team_id": "612",
+            "position": "G",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-02-08T15:53:19.307Z"
+        },
+        {
+            "id": "16024",
+            "first_name": "Mikko",
+            "last_name": "Pukka",
+            "current_team_id": "1040",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-02-08T15:53:19.307Z"
+        },
+        {
+            "id": "16917",
+            "first_name": "Santeri",
+            "last_name": "Hatakka",
+            "current_team_id": "1040",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-12-05T04:06:55.526Z"
+        },
+        {
+            "id": "17466",
+            "first_name": "Joonas",
+            "last_name": "Savolainen",
+            "current_team_id": "1042",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-02-08T15:53:19.307Z"
+        },
+        {
+            "id": "17648",
+            "first_name": "Pavol",
+            "last_name": "Regenda",
+            "current_team_id": "613",
+            "position": "LW",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2024-11-27T16:26:22.233Z"
+        },
+        {
+            "id": "18118",
+            "first_name": "Juho",
+            "last_name": "Jokiharju",
+            "current_team_id": "1040",
+            "position": "RW",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-02-08T15:53:06.450Z"
+        },
+        {
+            "id": "18525",
+            "first_name": "Janne",
+            "last_name": "Seppanen",
+            "current_team_id": "1040",
+            "position": "C",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2024-03-27T20:28:16.922Z"
+        },
+        {
+            "id": "19357",
+            "first_name": "Roope",
+            "last_name": "HIRVONEN",
+            "current_team_id": "1042",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-02-08T15:53:19.307Z"
+        },
+        {
+            "id": "19380",
+            "first_name": "Tino",
+            "last_name": "SIR\u00c9N",
+            "current_team_id": "1042",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-02-08T15:53:19.307Z"
+        },
+        {
+            "id": "19410",
+            "first_name": "Kasperi",
+            "last_name": "KOTKANIEMI",
+            "current_team_id": "612",
+            "position": "G",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-02-08T15:53:19.307Z"
+        },
+        {
+            "id": "19431",
+            "first_name": "Matias",
+            "last_name": "MUTIKAINEN",
+            "current_team_id": "1042",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-05-31T05:07:12.129Z"
+        },
+        {
+            "id": "19513",
+            "first_name": "Niklas",
+            "last_name": "Mattila",
+            "current_team_id": "1040",
+            "position": "LW",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2023-02-22T19:22:28.874Z"
+        },
+        {
+            "id": "19519",
+            "first_name": "Ville-Valtteri",
+            "last_name": "MUSTONEN",
+            "current_team_id": "613",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-02-08T15:53:19.307Z"
+        },
+        {
+            "id": "19530",
+            "first_name": "Terry",
+            "last_name": "And",
+            "current_team_id": "612",
+            "position": "LW",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-10-07T01:05:59.710Z"
+        },
+        {
+            "id": "19565",
+            "first_name": "Tommi",
+            "last_name": "Pynnonen",
+            "current_team_id": "1042",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-10-05T17:54:29.370Z"
+        },
+        {
+            "id": "19596",
+            "first_name": "Lassi",
+            "last_name": "KORPELA",
+            "current_team_id": "1040",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-05-31T14:25:09.637Z"
+        },
+        {
+            "id": "19597",
+            "first_name": "Roby",
+            "last_name": "Jarventie",
+            "current_team_id": "1040",
+            "position": "LW",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2024-11-27T16:26:18.435Z"
+        },
+        {
+            "id": "20006",
+            "first_name": "Oskari",
+            "last_name": "Salminen",
+            "current_team_id": "1042",
+            "position": "G",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2025-04-24T15:18:16.804Z"
+        },
+        {
+            "id": "22644",
+            "first_name": "Jolle",
+            "last_name": "Nikander",
+            "current_team_id": "613",
+            "position": "C",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2020-01-16T23:20:13.923Z"
+        },
+        {
+            "id": "22693",
+            "first_name": "Karri",
+            "last_name": "Aho",
+            "current_team_id": "1040",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2023-09-13T21:59:04.697Z"
+        },
+        {
+            "id": "23940",
+            "first_name": "Joonas",
+            "last_name": "Valkonen",
+            "current_team_id": "613",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-03-10T22:45:44.536Z"
+        },
+        {
+            "id": "23941",
+            "first_name": "Petteri",
+            "last_name": "Villanen",
+            "current_team_id": "613",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-03-10T22:45:44.536Z"
+        },
+        {
+            "id": "23942",
+            "first_name": "Eetu",
+            "last_name": "Torpstrom",
+            "current_team_id": "613",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-03-10T22:45:44.536Z"
+        },
+        {
+            "id": "23943",
+            "first_name": "Oliver",
+            "last_name": "Kiljunen",
+            "current_team_id": "613",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2023-02-22T17:29:04.289Z"
+        },
+        {
+            "id": "23944",
+            "first_name": "Roope",
+            "last_name": "Reini",
+            "current_team_id": "613",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-10-05T15:27:49.732Z"
+        },
+        {
+            "id": "23945",
+            "first_name": "Keni",
+            "last_name": "Karalahti",
+            "current_team_id": "613",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-03-10T22:45:44.536Z"
+        },
+        {
+            "id": "23946",
+            "first_name": "Teemu",
+            "last_name": "Mielonen",
+            "current_team_id": "613",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-03-10T22:45:44.536Z"
+        },
+        {
+            "id": "23947",
+            "first_name": "Samu",
+            "last_name": "Poutanen",
+            "current_team_id": "613",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-03-10T22:45:44.536Z"
+        },
+        {
+            "id": "23948",
+            "first_name": "Lauri",
+            "last_name": "Savela",
+            "current_team_id": "613",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-03-10T22:45:44.536Z"
+        },
+        {
+            "id": "23949",
+            "first_name": "Ville",
+            "last_name": "Rautiala",
+            "current_team_id": "613",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-03-10T22:45:44.536Z"
+        },
+        {
+            "id": "23950",
+            "first_name": "Aleksanteri",
+            "last_name": "Heiskanen",
+            "current_team_id": "613",
+            "position": "G",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-10-14T18:38:35.607Z"
+        },
+        {
+            "id": "23951",
+            "first_name": "Waltteri",
+            "last_name": "Ignatjew",
+            "current_team_id": "613",
+            "position": "G",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2024-10-12T01:39:47.489Z"
+        },
+        {
+            "id": "23952",
+            "first_name": "Miro",
+            "last_name": "Nalli",
+            "current_team_id": "1040",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-09-15T16:30:36.714Z"
+        },
+        {
+            "id": "23953",
+            "first_name": "Markus",
+            "last_name": "Vastila",
+            "current_team_id": "1040",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-03-10T22:45:44.536Z"
+        },
+        {
+            "id": "23954",
+            "first_name": "Miika",
+            "last_name": "Heikkila",
+            "current_team_id": "1040",
+            "position": "RW",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-03-10T22:45:44.536Z"
+        },
+        {
+            "id": "23955",
+            "first_name": "Jimi",
+            "last_name": "Kuronen",
+            "current_team_id": "1040",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-03-10T22:45:44.536Z"
+        },
+        {
+            "id": "23958",
+            "first_name": "Nikolas",
+            "last_name": "Matinpalo",
+            "current_team_id": "1040",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2025-05-09T14:07:58.869Z"
+        },
+        {
+            "id": "23959",
+            "first_name": "Elias",
+            "last_name": "Elomaa",
+            "current_team_id": "1040",
+            "position": "LW",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2024-01-12T04:15:09.380Z"
+        },
+        {
+            "id": "23961",
+            "first_name": "Kristian",
+            "last_name": "Tamminen",
+            "current_team_id": "1040",
+            "position": "G",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2025-02-22T22:39:24.555Z"
+        },
+        {
+            "id": "23962",
+            "first_name": "Verneri",
+            "last_name": "Virtanen",
+            "current_team_id": "1040",
+            "position": "G",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-09-15T16:31:20.143Z"
+        },
+        {
+            "id": "23964",
+            "first_name": "Tommi",
+            "last_name": "Laakso",
+            "current_team_id": "1042",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2024-09-21T23:59:42.509Z"
+        },
+        {
+            "id": "23965",
+            "first_name": "Sami",
+            "last_name": "Aksila",
+            "current_team_id": "1042",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-03-10T22:45:44.536Z"
+        },
+        {
+            "id": "23966",
+            "first_name": "Teemu",
+            "last_name": "Lamsa",
+            "current_team_id": "1042",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2025-02-15T18:09:26.030Z"
+        },
+        {
+            "id": "23968",
+            "first_name": "Kasper",
+            "last_name": "Piitulainen",
+            "current_team_id": "1042",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-03-10T22:45:44.536Z"
+        },
+        {
+            "id": "23969",
+            "first_name": "Matias",
+            "last_name": "Rauvola",
+            "current_team_id": "1042",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-03-10T22:45:44.536Z"
+        },
+        {
+            "id": "23970",
+            "first_name": "Santeri",
+            "last_name": "Sillanpaa",
+            "current_team_id": "1042",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-03-10T22:45:44.536Z"
+        },
+        {
+            "id": "23971",
+            "first_name": "Even Myreng",
+            "last_name": "Kjellesvik",
+            "current_team_id": "1042",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-03-10T22:45:44.536Z"
+        },
+        {
+            "id": "23972",
+            "first_name": "Julius",
+            "last_name": "Marva",
+            "current_team_id": "1042",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-03-10T22:45:44.536Z"
+        },
+        {
+            "id": "23974",
+            "first_name": "Tuomo",
+            "last_name": "Viitasalo",
+            "current_team_id": "1042",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-03-10T22:45:44.536Z"
+        },
+        {
+            "id": "23976",
+            "first_name": "Roope",
+            "last_name": "Urpolahti",
+            "current_team_id": "1042",
+            "position": "G",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-03-10T22:45:44.536Z"
+        },
+        {
+            "id": "24082",
+            "first_name": "Eetu",
+            "last_name": "M\u00e4ki",
+            "current_team_id": "613",
+            "position": "RW",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-02-08T15:53:06.450Z"
+        },
+        {
+            "id": "24205",
+            "first_name": "Tiala",
+            "last_name": "Taavi",
+            "current_team_id": "612",
+            "position": "RW",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-02-08T15:53:06.450Z"
+        },
+        {
+            "id": "24206",
+            "first_name": "Nico",
+            "last_name": "Joki",
+            "current_team_id": "612",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-10-05T23:25:18.409Z"
+        },
+        {
+            "id": "24207",
+            "first_name": "Tatu",
+            "last_name": "Pulkkinen",
+            "current_team_id": "612",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-02-08T15:53:06.450Z"
+        },
+        {
+            "id": "24208",
+            "first_name": "Jussi",
+            "last_name": "Tammela",
+            "current_team_id": "612",
+            "position": "C",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-02-08T15:53:06.450Z"
+        },
+        {
+            "id": "24209",
+            "first_name": "Oskari",
+            "last_name": "Sepp\u00e4l\u00e4",
+            "current_team_id": "612",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-02-08T15:53:06.450Z"
+        },
+        {
+            "id": "24210",
+            "first_name": "Jonne",
+            "last_name": "Brygger",
+            "current_team_id": "612",
+            "position": "LW",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-02-08T15:53:06.450Z"
+        },
+        {
+            "id": "24211",
+            "first_name": "Erno",
+            "last_name": "R\u00e4is\u00e4nen",
+            "current_team_id": "612",
+            "position": "C",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-02-08T15:53:06.450Z"
+        },
+        {
+            "id": "24212",
+            "first_name": "Teemu",
+            "last_name": "Siironen",
+            "current_team_id": "612",
+            "position": "RW",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2023-09-30T21:27:32.596Z"
+        },
+        {
+            "id": "24213",
+            "first_name": "Jere",
+            "last_name": "Heino",
+            "current_team_id": "1040",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-02-08T15:53:06.450Z"
+        },
+        {
+            "id": "24215",
+            "first_name": "Oskari",
+            "last_name": "J\u00e4\u00e4ttel\u00e4",
+            "current_team_id": "1040",
+            "position": "RW",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-02-08T15:53:06.450Z"
+        },
+        {
+            "id": "24216",
+            "first_name": "Tomi",
+            "last_name": "Risteli",
+            "current_team_id": "1040",
+            "position": "G",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-02-08T15:53:06.450Z"
+        }
+    ]
+}

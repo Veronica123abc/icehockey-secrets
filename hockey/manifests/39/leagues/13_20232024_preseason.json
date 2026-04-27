@@ -1,0 +1,43 @@
+{
+    "season": "20232024",
+    "stage": "preseason",
+    "competition_id": "13",
+    "games": [
+        {
+            "id": "108200",
+            "date": "2023-09-07",
+            "scheduled_time": "2023-09-07T16:00:00+00:00",
+            "scheduled_venue_time": "2023-09-07T18:00:00",
+            "stage": "preseason",
+            "away_team_id": "309",
+            "home_team_id": "201",
+            "venue_id": "1056",
+            "event_status": "over",
+            "score": {
+                "201": 1,
+                "309": 2
+            },
+            "reference_id": "20035",
+            "reference_name": "SHL",
+            "last_metrics_full_process_time": "2025-05-10T10:15:20.090Z"
+        },
+        {
+            "id": "108199",
+            "date": "2023-08-31",
+            "scheduled_time": "2023-08-31T16:00:00+00:00",
+            "scheduled_venue_time": "2023-08-31T18:00:00",
+            "stage": "preseason",
+            "away_team_id": "806",
+            "home_team_id": "128",
+            "venue_id": "1055",
+            "event_status": "over",
+            "score": {
+                "128": 5,
+                "806": 0
+            },
+            "reference_id": "20025",
+            "reference_name": "SHL",
+            "last_metrics_full_process_time": "2025-05-10T10:15:09.149Z"
+        }
+    ]
+}

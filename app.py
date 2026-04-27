@@ -113,7 +113,8 @@ def _invalidate_game_caches(game_id: int) -> None:
     global _game_ids_cache
     _game_ids_cache = None
     _game_cache.pop(game_id, None)
-    _plotly_cache.pop(game_id, None)
+    for k in [k for k in _plotly_cache if isinstance(k, tuple) and k[0] == game_id]:
+        del _plotly_cache[k]
 
 
 def _game_exists(game_id: int) -> bool:
@@ -172,11 +173,22 @@ def _load_game(game_id: int):
 
 def _build_plotly_html(game) -> str:
     from hockey.visualize.shift_toi import plot_shift_toi_with_grades, PLOT_VERSION
-    cache_key = (game.info.game_id, PLOT_VERSION)
+    cache_key = (game.info.game_id, "shift_toi", PLOT_VERSION)
     if cache_key in _plotly_cache:
         return _plotly_cache[cache_key]
     fig = plot_shift_toi_with_grades(game=game, filename=None)
     html = fig.to_html(full_html=False, include_plotlyjs="cdn")
+    _plotly_cache[cache_key] = html
+    return html
+
+
+def _build_entries_html(game) -> str:
+    from hockey.visualize.entries import plot_entries, ENTRIES_VERSION
+    cache_key = (game.info.game_id, "entries", ENTRIES_VERSION)
+    if cache_key in _plotly_cache:
+        return _plotly_cache[cache_key]
+    fig = plot_entries(game=game, filename=None)
+    html = fig.to_html(full_html=False, include_plotlyjs=False)
     _plotly_cache[cache_key] = html
     return html
 
@@ -224,6 +236,7 @@ def game_view(game_id: int):
         abort(404, description=f"Game {game_id} could not be loaded.")
 
     chart_html = _build_plotly_html(game)
+    entries_html = _build_entries_html(game)
 
     info = {
         "game_id": game.info.game_id,
@@ -233,7 +246,7 @@ def game_view(game_id: int):
         "num_toi_intervals": len(game.toi),
         "num_players": len(game.roster.players),
     }
-    return render_template("game.html", info=info, chart_html=chart_html)
+    return render_template("game.html", info=info, chart_html=chart_html, entries_html=entries_html)
 
 
 @app.route("/api/games")

@@ -1,0 +1,46 @@
+{
+    "id": "37",
+    "name": "Mestis",
+    "seasons": [
+        {
+            "name": "20232024",
+            "stages": [
+                {
+                    "name": "regular",
+                    "start_date": "2023-10-11",
+                    "end_date": "2023-10-13"
+                }
+            ]
+        },
+        {
+            "name": "20192020",
+            "stages": [
+                {
+                    "name": "regular",
+                    "start_date": "2019-12-11",
+                    "end_date": "2020-01-04"
+                }
+            ]
+        },
+        {
+            "name": "20182019",
+            "stages": [
+                {
+                    "name": "regular",
+                    "start_date": "2019-01-23",
+                    "end_date": "2019-01-26"
+                }
+            ]
+        },
+        {
+            "name": "20172018",
+            "stages": [
+                {
+                    "name": "regular",
+                    "start_date": "2018-02-07",
+                    "end_date": "2018-03-17"
+                }
+            ]
+        }
+    ]
+}

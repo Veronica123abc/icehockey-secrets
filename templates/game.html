@@ -60,6 +60,21 @@
         min-width: 3600px;
     }
 
+    .section-heading {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #94a3b8;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        margin-bottom: 0.75rem;
+    }
+
+    .entries-container {
+        border-radius: 0.5rem;
+        overflow: hidden;
+        margin-bottom: 1.5rem;
+    }
+
     .back-link {
         display: inline-block;
         margin-bottom: 1rem;
@@ -94,10 +109,16 @@
         </div>
     </div>
 
+    <p class="section-heading">Shift TOI &amp; Scoring Chances</p>
     <div class="chart-scroll">
         <div class="chart-container">
             {{ chart_html | safe }}
         </div>
+    </div>
+
+    <p class="section-heading">Zone Entries</p>
+    <div class="entries-container">
+        {{ entries_html | safe }}
     </div>
 
     <div class="card">

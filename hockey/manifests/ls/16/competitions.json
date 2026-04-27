@@ -1,0 +1,106 @@
+{
+    "id": "16",
+    "name": "MHL",
+    "seasons": [
+        {
+            "name": "20242025",
+            "stages": [
+                {
+                    "name": "playoffs",
+                    "start_date": "2025-03-25",
+                    "end_date": "2025-05-24"
+                },
+                {
+                    "name": "regular",
+                    "start_date": "2024-09-01",
+                    "end_date": "2025-03-22"
+                }
+            ]
+        },
+        {
+            "name": "20232024",
+            "stages": [
+                {
+                    "name": "playoffs",
+                    "start_date": "2024-02-28",
+                    "end_date": "2024-04-25"
+                },
+                {
+                    "name": "regular",
+                    "start_date": "2023-09-03",
+                    "end_date": "2024-02-27"
+                }
+            ]
+        },
+        {
+            "name": "20222023",
+            "stages": [
+                {
+                    "name": "playoffs",
+                    "start_date": "2023-03-02",
+                    "end_date": "2023-04-25"
+                },
+                {
+                    "name": "regular",
+                    "start_date": "2022-09-03",
+                    "end_date": "2023-03-02"
+                }
+            ]
+        },
+        {
+            "name": "20212022",
+            "stages": [
+                {
+                    "name": "regular",
+                    "start_date": "2021-09-10",
+                    "end_date": "2022-03-29"
+                }
+            ]
+        },
+        {
+            "name": "20202021",
+            "stages": [
+                {
+                    "name": "regular",
+                    "start_date": "2020-09-05",
+                    "end_date": "2021-03-23"
+                }
+            ]
+        },
+        {
+            "name": "20192020",
+            "stages": [
+                {
+                    "name": "regular",
+                    "start_date": "2019-09-03",
+                    "end_date": "2020-03-16"
+                }
+            ]
+        },
+        {
+            "name": "20182019",
+            "stages": [
+                {
+                    "name": "playoffs",
+                    "start_date": "2019-04-01",
+                    "end_date": "2019-04-17"
+                },
+                {
+                    "name": "regular",
+                    "start_date": "2018-09-05",
+                    "end_date": "2019-03-21"
+                }
+            ]
+        },
+        {
+            "name": "20172018",
+            "stages": [
+                {
+                    "name": "regular",
+                    "start_date": "2017-09-04",
+                    "end_date": "2018-03-05"
+                }
+            ]
+        }
+    ]
+}

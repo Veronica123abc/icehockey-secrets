@@ -1,0 +1,151 @@
+{
+    "id": "4",
+    "name": "USHL",
+    "seasons": [
+        {
+            "name": "20252026",
+            "stages": [
+                {
+                    "name": "regular",
+                    "start_date": "2025-09-17",
+                    "end_date": "2025-09-17"
+                }
+            ]
+        },
+        {
+            "name": "20242025",
+            "stages": [
+                {
+                    "name": "playoffs",
+                    "start_date": "2025-04-14",
+                    "end_date": "2025-05-20"
+                },
+                {
+                    "name": "regular",
+                    "start_date": "2024-09-18",
+                    "end_date": "2025-04-12"
+                }
+            ]
+        },
+        {
+            "name": "20232024",
+            "stages": [
+                {
+                    "name": "playoffs",
+                    "start_date": "2024-04-15",
+                    "end_date": "2024-05-18"
+                },
+                {
+                    "name": "regular",
+                    "start_date": "2023-09-20",
+                    "end_date": "2024-04-13"
+                },
+                {
+                    "name": "preseason",
+                    "start_date": "2023-09-08",
+                    "end_date": "2023-09-16"
+                }
+            ]
+        },
+        {
+            "name": "20222023",
+            "stages": [
+                {
+                    "name": "playoffs",
+                    "start_date": "2023-04-24",
+                    "end_date": "2023-05-19"
+                },
+                {
+                    "name": "regular",
+                    "start_date": "2022-09-22",
+                    "end_date": "2023-04-22"
+                },
+                {
+                    "name": "preseason",
+                    "start_date": "2022-09-08",
+                    "end_date": "2022-09-16"
+                }
+            ]
+        },
+        {
+            "name": "20212022",
+            "stages": [
+                {
+                    "name": "playoffs",
+                    "start_date": "2022-04-25",
+                    "end_date": "2022-05-21"
+                },
+                {
+                    "name": "regular",
+                    "start_date": "2021-09-23",
+                    "end_date": "2022-04-23"
+                },
+                {
+                    "name": "preseason",
+                    "start_date": "2021-09-10",
+                    "end_date": "2021-09-19"
+                }
+            ]
+        },
+        {
+            "name": "20202021",
+            "stages": [
+                {
+                    "name": "playoffs",
+                    "start_date": "2021-04-30",
+                    "end_date": "2021-05-22"
+                },
+                {
+                    "name": "regular",
+                    "start_date": "2020-11-06",
+                    "end_date": "2021-04-24"
+                },
+                {
+                    "name": "preseason",
+                    "start_date": "2020-10-16",
+                    "end_date": "2020-10-30"
+                }
+            ]
+        },
+        {
+            "name": "20192020",
+            "stages": [
+                {
+                    "name": "regular",
+                    "start_date": "2019-09-26",
+                    "end_date": "2020-03-11"
+                }
+            ]
+        },
+        {
+            "name": "20182019",
+            "stages": [
+                {
+                    "name": "playoffs",
+                    "start_date": "2019-04-20",
+                    "end_date": "2019-04-23"
+                },
+                {
+                    "name": "regular",
+                    "start_date": "2018-09-29",
+                    "end_date": "2019-04-24"
+                }
+            ]
+        },
+        {
+            "name": "20172018",
+            "stages": [
+                {
+                    "name": "regular",
+                    "start_date": "2017-10-20",
+                    "end_date": "2018-03-31"
+                },
+                {
+                    "name": "preseason",
+                    "start_date": "2017-09-29",
+                    "end_date": "2017-09-30"
+                }
+            ]
+        }
+    ]
+}
