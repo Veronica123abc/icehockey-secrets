@@ -1,19 +1,26 @@
 from __future__ import annotations
 
+from collections import defaultdict
 from typing import Optional
 
+import numpy as np
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
 from hockey.model.game import Game
 from hockey.visualize.shift_toi import _team_color, _game_end_time_seconds
 
-XG_VERSION = 1
+XG_VERSION = 2
 
 
 def _hex_to_rgb(hex_color: str) -> str:
     h = hex_color.lstrip("#")
     return f"{int(h[0:2], 16)}, {int(h[2:4], 16)}, {int(h[4:6], 16)}"
+
+
+def _fmt(seconds: float) -> str:
+    s = int(seconds)
+    return f"{s // 60}:{s % 60:02d}"
 
 
 def _cumulative_xg(game: Game) -> dict[int, tuple[list[float], list[float]]]:
@@ -50,6 +57,64 @@ def _cumulative_xg(game: Game) -> dict[int, tuple[list[float], list[float]]]:
     return result
 
 
+def _accumulated_toi(game: Game, end_time: int) -> dict[int, np.ndarray]:
+    """Return {player_id: array of length end_time} where [t] = seconds on ice up to t."""
+    t_arr = np.arange(end_time, dtype=float)
+    by_player: dict[int, list[tuple[float, float]]] = defaultdict(list)
+    for x in game.toi:
+        end = x.end_t if x.end_t is not None else float(end_time)
+        by_player[x.player_id].append((x.start_t, end))
+    result = {}
+    for pid, intervals in by_player.items():
+        acc = np.zeros(end_time)
+        for s, e in intervals:
+            acc += np.clip(t_arr - s, 0.0, e - s)
+        result[pid] = acc
+    return result
+
+
+_POS_ORDER = {"F": 0, "LW": 0, "RW": 0, "C": 0, "D": 1, "G": 2}
+
+
+def _build_hover_strings(
+    game: Game,
+    toi_series: list,
+    acc_toi: dict[int, np.ndarray],
+) -> list[str]:
+    home_id = game.info.home_team.id
+    away_id = game.info.away_team.id
+    roster = game.roster.players
+
+    def _sort_key(p: dict) -> tuple:
+        player = roster.get(p["player_id"])
+        pos = player.position if player else ""
+        return (_POS_ORDER.get(pos, 0), -p["current_shift_toi"])
+
+    strings = []
+    for t_idx, snapshot in enumerate(toi_series):
+        lines = []
+        for team_id, team_info in [
+            (home_id, game.info.home_team),
+            (away_id, game.info.away_team),
+        ]:
+            lines.append(f"<b>{team_info.display_name}</b>")
+            players_on_ice = sorted(snapshot[team_id]["players"], key=_sort_key)
+            for p in players_on_ice:
+                pid = p["player_id"]
+                player = roster.get(pid)
+                if player and (player.first_name or player.last_name):
+                    name = f"{player.first_name or ''} {player.last_name or ''}".strip()
+                else:
+                    name = str(pid)
+                pos = f"({player.position})" if player and player.position else ""
+                shift = _fmt(p["current_shift_toi"])
+                arr = acc_toi.get(pid)
+                total = _fmt(float(arr[t_idx])) if arr is not None else "?"
+                lines.append(f"{name} {pos} {shift} / {total}")
+        strings.append("<br>".join(lines))
+    return strings
+
+
 def plot_xg_with_toi_diff(
     *,
     game: Game,
@@ -67,7 +132,6 @@ def plot_xg_with_toi_diff(
 
     xg_data = _cumulative_xg(game)
 
-    # TOI diff — reuse the sweep-line series already on Game
     toi_times = list(range(end_time))
     toi_series = game.shift_toi_series(toi_times)
     diff = [
@@ -77,9 +141,12 @@ def plot_xg_with_toi_diff(
     diff_pos = [max(0.0, v) for v in diff]
     diff_neg = [min(0.0, v) for v in diff]
 
+    acc_toi = _accumulated_toi(game, end_time)
+    hover_strings = _build_hover_strings(game, toi_series, acc_toi)
+
     fig = make_subplots(specs=[[{"secondary_y": True}]])
 
-    # --- TOI diff ribbon (drawn first so it sits behind xG lines) ---
+    # --- TOI diff ribbon ---
     fig.add_trace(go.Scatter(
         x=toi_times, y=diff_pos,
         fill="tozeroy",
@@ -96,12 +163,15 @@ def plot_xg_with_toi_diff(
         showlegend=False, hoverinfo="skip",
     ), secondary_y=True)
 
+    # TOI diff line — carries all player hover data via customdata
     fig.add_trace(go.Scatter(
-        x=toi_times, y=diff,
+        x=toi_times,
+        y=diff,
         mode="lines",
         name="TOI diff (home − away)",
         line=dict(color="rgba(148,163,184,0.40)", width=1.5),
-        hovertemplate="%{y:.0f} s<extra>TOI diff</extra>",
+        customdata=[[s] for s in hover_strings],
+        hovertemplate="TOI diff: %{y:.0f} s<br>%{customdata[0]}<extra></extra>",
     ), secondary_y=True)
 
     # --- Cumulative xG step lines ---
