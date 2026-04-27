@@ -66,7 +66,8 @@ def ingest_game(games):
         try:
             cols = ', '.join(record_data.keys())
             placeholders = ', '.join(['%s'] * len(record_data))
-            sql = f"INSERT INTO game ({cols}) VALUES ({placeholders})"
+            updates = ', '.join(f"{col}=VALUES({col})" for col in record_data if col != 'id')
+            sql = f"INSERT INTO game ({cols}) VALUES ({placeholders}) ON DUPLICATE KEY UPDATE {updates}"
             cursor.execute(sql, tuple(record_data.values()))
         except Exception as e:
             err(f"Error inserting game record: {e}")

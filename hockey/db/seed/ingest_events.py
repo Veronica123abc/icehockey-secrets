@@ -139,8 +139,15 @@ def ingest_events(game: Game) -> None:
     # Step 3: shifts
     ingest_shifts(cursor, game, player_map, game_db_id)
 
+    cursor.execute("SELECT COUNT(*) FROM event WHERE game_id = %s", (game_db_id,))
+    events_exist = cursor.fetchone()[0] > 0
+
     db.commit()
     cursor.close()
+
+    if events_exist:
+        ok(f"Game {game.info.game_id} already has events in DB, skipping.")
+        return
 
     # Step 4: events (bulk insert via SQLAlchemy)
     resolver = TeamResolver.from_game_info(game.info)

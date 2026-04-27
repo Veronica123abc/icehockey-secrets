@@ -18,7 +18,7 @@ from hockey.model.game import Game
 from pathlib import Path
 from hockey.derive.current_shift_series import find_intervals, find_intervals, current_shift_toi_series
 
-PLOT_VERSION = 3  # bump to invalidate _plotly_cache after visualization changes
+PLOT_VERSION = 4  # bump to invalidate _plotly_cache after visualization changes
 
 _TEAM_COLORS: dict[str, str] | None = None
 
@@ -323,7 +323,7 @@ def plot_shift_toi_with_grades(
             x=(p + 0.5) * 1200, y=1.0, yref="paper",
             text=f"P{p + 1}" if p < 3 else "OT",
             showarrow=False,
-            font=dict(color="#475569", size=12),
+            font=dict(color="#475569", size=14),
             xanchor="center", yanchor="bottom",
         )
         for p in range(num_periods)
@@ -336,21 +336,21 @@ def plot_shift_toi_with_grades(
         ),
         paper_bgcolor="#0f172a",
         plot_bgcolor="#0f172a",
-        font=dict(color="#94a3b8"),
+        font=dict(color="#94a3b8", size=14),
         xaxis=dict(
             title=None,
             range=[0, end_time],
             tickvals=tick_vals,
             ticktext=tick_text,
-            tickfont=dict(color="#64748b", size=11),
+            tickfont=dict(color="#64748b", size=14),
             gridcolor="#1e293b",
             zerolinecolor="#334155",
             showline=False,
         ),
         yaxis=dict(
             title="Shift TOI (s)",
-            titlefont=dict(color="#64748b"),
-            tickfont=dict(color="#64748b"),
+            titlefont=dict(color="#64748b", size=14),
+            tickfont=dict(color="#64748b", size=14),
             zeroline=True, zerolinewidth=1, zerolinecolor="#475569",
             gridcolor="#1e293b",
             showline=False,
@@ -359,7 +359,7 @@ def plot_shift_toi_with_grades(
             orientation="h",
             yanchor="bottom", y=1.02,
             xanchor="left", x=0,
-            font=dict(color="#94a3b8"),
+            font=dict(color="#94a3b8", size=14),
             bgcolor="rgba(0,0,0,0)",
         ),
         shapes=shapes,

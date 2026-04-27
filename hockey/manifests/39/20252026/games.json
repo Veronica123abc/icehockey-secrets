@@ -27,8 +27,11 @@
             "away_team_id": "1275",
             "home_team_id": "571",
             "venue_id": "557",
-            "event_status": "upcoming",
-            "score": null,
+            "event_status": "live",
+            "score": {
+                "571": 11,
+                "1275": 2
+            },
             "reference_id": null,
             "reference_name": null,
             "last_metrics_full_process_time": null
@@ -42,11 +45,14 @@
             "away_team_id": "572",
             "home_team_id": "576",
             "venue_id": "550",
-            "event_status": "upcoming",
-            "score": null,
+            "event_status": "over",
+            "score": {
+                "572": 7,
+                "576": 0
+            },
             "reference_id": null,
             "reference_name": null,
-            "last_metrics_full_process_time": null
+            "last_metrics_full_process_time": "2026-04-27T16:19:40.759Z"
         },
         {
             "id": "200089",
@@ -57,11 +63,14 @@
             "away_team_id": "573",
             "home_team_id": "3197",
             "venue_id": "1281",
-            "event_status": "upcoming",
-            "score": null,
+            "event_status": "over",
+            "score": {
+                "573": 10,
+                "3197": 1
+            },
             "reference_id": null,
             "reference_name": null,
-            "last_metrics_full_process_time": null
+            "last_metrics_full_process_time": "2026-04-27T12:57:17.098Z"
         },
         {
             "id": "200088",

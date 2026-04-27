@@ -59,7 +59,8 @@ def ingest_teams(teams: List[Dict]):
             team['leagueId'], team['name'], team['location'], team['logoSource'], team['shorthand'], team['displayName'], team['defaultVenueId'], team['pastTeamId'], team['id']
         ]
         try:
-            sql = f"INSERT INTO team ({cols}) VALUES ({placeholders})"
+            updates = ', '.join(f"{col}=VALUES({col})" for col in columns if col != 'id')
+            sql = f"INSERT INTO team ({cols}) VALUES ({placeholders}) ON DUPLICATE KEY UPDATE {updates}"
             cursor.execute(sql, tuple(values))
         except Exception as e:
             print(f"Error inserting league records: {e}")
@@ -72,6 +73,9 @@ def ingest_teams(teams: List[Dict]):
 
 if __name__ == "__main__":
     from hockey.catalog import DataCatalog
+    LEAGUE_ID = 39
+    SEASON = "20252026"
 
     catalog = DataCatalog(settings.data_root_dir)
     ingest_teams(catalog.teams())
+    #ingest_teams(catalog.season_teams(LEAGUE_ID, SEASON))

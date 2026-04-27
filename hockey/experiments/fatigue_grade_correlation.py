@@ -12,10 +12,9 @@ from typing import Any, Optional, TYPE_CHECKING
 from hockey.config.settings import Settings
 from hockey.io.raw_game import RawGame
 from collections import defaultdict
-from hockey.io.raw_competition import RawCompetition
 from hockey.normalize.build_game import  build_game
 import hockey.db
-from hockey.normalize.build_competition import build_competition
+from hockey.catalog import DataCatalog
 DFFilter = Callable[[pd.DataFrame], pd.DataFrame]
 import time
 settings = Settings.from_env(project_root=Path(__file__).resolve().parent)
@@ -139,10 +138,8 @@ if __name__ == "__main__":
     season = "20242025"
     stage = "regular"
 
-    raw_competition = RawCompetition(int(league_id), root_dir=settings.data_root_dir)
-    raw_competition.load()
-    #competition = build_competition(raw_competition)
-    games = raw_competition.game_ids(season, stage)
+    catalog = DataCatalog(settings.data_root_dir)
+    games = catalog.scheduled_game_ids(int(league_id), season, stages=[stage])
 
     #outfile = settings.output_path(f"abc_chances_5v5_{league_id}_{season}_{stage}.json")
     filter_func = partial(filter_abc_5v5, grades={"A", "B", "C"})

@@ -8,7 +8,7 @@ from plotly.subplots import make_subplots
 from hockey.model.game import Game
 from hockey.derive.entries import zone_entries, ZoneEntry
 
-ENTRIES_VERSION = 1  # bump to invalidate cached entries HTML after visualization changes
+ENTRIES_VERSION = 3  # bump to invalidate cached entries HTML after visualization changes
 
 ENTRY_COLORS = {
     "dumpin": "#60a5fa",
@@ -70,23 +70,16 @@ def plot_entries(*, game: Game, filename: Optional[str] = "entries.html") -> go.
                 values=values,
                 marker=dict(colors=colors, line=dict(color="#0f172a", width=2)),
                 textinfo="label+percent",
-                textfont=dict(color="#e2e8f0", size=13),
+                textfont=dict(color="#e2e8f0", size=15),
                 hovertemplate="%{label}: %{value} entries (%{percent})<extra></extra>",
-                hole=0.35,
+                hole=0.4,
                 showlegend=False,
+                title=dict(
+                    text=f"<b>{total}</b><br>entries",
+                    font=dict(color="#e2e8f0", size=15),
+                ),
             ),
             row=1, col=col,
-        )
-
-        # Donut centre: total entry count
-        fig.add_annotation(
-            text=f"<b>{total}</b><br><span style='font-size:10px'>entries</span>",
-            x=0.25 if col == 1 else 0.75,
-            y=0.77,
-            xref="paper", yref="paper",
-            showarrow=False,
-            font=dict(color="#94a3b8", size=13),
-            align="center",
         )
 
         # --- Histogram: time from entry to first shot, stacked by type ---
@@ -109,7 +102,7 @@ def plot_entries(*, game: Game, filename: Optional[str] = "entries.html") -> go.
     for col in (1, 2):
         fig.update_xaxes(
             row=2, col=col,
-            tickfont=dict(color="#64748b", size=10),
+            tickfont=dict(color="#64748b", size=13),
             gridcolor="#1e293b",
             linecolor="#334155",
             showline=False,
@@ -117,8 +110,8 @@ def plot_entries(*, game: Game, filename: Optional[str] = "entries.html") -> go.
         fig.update_yaxes(
             row=2, col=col,
             title_text="shots",
-            titlefont=dict(color="#64748b"),
-            tickfont=dict(color="#64748b"),
+            titlefont=dict(color="#64748b", size=13),
+            tickfont=dict(color="#64748b", size=13),
             gridcolor="#1e293b",
             zeroline=False,
             dtick=1,
@@ -126,26 +119,26 @@ def plot_entries(*, game: Game, filename: Optional[str] = "entries.html") -> go.
 
     for ann in fig.layout.annotations:
         ann.font.color = "#94a3b8"
-        ann.font.size = 13
+        ann.font.size = 15
 
     fig.update_layout(
         title=dict(
             text=f"{home.display_name} vs {away.display_name} — Zone Entries",
-            font=dict(color="#e2e8f0", size=16),
+            font=dict(color="#e2e8f0", size=18),
         ),
         barmode="stack",
         paper_bgcolor="#0f172a",
         plot_bgcolor="#0f172a",
-        font=dict(color="#94a3b8"),
+        font=dict(color="#94a3b8", size=14),
         legend=dict(
             orientation="h",
             yanchor="bottom", y=1.02,
             xanchor="left", x=0,
-            font=dict(color="#94a3b8"),
+            font=dict(color="#94a3b8", size=14),
             bgcolor="rgba(0,0,0,0)",
         ),
-        height=750,
-        margin=dict(t=80, b=40, l=60, r=20),
+        height=850,
+        margin=dict(t=90, b=50, l=70, r=30),
     )
 
     if filename is not None:

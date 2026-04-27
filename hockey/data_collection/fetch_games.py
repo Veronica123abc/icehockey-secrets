@@ -17,11 +17,12 @@ def download_missing_games(
     catalog: DataCatalog,
     conn: SportlogiqApi | None = None,
     verbose: bool = True,
+    check_filesize: bool = False,
 ) -> list[int]:
-    """Download all scheduled games for a season that are not fully present locally."""
-    missing = catalog.missing_game_ids(league_id, season)
+    """Download finished games for a season that are not fully present locally."""
+    missing = catalog.missing_game_ids(league_id, season, event_status="over", check_filesize=check_filesize)
     if not missing:
-        print(f"No missing games for league {league_id} season {season}.")
+        print(f"No missing completed games for league {league_id} season {season}.")
         return []
     print(f"Downloading {len(missing)} missing games for league {league_id} season {season}.")
     download_complete_games(game_ids=missing, root_dir=catalog._root, verbose=verbose)
@@ -33,4 +34,4 @@ if __name__ == "__main__":
     SEASON = "20252026"
 
     catalog = DataCatalog(settings.data_root_dir)
-    download_missing_games(LEAGUE_ID, SEASON, catalog)
+    download_missing_games(LEAGUE_ID, SEASON, catalog, check_filesize=True)

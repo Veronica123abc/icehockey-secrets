@@ -34,7 +34,8 @@ def ingest_players(players: List[Dict]):
 
     for record in tqdm(players):
         try:
-            sql = "INSERT INTO player (sl_id, first_name, last_name) VALUES (%s, %s, %s)"
+            sql = ("INSERT INTO player (sl_id, first_name, last_name) VALUES (%s, %s, %s) "
+                   "ON DUPLICATE KEY UPDATE first_name=VALUES(first_name), last_name=VALUES(last_name)")
             cursor.execute(sql, (int(record['id']), record['first_name'], record['last_name']))
         except Exception as e:
             print(f"Error inserting league records: {e}")

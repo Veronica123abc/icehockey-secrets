@@ -10,7 +10,7 @@ from plotly.subplots import make_subplots
 from hockey.model.game import Game
 from hockey.visualize.shift_toi import _team_color, _game_end_time_seconds
 
-XG_VERSION = 2
+XG_VERSION = 3
 
 
 def _hex_to_rgb(hex_color: str) -> str:
@@ -214,7 +214,7 @@ def plot_xg_with_toi_diff(
             x=(p + 0.5) * 1200, y=1.0, yref="paper",
             text=f"P{p + 1}" if p < 3 else "OT",
             showarrow=False,
-            font=dict(color="#475569", size=12),
+            font=dict(color="#475569", size=14),
             xanchor="center", yanchor="bottom",
         )
         for p in range(num_periods)
@@ -229,25 +229,25 @@ def plot_xg_with_toi_diff(
                 f"{home.display_name} vs {away.display_name} — xG & Shift TOI Diff"
                 f"  |  {home_total:.2f} – {away_total:.2f}"
             ),
-            font=dict(color="#e2e8f0", size=16),
+            font=dict(color="#e2e8f0", size=18),
         ),
         paper_bgcolor="#0f172a",
         plot_bgcolor="#0f172a",
-        font=dict(color="#94a3b8"),
+        font=dict(color="#94a3b8", size=14),
         xaxis=dict(
             title=None,
             range=[0, end_time],
             tickvals=tick_vals,
             ticktext=tick_text,
-            tickfont=dict(color="#64748b", size=11),
+            tickfont=dict(color="#64748b", size=14),
             gridcolor="#1e293b",
             zerolinecolor="#334155",
             showline=False,
         ),
         yaxis=dict(
             title="Cumulative xG",
-            titlefont=dict(color="#64748b"),
-            tickfont=dict(color="#64748b"),
+            titlefont=dict(color="#64748b", size=14),
+            tickfont=dict(color="#64748b", size=14),
             gridcolor="#1e293b",
             zeroline=False,
             showline=False,
@@ -257,20 +257,20 @@ def plot_xg_with_toi_diff(
             orientation="h",
             yanchor="bottom", y=1.02,
             xanchor="left", x=0,
-            font=dict(color="#94a3b8"),
+            font=dict(color="#94a3b8", size=14),
             bgcolor="rgba(0,0,0,0)",
         ),
         shapes=shapes,
         annotations=period_annotations,
-        height=600,
+        height=650,
         hovermode="x unified",
-        margin=dict(t=80, b=40, l=60, r=70),
+        margin=dict(t=90, b=50, l=70, r=80),
     )
 
     fig.update_yaxes(
         title_text="TOI diff (s)",
-        titlefont=dict(color="rgba(148,163,184,0.5)"),
-        tickfont=dict(color="rgba(148,163,184,0.5)"),
+        titlefont=dict(color="rgba(148,163,184,0.5)", size=14),
+        tickfont=dict(color="rgba(148,163,184,0.5)", size=14),
         zeroline=True, zerolinewidth=1, zerolinecolor="#475569",
         gridcolor="rgba(0,0,0,0)",
         showline=False,
