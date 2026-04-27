@@ -193,6 +193,17 @@ def _build_entries_html(game) -> str:
     return html
 
 
+def _build_xg_html(game) -> str:
+    from hockey.visualize.xg import plot_xg_with_toi_diff, XG_VERSION
+    cache_key = (game.info.game_id, "xg", XG_VERSION)
+    if cache_key in _plotly_cache:
+        return _plotly_cache[cache_key]
+    fig = plot_xg_with_toi_diff(game=game, filename=None)
+    html = fig.to_html(full_html=False, include_plotlyjs=False)
+    _plotly_cache[cache_key] = html
+    return html
+
+
 # ---------------------------------------------------------------------------
 # Routes
 # ---------------------------------------------------------------------------
@@ -237,6 +248,7 @@ def game_view(game_id: int):
 
     chart_html = _build_plotly_html(game)
     entries_html = _build_entries_html(game)
+    xg_html = _build_xg_html(game)
 
     info = {
         "game_id": game.info.game_id,
@@ -246,7 +258,7 @@ def game_view(game_id: int):
         "num_toi_intervals": len(game.toi),
         "num_players": len(game.roster.players),
     }
-    return render_template("game.html", info=info, chart_html=chart_html, entries_html=entries_html)
+    return render_template("game.html", info=info, chart_html=chart_html, entries_html=entries_html, xg_html=xg_html)
 
 
 @app.route("/api/games")

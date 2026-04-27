@@ -60,8 +60,8 @@ def ingest_game(games):
             'sl_reference_id': record['reference_id'],
             'sl_reference_name': record['reference_name'],
             'last_metrics_full_process_time': None if not record['last_metrics_full_process_time'] else datetime.fromisoformat(record['last_metrics_full_process_time'].replace('Z', '+00:00')),
-            'home_team_goals': record['score'][record['home_team_id']],
-            'away_team_goals': record['score'][record['away_team_id']]
+            'home_team_goals': record['score'][record['home_team_id']] if record['score'] else None,
+            'away_team_goals': record['score'][record['away_team_id']] if record['score'] else None,
         }
         try:
             cols = ', '.join(record_data.keys())
