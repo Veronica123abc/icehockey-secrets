@@ -13,7 +13,9 @@ Deploy to Azure Web App:
 from __future__ import annotations
 
 import json
+import logging
 import os
+from datetime import datetime, timezone
 from pathlib import Path
 
 from flask import Flask, render_template, abort, jsonify, redirect, url_for, request
@@ -40,6 +42,23 @@ if _dotenv_path.exists():
 DATA_ROOT_DIR = os.getenv("DATA_ROOT_DIR", "")
 
 _game_ids_cache: list[int] | None = None
+
+_chat_logger = logging.getLogger("chat")
+_chat_logger.setLevel(logging.INFO)
+_chat_handler = logging.FileHandler(_PROJECT_ROOT / "chat.log", encoding="utf-8")
+_chat_handler.setFormatter(logging.Formatter("%(message)s"))
+_chat_logger.addHandler(_chat_handler)
+
+
+def _log_chat(question: str, sql: str | None, row_count: int | None, error: str | None) -> None:
+    entry = {
+        "ts": datetime.now(timezone.utc).isoformat(),
+        "question": question,
+        "sql": sql,
+        "row_count": row_count,
+        "error": error,
+    }
+    _chat_logger.info(json.dumps(entry, ensure_ascii=False))
 _game_cache: dict[int, object] = {}
 _plotly_cache: dict[tuple, str] = {}
 
@@ -283,6 +302,62 @@ def api_game(game_id: int):
         "num_graded_chances": len(graded),
         "num_players": len(game.roster.players),
     })
+
+
+@app.route("/chat")
+def chat_page():
+    return render_template("chat.html")
+
+
+@app.route("/api/chat", methods=["POST"])
+def api_chat():
+    data = request.get_json(silent=True) or {}
+    question = (data.get("question") or "").strip()
+    history = data.get("history") or []
+
+    if not question:
+        return jsonify({"error": "No question provided"}), 400
+
+    if os.getenv("ANTHROPIC_API_KEY"):
+        from hockey.chat.anthropic_client import sql_from_question, answer_from_result
+    else:
+        from hockey.chat.claude_client import sql_from_question, answer_from_result
+
+    try:
+        sql = sql_from_question(question, history)
+    except Exception as e:
+        _log_chat(question, None, None, str(e))
+        return jsonify({"error": f"Failed to generate SQL: {e}"}), 500
+
+    if not sql.strip().upper().startswith("SELECT"):
+        _log_chat(question, sql, None, "non-SELECT query rejected")
+        return jsonify({"error": "Model did not return a SELECT query.", "sql": sql}), 400
+
+    conn = _db_conn()
+    if conn is None:
+        _log_chat(question, sql, None, "database not available")
+        return jsonify({"error": "Database not available locally."}), 503
+
+    try:
+        cursor = conn.cursor()
+        cursor.execute(sql)
+        columns = [d[0] for d in cursor.description] if cursor.description else []
+        rows = [list(r) for r in cursor.fetchmany(200)]
+        cursor.close()
+    except Exception as e:
+        _log_chat(question, sql, None, f"SQL error: {e}")
+        return jsonify({"error": f"SQL error: {e}", "sql": sql}), 400
+    finally:
+        conn.close()
+
+    try:
+        answer = answer_from_result(question, sql, rows, columns)
+    except Exception as e:
+        _log_chat(question, sql, len(rows), str(e))
+        return jsonify({"error": f"Failed to generate answer: {e}", "sql": sql}), 500
+
+    _log_chat(question, sql, len(rows), None)
+    return jsonify({"answer": answer, "sql": sql, "row_count": len(rows)})
 
 
 @app.route("/api/game/<int:game_id>/events")
