@@ -8,8 +8,9 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
 import requests
+from hockey.config.settings import Settings
 
-
+settings = Settings.from_env(project_root=Path(__file__).resolve().parent)
 class SportlogiqApi:
     BASE_URL = "https://api.sportlogiq.com"
 
@@ -62,6 +63,9 @@ class SportlogiqApi:
 
     def get_competitions(self, league_id):
         return self.req.get(self.BASE_URL + f"/v1/hockey/competitions/{league_id}")
+
+    def get_metrics(self, game_id:int, scope:str, topic_id:int):
+        return self.req.get(self.BASE_URL + f"/v1/hockey/games/{game_id}/metrics/{topic_id}?aggregation=sum&breakdown=team")
 
 
 def _fetch_events_with_retry(conn: SportlogiqApi, game_id: int) -> dict:
@@ -233,7 +237,9 @@ def download_complete_games(
 
 if __name__ == "__main__":
     conn = SportlogiqApi()
-    games = json.load(open('games.json'))
-    download_complete_game(203911,conn=conn, verbose=True)
-    games = conn.get_schedule(1,'20252026')
-    print(games)
+    #games = json.load(open('games.json'))
+    metrics = conn.get_metrics(204059, 'team', 2)
+    print(metrics.json())
+    #download_complete_game(203911,conn=conn, verbose=True)
+    #games = conn.get_schedule(1,'20252026')
+    #print(games)

@@ -114,6 +114,37 @@ def _ingest_events_df(
         err(f"Failed to ingest events for game {game.game_id}: {e}")
 
 
+def categorize_game_ids(game_ids: list[int]) -> tuple[list[int], int, int]:
+    """Categorize game_ids based on DB state.
+
+    Returns:
+        to_ingest:        game_ids with event_status='over' and no events stored yet
+        already_ingested: count of games with event_status='over' that already have events
+        not_yet_played:   count of games in DB with event_status != 'over'
+    """
+    placeholders = ', '.join(['%s'] * len(game_ids))
+    db = database.open_database_azure()
+    cursor = db.cursor()
+    cursor.execute(
+        f"""
+        SELECT g.sl_id, g.event_status, COUNT(e.id) AS event_count
+        FROM game g
+        LEFT JOIN event e ON e.game_id = g.id
+        WHERE g.sl_id IN ({placeholders})
+        GROUP BY g.sl_id, g.event_status
+        """,
+        game_ids,
+    )
+    rows = cursor.fetchall()
+    cursor.close()
+    db.close()
+
+    to_ingest = [row[0] for row in rows if row[1] == 'over' and row[2] == 0]
+    already_ingested = sum(1 for row in rows if row[1] == 'over' and row[2] > 0)
+    not_yet_played = sum(1 for row in rows if row[1] != 'over')
+    return to_ingest, already_ingested, not_yet_played
+
+
 def ingest_events(game: Game) -> None:
     """Ingest a single game: players → affiliations → shifts → events."""
     db = database.open_database_azure()
@@ -165,9 +196,21 @@ if __name__ == "__main__":
     SEASON = "20252026"
 
     catalog = DataCatalog(settings.data_root_dir)
-    for game_id in tqdm(catalog.scheduled_game_ids(LEAGUE_ID, SEASON), desc="Ingesting games"):
+    all_game_ids = list(catalog.scheduled_game_ids(LEAGUE_ID, SEASON))
+    game_ids_to_ingest, already_ingested, not_yet_played = categorize_game_ids(all_game_ids)
+    loadable = [gid for gid in game_ids_to_ingest if catalog.game_fileset(gid).is_loadable]
+    missing_files = len(game_ids_to_ingest) - len(loadable)
+    ingested_this_run = 0
+    for game_id in tqdm(loadable, desc="Ingesting games"):
         try:
             game = build_game(catalog.raw_game(game_id))
             ingest_events(game)
+            ingested_this_run += 1
         except Exception as e:
             err(f"Skipping game {game_id}: {e}")
+    ok(
+        f"Events for {ingested_this_run} games ingested, "
+        f"{already_ingested} already ingested, "
+        f"{not_yet_played} not yet played, "
+        f"{missing_files} played but missing game files."
+    )
