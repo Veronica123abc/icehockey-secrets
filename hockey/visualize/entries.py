@@ -109,7 +109,7 @@ def plot_entries(*, game: Game, filename: Optional[str] = "entries.html") -> go.
         )
         fig.update_yaxes(
             row=2, col=col,
-            title_text="shots",
+            title_text="shooting",
             titlefont=dict(color="#64748b", size=13),
             tickfont=dict(color="#64748b", size=13),
             gridcolor="#1e293b",

@@ -238,7 +238,7 @@ def download_complete_games(
 if __name__ == "__main__":
     conn = SportlogiqApi()
     #games = json.load(open('games.json'))
-    metrics = conn.get_metrics(204059, 'team', 2)
+    metrics = conn.get_metrics(143062, 'team', 2)
     print(metrics.json())
     #download_complete_game(203911,conn=conn, verbose=True)
     #games = conn.get_schedule(1,'20252026')
