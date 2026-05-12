@@ -311,53 +311,28 @@ def chat_page():
 
 @app.route("/api/chat", methods=["POST"])
 def api_chat():
+    import uuid
     data = request.get_json(silent=True) or {}
     question = (data.get("question") or "").strip()
-    history = data.get("history") or []
+    session_id = (data.get("session_id") or "").strip() or str(uuid.uuid4())
 
     if not question:
         return jsonify({"error": "No question provided"}), 400
 
-    if os.getenv("ANTHROPIC_API_KEY"):
-        from hockey.chat.anthropic_client import sql_from_question, answer_from_result
-    else:
-        from hockey.chat.claude_client import sql_from_question, answer_from_result
-
+    from hockey.chat.agent import chat as agent_chat
     try:
-        sql = sql_from_question(question, history)
+        result = agent_chat(question, session_id)
     except Exception as e:
         _log_chat(question, None, None, str(e))
-        return jsonify({"error": f"Failed to generate SQL: {e}"}), 500
+        return jsonify({"error": f"Agent error: {e}"}), 500
 
-    if not sql.strip().upper().startswith("SELECT"):
-        _log_chat(question, sql, None, "non-SELECT query rejected")
-        return jsonify({"error": "Model did not return a SELECT query.", "sql": sql}), 400
-
-    conn = _db_conn()
-    if conn is None:
-        _log_chat(question, sql, None, "database not available")
-        return jsonify({"error": "Database not available locally."}), 503
-
-    try:
-        cursor = conn.cursor()
-        cursor.execute(sql)
-        columns = [d[0] for d in cursor.description] if cursor.description else []
-        rows = [list(r) for r in cursor.fetchmany(200)]
-        cursor.close()
-    except Exception as e:
-        _log_chat(question, sql, None, f"SQL error: {e}")
-        return jsonify({"error": f"SQL error: {e}", "sql": sql}), 400
-    finally:
-        conn.close()
-
-    try:
-        answer = answer_from_result(question, sql, rows, columns)
-    except Exception as e:
-        _log_chat(question, sql, len(rows), str(e))
-        return jsonify({"error": f"Failed to generate answer: {e}", "sql": sql}), 500
-
-    _log_chat(question, sql, len(rows), None)
-    return jsonify({"answer": answer, "sql": sql, "row_count": len(rows)})
+    _log_chat(question, result.get("sql"), result.get("row_count"), None)
+    return jsonify({
+        "answer": result["answer"],
+        "sql": result.get("sql"),
+        "row_count": result.get("row_count"),
+        "session_id": session_id,
+    })
 
 
 @app.route("/api/game/<int:game_id>/events")

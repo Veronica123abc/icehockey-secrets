@@ -139,10 +139,15 @@
 
 <script>
 (function () {
-    var log    = document.getElementById('chat-log');
-    var input  = document.getElementById('chat-input');
-    var btn    = document.getElementById('send-btn');
-    var history = [];
+    var log   = document.getElementById('chat-log');
+    var input = document.getElementById('chat-input');
+    var btn   = document.getElementById('send-btn');
+
+    var sessionId = localStorage.getItem('chat_session_id');
+    if (!sessionId) {
+        sessionId = crypto.randomUUID();
+        localStorage.setItem('chat_session_id', sessionId);
+    }
 
     function scrollBottom() {
         log.scrollTop = log.scrollHeight;
@@ -202,7 +207,7 @@
         fetch('/api/chat', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ question: question, history: history }),
+            body: JSON.stringify({ question: question, session_id: sessionId }),
         })
         .then(function (r) { return r.json(); })
         .then(function (data) {
@@ -217,7 +222,6 @@
                 }
             } else {
                 addAssistant(data.answer, data.sql, data.row_count);
-                history.push({ question: question, answer: data.answer });
             }
         })
         .catch(function (err) {

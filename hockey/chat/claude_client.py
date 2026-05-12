@@ -38,6 +38,8 @@ _SYSTEM_SQL = f"""You are a MySQL expert for a hockey analytics database.
 Given a user question, return ONLY a valid SELECT query — no explanation, no markdown, no backticks.
 Always add LIMIT 200 unless the query aggregates to a small result set.
 Only reference columns that exist in the schema.
+The user does not always spell or name leagues, team-names, player-names correctly, wich means
+you must often use "LIKE" i the sql WHERE clauses.
 
 Schema:
 {_SCHEMA}
