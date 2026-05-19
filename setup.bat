@@ -25,7 +25,7 @@ echo.
 echo  Downloading installer from GitHub...
 echo.
 
-powershell -ExecutionPolicy Bypass -Command "[Net.ServicePointManager]::SecurityProtocol=[Net.SecurityProtocolType]::Tls12; (New-Object Net.WebClient).DownloadFile('https://raw.githubusercontent.com/Veronica123abc/icehockey-secrets/claude/master/install.ps1', '%TEMP%\hockey_install.ps1')"
+powershell -ExecutionPolicy Bypass -Command "[Net.ServicePointManager]::SecurityProtocol=[Net.SecurityProtocolType]::Tls12; (New-Object Net.WebClient).DownloadFile('https://raw.githubusercontent.com/Veronica123abc/icehockey-secrets/master/install.ps1', '%TEMP%\hockey_install.ps1')"
 
 if %errorLevel% neq 0 (
     echo.

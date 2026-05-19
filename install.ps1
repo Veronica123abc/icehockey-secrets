@@ -19,7 +19,7 @@
 #Requires -Version 5.1
 
 # ─── Configuration — update these if the repository moves ────────────────────
-$REPO_ZIP_URL   = "https://github.com/Veronica123abc/icehockey-secrets/archive/refs/heads/claude/master.zip"
+$REPO_ZIP_URL   = "https://github.com/Veronica123abc/icehockey-secrets/archive/refs/heads/master.zip"
 $REPO_SUBDIR    = "icehockey-secrets-master"   # folder name inside the extracted ZIP
 $PYTHON_URL     = "https://www.python.org/ftp/python/3.11.9/python-3.11.9-amd64.exe"
 $MYSQL_URL      = "https://dev.mysql.com/get/Downloads/MySQL-8.0/mysql-8.0.39-winx64.zip"
