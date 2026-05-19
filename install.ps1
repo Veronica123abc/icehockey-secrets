@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    Hockey Analytics App — Windows Installer
+    Hockey Analytics App - Windows Installer
 
 .DESCRIPTION
     Installs and configures the Hockey Analytics App on Windows.
@@ -18,21 +18,19 @@
 
 #Requires -Version 5.1
 
-# ─── Configuration — update these if the repository moves ────────────────────
+# --- Configuration: update these if the repository moves ---------------------
 $REPO_ZIP_URL   = "https://github.com/Veronica123abc/icehockey-secrets/archive/refs/heads/master.zip"
 $REPO_SUBDIR    = "icehockey-secrets-master"   # folder name inside the extracted ZIP
 $PYTHON_URL     = "https://www.python.org/ftp/python/3.11.9/python-3.11.9-amd64.exe"
 $MYSQL_URL      = "https://dev.mysql.com/get/Downloads/MySQL-8.0/mysql-8.0.39-winx64.zip"
 $MYSQL_SUBDIR   = "mysql-8.0.39-winx64"        # folder name inside the MySQL ZIP
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 
 $ErrorActionPreference = "Stop"
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
-# ─── Auto-elevate to Administrator ───────────────────────────────────────────
-if (-not ([Security.Principal.WindowsPrincipal]
-         [Security.Principal.WindowsIdentity]::GetCurrent()
-         ).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
+# --- Auto-elevate to Administrator -------------------------------------------
+if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
     Write-Host "This installer needs to run as Administrator." -ForegroundColor Yellow
     Write-Host "Restarting with elevated privileges..."
     $scriptPath = if ($PSCommandPath) { $PSCommandPath } else { $MyInvocation.MyCommand.Path }
@@ -40,11 +38,11 @@ if (-not ([Security.Principal.WindowsPrincipal]
     exit
 }
 
-# ─── Helper functions ─────────────────────────────────────────────────────────
-function Write-Step($n, $msg)  { Write-Host "`n[Step $n] $msg" -ForegroundColor Cyan }
-function Write-OK($msg)        { Write-Host "  OK  $msg" -ForegroundColor Green }
+# --- Helper functions --------------------------------------------------------
+function Write-Step($n, $msg)  { Write-Host "" ; Write-Host "[Step $n] $msg" -ForegroundColor Cyan }
+function Write-OK($msg)        { Write-Host "  OK: $msg" -ForegroundColor Green }
 function Write-Info($msg)      { Write-Host "      $msg" -ForegroundColor Gray }
-function Write-Err($msg)       { Write-Host "  ERROR  $msg" -ForegroundColor Red }
+function Write-Err($msg)       { Write-Host "  ERROR: $msg" -ForegroundColor Red }
 
 function Refresh-Path {
     $env:Path = [Environment]::GetEnvironmentVariable("Path","Machine") + ";" +
@@ -52,7 +50,7 @@ function Refresh-Path {
 }
 
 function Download-File($url, $dest) {
-    Write-Info "Downloading $(Split-Path $dest -Leaf) ..."
+    Write-Info "Downloading $([System.IO.Path]::GetFileName($dest)) ..."
     $wc = New-Object System.Net.WebClient
     $wc.DownloadFile($url, $dest)
 }
@@ -63,19 +61,19 @@ function SecureToPlain([securestring]$ss) {
     finally { [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($ptr) }
 }
 
-# ─── Banner ───────────────────────────────────────────────────────────────────
+# --- Banner ------------------------------------------------------------------
 Clear-Host
 Write-Host ""
-Write-Host "  ╔══════════════════════════════════════════════════╗" -ForegroundColor Blue
-Write-Host "  ║       Hockey Analytics App  —  Installer        ║" -ForegroundColor Blue
-Write-Host "  ╚══════════════════════════════════════════════════╝" -ForegroundColor Blue
+Write-Host "  +==================================================+" -ForegroundColor Blue
+Write-Host "  |     Hockey Analytics App  -  Installer          |" -ForegroundColor Blue
+Write-Host "  +==================================================+" -ForegroundColor Blue
 Write-Host ""
 Write-Host "  This will install everything needed to run the app."
 Write-Host "  Estimated time: 5-15 minutes (depending on internet speed)."
 Write-Host ""
 Read-Host "  Press ENTER to start (or Ctrl+C to cancel)"
 
-# ─── Step 1: Choose install location and download code ───────────────────────
+# --- Step 1: Choose install location and download code -----------------------
 Write-Step 1 "Application directory"
 $defaultInstallDir = "C:\HockeyApp"
 $installDir = (Read-Host "  Install location (press ENTER for $defaultInstallDir)").Trim()
@@ -91,7 +89,7 @@ if ($installDir -match " ") {
 }
 
 if (Test-Path "$appDir\app.py") {
-    Write-Info "App files already present — skipping download."
+    Write-Info "App files already present -- skipping download."
 } else {
     New-Item -ItemType Directory -Path $installDir -Force | Out-Null
     $zipDest = "$env:TEMP\hockey_repo.zip"
@@ -105,14 +103,14 @@ if (Test-Path "$appDir\app.py") {
 
 Set-Location $appDir
 
-# ─── Step 2: Python 3.11 ─────────────────────────────────────────────────────
+# --- Step 2: Python 3.11 -----------------------------------------------------
 Write-Step 2 "Python 3.11"
 
-# $pyCmd holds the command (array) used for all subsequent python invocations
+# $pyCmd holds the command array used for all subsequent Python invocations
 $pyCmd = $null
 try {
     $v = & py -3.11 --version 2>&1
-    if ("$v" -match "3\.11") { $pyCmd = @("py","-3.11"); Write-OK "Found: $v" }
+    if ("$v" -match "3\.11") { $pyCmd = @("py", "-3.11"); Write-OK "Found: $v" }
 } catch {}
 if (-not $pyCmd) {
     try {
@@ -134,11 +132,11 @@ if (-not $pyCmd) {
         Read-Host; exit 1
     }
     Refresh-Path
-    $pyCmd = @("py","-3.11")
+    $pyCmd = @("py", "-3.11")
     Write-OK "Python 3.11 installed"
 }
 
-# ─── Step 3: Virtual environment and packages ────────────────────────────────
+# --- Step 3: Virtual environment and packages --------------------------------
 Write-Step 3 "Python virtual environment and packages"
 
 $venvPython = "$appDir\venv\Scripts\python.exe"
@@ -146,11 +144,11 @@ $venvPip    = "$appDir\venv\Scripts\pip.exe"
 
 if (-not (Test-Path $venvPython)) {
     Write-Info "Creating virtual environment..."
-    $pyExtra = if ($pyCmd.Count -gt 1) { $pyCmd[1..($pyCmd.Count-1)] } else { @() }
+    $pyExtra = if ($pyCmd.Count -gt 1) { $pyCmd[1..($pyCmd.Count - 1)] } else { @() }
     & $pyCmd[0] @pyExtra -m venv "$appDir\venv"
     Write-OK "Virtual environment created"
 } else {
-    Write-Info "Virtual environment already exists — skipping."
+    Write-Info "Virtual environment already exists -- skipping."
 }
 
 Write-Info "Installing Python packages (this takes a few minutes)..."
@@ -162,20 +160,21 @@ if ($LASTEXITCODE -ne 0) {
 }
 Write-OK "Packages installed"
 
-# ─── Step 4: MySQL ────────────────────────────────────────────────────────────
+# --- Step 4: MySQL 8.0 -------------------------------------------------------
 Write-Step 4 "MySQL 8.0"
 
-$mysqlDir  = "$installDir\mysql"
-$mysqlData = "$installDir\mysql-data"
-$mysqldExe = "$mysqlDir\bin\mysqld.exe"
-$mysqlExe  = "$mysqlDir\bin\mysql.exe"
-$myIni     = "$installDir\my.ini"
+$mysqlDir    = "$installDir\mysql"
+$mysqlData   = "$installDir\mysql-data"
+$mysqldExe   = "$mysqlDir\bin\mysqld.exe"
+$mysqlExe    = "$mysqlDir\bin\mysql.exe"
+$myIni       = "$installDir\my.ini"
 $usingExternalMySQL = $false
-$rootPwdArgs = @()   # empty = no password
+$rootPwdArgs = @()
 
-# Check for an existing MySQL installation
-$existingSvc = Get-Service -Name "MySQL*","MariaDB*" -ErrorAction SilentlyContinue |
-               Where-Object { $_.Status -eq "Running" } | Select-Object -First 1
+# Check for an existing MySQL/MariaDB installation
+$existingSvc = Get-Service -Name "MySQL*", "MariaDB*" -ErrorAction SilentlyContinue |
+    Where-Object { $_.Status -eq "Running" } |
+    Select-Object -First 1
 
 if ($existingSvc) {
     Write-Info "Found existing MySQL/MariaDB service: $($existingSvc.Name)"
@@ -184,7 +183,7 @@ if ($existingSvc) {
         $mysqlExe = $systemMysql.Source
         Write-OK "Using existing MySQL at $mysqlExe"
     } else {
-        Write-Info "mysql.exe not in PATH — looking in common install locations..."
+        Write-Info "mysql.exe not in PATH -- checking common install locations..."
         $candidates = @(
             "C:\Program Files\MySQL\MySQL Server 8.0\bin\mysql.exe",
             "C:\Program Files\MySQL\MySQL Server 5.7\bin\mysql.exe",
@@ -195,14 +194,14 @@ if ($existingSvc) {
         }
     }
     $usingExternalMySQL = $true
-    Write-Info "Will use existing MySQL — root password may be required."
+    Write-Info "Will use existing MySQL installation."
 } else {
-    # Install MySQL from ZIP (silent, no GUI)
+    # Install MySQL from ZIP -- no GUI, fully automated
     if (Test-Path $mysqldExe) {
         Write-Info "MySQL already extracted to $mysqlDir"
     } else {
         $mysqlZip = "$env:TEMP\mysql_server.zip"
-        Write-Info "Downloading MySQL 8.0 (~200 MB — this is the longest step)..."
+        Write-Info "Downloading MySQL 8.0 (~200 MB -- this is the longest step)..."
         Download-File $MYSQL_URL $mysqlZip
         Write-Info "Extracting MySQL..."
         $tmpExtract = "$env:TEMP\mysql_extract"
@@ -213,21 +212,13 @@ if ($existingSvc) {
         Write-OK "MySQL extracted to $mysqlDir"
     }
 
-    # Write my.ini (use forward slashes — mysqld prefers them on Windows)
-    $fwdMysqlDir  = $mysqlDir.Replace("\","/")
-    $fwdMysqlData = $mysqlData.Replace("\","/")
-    @"
-[mysqld]
-basedir=$fwdMysqlDir
-datadir=$fwdMysqlData
-port=3306
-default_authentication_plugin=mysql_native_password
+    # Write my.ini using forward slashes (mysqld prefers them on Windows)
+    $fwdMysqlDir  = $mysqlDir.Replace("\", "/")
+    $fwdMysqlData = $mysqlData.Replace("\", "/")
+    $myIniContent = "[mysqld]`nbasedir=$fwdMysqlDir`ndatadir=$fwdMysqlData`nport=3306`ndefault_authentication_plugin=mysql_native_password`n`n[mysql]`ndefault-character-set=utf8mb4`n"
+    Set-Content -Path $myIni -Value $myIniContent -Encoding ASCII
 
-[mysql]
-default-character-set=utf8mb4
-"@ | Set-Content -Path $myIni -Encoding UTF8
-
-    # Initialize data directory (only if it hasn't been done yet)
+    # Initialize data directory if not done yet
     if (-not (Test-Path "$mysqlData\mysql")) {
         Write-Info "Initializing MySQL data directory..."
         New-Item -ItemType Directory -Path $mysqlData -Force | Out-Null
@@ -240,7 +231,7 @@ default-character-set=utf8mb4
         Write-OK "MySQL data directory initialized"
     }
 
-    # Install as Windows service (if not already)
+    # Register as Windows service if not already registered
     $hockeySvc = Get-Service -Name "HockeyMySQL" -ErrorAction SilentlyContinue
     if (-not $hockeySvc) {
         Write-Info "Registering MySQL as a Windows service..."
@@ -259,7 +250,7 @@ default-character-set=utf8mb4
     Write-OK "MySQL service is running"
 }
 
-# ─── Step 5: Database credentials + schema ───────────────────────────────────
+# --- Step 5: Database credentials and schema ---------------------------------
 Write-Step 5 "Database setup"
 
 if ($usingExternalMySQL) {
@@ -280,54 +271,47 @@ while (-not $dbPwd) {
     if (-not $dbPwd) { Write-Info "Password cannot be empty. Please try again." }
 }
 
-# Create database + user
+# Create database and user
 Write-Info "Creating database and user..."
-$setupSql = (
-    "CREATE DATABASE IF NOT EXISTS sportlogiq " +
-    "CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci; " +
-    "CREATE USER IF NOT EXISTS '${dbUser}'@'localhost' " +
-    "IDENTIFIED WITH mysql_native_password BY '${dbPwd}'; " +
-    "GRANT ALL PRIVILEGES ON sportlogiq.* TO '${dbUser}'@'localhost'; " +
-    "FLUSH PRIVILEGES;"
-)
+$setupSql = "CREATE DATABASE IF NOT EXISTS sportlogiq CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci; " +
+            "CREATE USER IF NOT EXISTS '${dbUser}'@'localhost' IDENTIFIED WITH mysql_native_password BY '${dbPwd}'; " +
+            "GRANT ALL PRIVILEGES ON sportlogiq.* TO '${dbUser}'@'localhost'; " +
+            "FLUSH PRIVILEGES;"
 & $mysqlExe -u root @rootPwdArgs -e $setupSql
 if ($LASTEXITCODE -ne 0) {
     Write-Err "Could not create the database or user. Check the MySQL root password."
     Read-Host; exit 1
 }
 
-# Load schema via a temporary batch file (avoids PowerShell redirect quoting issues)
+# Load schema via a temporary batch file to avoid PowerShell redirect quoting issues
 Write-Info "Loading database schema..."
 $schemaPath = "$appDir\hockey\db\schema\schema.sql"
-$tmpBat = "$env:TEMP\load_schema.bat"
-$rootFlag = if ($rootPwdArgs) { $rootPwdArgs[0] } else { "" }
-Set-Content -Path $tmpBat -Encoding ASCII -Value (
-    "@echo off`r`n" +
-    "`"$mysqlExe`" -u root $rootFlag sportlogiq < `"$schemaPath`"`r`n"
-)
+$rootFlag   = if ($rootPwdArgs) { $rootPwdArgs[0] } else { "" }
+$tmpBat     = "$env:TEMP\load_schema.bat"
+Set-Content -Path $tmpBat -Encoding ASCII -Value "@echo off`r`n`"$mysqlExe`" -u root $rootFlag sportlogiq < `"$schemaPath`"`r`n"
 & cmd /c $tmpBat
 Remove-Item $tmpBat -ErrorAction SilentlyContinue
 if ($LASTEXITCODE -ne 0) {
-    Write-Err "Schema load failed (exit $LASTEXITCODE). Check that MySQL is running and the root password is correct."
+    Write-Err "Schema load failed. Check that MySQL is running and the root password is correct."
     Read-Host; exit 1
 }
 Write-OK "Database schema loaded"
 
-# ─── Step 6: SportLogIQ credentials ──────────────────────────────────────────
+# --- Step 6: SportLogIQ credentials ------------------------------------------
 Write-Step 6 "SportLogIQ credentials"
 Write-Host ""
 Write-Host "  Enter the username and password for your SportLogIQ account."
 Write-Host "  These are used to download game data on demand."
 Write-Host ""
 $slUser = (Read-Host "  SportLogIQ username (email)").Trim()
-$slPwd  = ""
+$slPwd = ""
 while (-not $slPwd) {
     Write-Host "  SportLogIQ password: " -NoNewline
     $slPwd = SecureToPlain (Read-Host -AsSecureString)
     if (-not $slPwd) { Write-Info "Password cannot be empty. Please try again." }
 }
 
-# ─── Step 7: Game data directory ─────────────────────────────────────────────
+# --- Step 7: Game data directory ---------------------------------------------
 Write-Step 7 "Game data directory"
 $defaultData = "$installDir\data"
 $dataDir = (Read-Host "  Where should game files be stored? (press ENTER for $defaultData)").Trim()
@@ -335,7 +319,7 @@ if (-not $dataDir) { $dataDir = $defaultData }
 New-Item -ItemType Directory -Path $dataDir -Force | Out-Null
 Write-OK "Game data directory: $dataDir"
 
-# ─── Step 8: Write .env ───────────────────────────────────────────────────────
+# --- Step 8: Write .env ------------------------------------------------------
 Write-Step 8 "Writing configuration"
 
 $envLines = @(
@@ -347,29 +331,19 @@ $envLines = @(
     "DATABASE_PWD_AZURE=$dbPwd",
     "DATABASE_NAME_AZURE=sportlogiq"
 )
-Set-Content -Path "$appDir\.env" -Value ($envLines -join "`n") -Encoding UTF8
+Set-Content -Path "$appDir\.env" -Value ($envLines -join "`r`n") -Encoding UTF8
 Write-OK ".env written to $appDir\.env"
 
-# ─── Step 9: Create start.bat ─────────────────────────────────────────────────
-$startBat = @"
-@echo off
-cd /d %~dp0
-echo Starting Hockey Analytics App...
-echo.
-call venv\Scripts\activate.bat
-flask run
-echo.
-echo The app has stopped.
-pause
-"@
+# --- Create start.bat --------------------------------------------------------
+$startBat = "@echo off`r`ncd /d %~dp0`r`necho Starting Hockey Analytics App...`r`necho.`r`ncall venv\Scripts\activate.bat`r`nflask run`r`necho.`r`necho The app has stopped.`r`npause`r`n"
 Set-Content -Path "$appDir\start.bat" -Value $startBat -Encoding ASCII
 Write-OK "start.bat created at $appDir\start.bat"
 
-# ─── Done ─────────────────────────────────────────────────────────────────────
+# --- Done --------------------------------------------------------------------
 Write-Host ""
-Write-Host "  ╔══════════════════════════════════════════════════╗" -ForegroundColor Green
-Write-Host "  ║            Installation complete!               ║" -ForegroundColor Green
-Write-Host "  ╚══════════════════════════════════════════════════╝" -ForegroundColor Green
+Write-Host "  +==================================================+" -ForegroundColor Green
+Write-Host "  |          Installation complete!                  |" -ForegroundColor Green
+Write-Host "  +==================================================+" -ForegroundColor Green
 Write-Host ""
 Write-Host "  App installed to:"
 Write-Host "    $appDir" -ForegroundColor Yellow
