@@ -181,7 +181,7 @@ def current_shift_toi_series(game: Game, query_times:list[float], include_goalie
                 "team_id": team_id,
                 "players": players_payload,
                 "total_team_shift_toi": total,
-                "average_team_shift_toi": total / len(team_shifts),
+                "average_team_shift_toi": total / len(team_shifts) if len(team_shifts) else 0.0,
             }
         snapshots.append(out)
     return snapshots

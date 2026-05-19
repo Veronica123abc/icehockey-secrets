@@ -1,0 +1,1927 @@
+{
+    "season": "20212022",
+    "stage": "all",
+    "competition_id": "39",
+    "players": [
+        {
+            "id": "6182",
+            "first_name": "Vojtech",
+            "last_name": "Polak",
+            "current_team_id": "579",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-04-29T01:12:51.637Z"
+        },
+        {
+            "id": "22442",
+            "first_name": "Josh",
+            "last_name": "Davies",
+            "current_team_id": "572",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2023-04-15T22:27:57.154Z"
+        },
+        {
+            "id": "22453",
+            "first_name": "Mathew",
+            "last_name": "Ward",
+            "current_team_id": "572",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-02-08T15:53:19.307Z"
+        },
+        {
+            "id": "24910",
+            "first_name": "Brayden",
+            "last_name": "Schuurman",
+            "current_team_id": "572",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-02-08T15:53:19.307Z"
+        },
+        {
+            "id": "25685",
+            "first_name": "Hugo",
+            "last_name": "H\u00e4velid",
+            "current_team_id": "573",
+            "position": "G",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-10-06T23:31:12.396Z"
+        },
+        {
+            "id": "25687",
+            "first_name": "Mattias",
+            "last_name": "H\u00e4velid",
+            "current_team_id": "573",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2023-03-23T04:45:20.740Z"
+        },
+        {
+            "id": "25702",
+            "first_name": "Leo",
+            "last_name": "Carlsson",
+            "current_team_id": "573",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2024-11-27T16:26:24.369Z"
+        },
+        {
+            "id": "25709",
+            "first_name": "Fabian",
+            "last_name": "Wagner",
+            "current_team_id": "573",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2024-11-23T19:54:40.097Z"
+        },
+        {
+            "id": "25711",
+            "first_name": "Hugo",
+            "last_name": "Fransson",
+            "current_team_id": "573",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-10-07T00:29:06.940Z"
+        },
+        {
+            "id": "25712",
+            "first_name": "Calle",
+            "last_name": "Odelius",
+            "current_team_id": "573",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2024-11-27T16:26:23.169Z"
+        },
+        {
+            "id": "25713",
+            "first_name": "Liam",
+            "last_name": "\u00d6hgren",
+            "current_team_id": "573",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2024-11-27T16:26:22.989Z"
+        },
+        {
+            "id": "25714",
+            "first_name": "Filip",
+            "last_name": "Bystedt",
+            "current_team_id": "573",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2024-04-04T02:18:13.722Z"
+        },
+        {
+            "id": "25715",
+            "first_name": "Alexander",
+            "last_name": "Suzdalev",
+            "current_team_id": "573",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2024-11-27T16:26:23.192Z"
+        },
+        {
+            "id": "25716",
+            "first_name": "Elias",
+            "last_name": "Salomonsson",
+            "current_team_id": "573",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2024-11-27T16:26:23.101Z"
+        },
+        {
+            "id": "25723",
+            "first_name": "Noah",
+            "last_name": "\u00d6stlund",
+            "current_team_id": "573",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2024-11-27T16:26:22.943Z"
+        },
+        {
+            "id": "25725",
+            "first_name": "Jonathan",
+            "last_name": "Lekkerim\u00e4ki",
+            "current_team_id": "573",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2024-11-27T16:26:22.460Z"
+        },
+        {
+            "id": "25888",
+            "first_name": "Topi",
+            "last_name": "Ronni",
+            "current_team_id": "576",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2023-09-13T23:22:05.486Z"
+        },
+        {
+            "id": "25889",
+            "first_name": "Tomas",
+            "last_name": "Hamara",
+            "current_team_id": "579",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2024-04-20T23:48:06.136Z"
+        },
+        {
+            "id": "25914",
+            "first_name": "Isac",
+            "last_name": "Born",
+            "current_team_id": "573",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-11-13T14:22:28.414Z"
+        },
+        {
+            "id": "26052",
+            "first_name": "Kasper",
+            "last_name": "Kulonummi",
+            "current_team_id": "576",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2023-09-13T23:22:01.958Z"
+        },
+        {
+            "id": "26204",
+            "first_name": "Frank",
+            "last_name": "Nazar",
+            "current_team_id": "571",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2025-05-09T18:09:59.618Z"
+        },
+        {
+            "id": "26205",
+            "first_name": "Logan",
+            "last_name": "Cooley",
+            "current_team_id": "571",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2025-05-09T18:09:02.685Z"
+        },
+        {
+            "id": "26206",
+            "first_name": "Devin",
+            "last_name": "Kaplan",
+            "current_team_id": "571",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2025-04-17T22:58:04.555Z"
+        },
+        {
+            "id": "26207",
+            "first_name": "Ryan",
+            "last_name": "Chesley",
+            "current_team_id": "571",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2025-04-06T21:25:00.654Z"
+        },
+        {
+            "id": "26217",
+            "first_name": "Charlie",
+            "last_name": "Stramel",
+            "current_team_id": "571",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2023-10-20T23:31:19.944Z"
+        },
+        {
+            "id": "26218",
+            "first_name": "Seamus",
+            "last_name": "Casey",
+            "current_team_id": "571",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2024-11-27T16:26:23.079Z"
+        },
+        {
+            "id": "26219",
+            "first_name": "Marek",
+            "last_name": "Hejduk",
+            "current_team_id": "571",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2023-10-27T23:24:24.974Z"
+        },
+        {
+            "id": "26220",
+            "first_name": "Jimmy",
+            "last_name": "Snuggerud",
+            "current_team_id": "571",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2025-04-01T23:45:06.616Z"
+        },
+        {
+            "id": "26221",
+            "first_name": "Seamus",
+            "last_name": "Powell",
+            "current_team_id": "571",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2024-10-05T20:39:42.252Z"
+        },
+        {
+            "id": "26223",
+            "first_name": "Lane",
+            "last_name": "Hutson",
+            "current_team_id": "571",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2024-11-27T16:26:23.123Z"
+        },
+        {
+            "id": "26224",
+            "first_name": "Hunter",
+            "last_name": "Brzustewicz",
+            "current_team_id": "571",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2024-11-27T16:26:24.323Z"
+        },
+        {
+            "id": "26225",
+            "first_name": "Cruz",
+            "last_name": "Lucius",
+            "current_team_id": "571",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2023-10-20T23:23:52.226Z"
+        },
+        {
+            "id": "26227",
+            "first_name": "Isaac",
+            "last_name": "Howard",
+            "current_team_id": "571",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2025-05-09T18:09:34.987Z"
+        },
+        {
+            "id": "26228",
+            "first_name": "Tyler",
+            "last_name": "Duke",
+            "current_team_id": "571",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2023-10-20T21:43:42.279Z"
+        },
+        {
+            "id": "26229",
+            "first_name": "Charlie",
+            "last_name": "Leddy",
+            "current_team_id": "571",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2023-10-20T22:23:22.074Z"
+        },
+        {
+            "id": "26230",
+            "first_name": "Rutger",
+            "last_name": "McGroarty",
+            "current_team_id": "571",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2024-11-27T16:26:22.919Z"
+        },
+        {
+            "id": "26231",
+            "first_name": "Cole",
+            "last_name": "Spicer",
+            "current_team_id": "571",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2024-09-20T21:57:47.083Z"
+        },
+        {
+            "id": "26476",
+            "first_name": "Rieger",
+            "last_name": "Lorenz",
+            "current_team_id": "572",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2023-10-28T04:20:39.557Z"
+        },
+        {
+            "id": "26614",
+            "first_name": "Lukas",
+            "last_name": "Swedin",
+            "current_team_id": "573",
+            "position": "G",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2025-03-20T18:10:11.128Z"
+        },
+        {
+            "id": "26631",
+            "first_name": "Connor",
+            "last_name": "Bedard",
+            "current_team_id": "572",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2024-11-27T16:26:24.069Z"
+        },
+        {
+            "id": "26686",
+            "first_name": "Otto",
+            "last_name": "Hokkanen",
+            "current_team_id": "576",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2023-03-01T21:30:47.481Z"
+        },
+        {
+            "id": "26723",
+            "first_name": "Gavin",
+            "last_name": "Brindley",
+            "current_team_id": "571",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2024-11-27T16:26:24.509Z"
+        },
+        {
+            "id": "26790",
+            "first_name": "Adam",
+            "last_name": "Fantilli",
+            "current_team_id": "572",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2024-11-27T16:26:24.393Z"
+        },
+        {
+            "id": "26800",
+            "first_name": "Cutter",
+            "last_name": "Gauthier",
+            "current_team_id": "571",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2025-05-09T18:09:30.301Z"
+        },
+        {
+            "id": "26802",
+            "first_name": "Tyler",
+            "last_name": "Muszelik",
+            "current_team_id": "571",
+            "position": "G",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2024-05-28T15:34:47.026Z"
+        },
+        {
+            "id": "26844",
+            "first_name": "Jakob",
+            "last_name": "Noren",
+            "current_team_id": "573",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-11-13T14:21:55.251Z"
+        },
+        {
+            "id": "27242",
+            "first_name": "Otto",
+            "last_name": "Heinonen",
+            "current_team_id": "576",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2023-09-13T21:58:40.361Z"
+        },
+        {
+            "id": "27243",
+            "first_name": "Jani",
+            "last_name": "Nyman",
+            "current_team_id": "576",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2025-03-13T02:26:08.813Z"
+        },
+        {
+            "id": "27567",
+            "first_name": "Michael",
+            "last_name": "Mastrodomenico",
+            "current_team_id": "572",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2023-10-20T23:03:42.230Z"
+        },
+        {
+            "id": "27569",
+            "first_name": "Nick",
+            "last_name": "Moldenhauer",
+            "current_team_id": "572",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2023-10-20T21:44:55.570Z"
+        },
+        {
+            "id": "27574",
+            "first_name": "Michael",
+            "last_name": "Schnattinger",
+            "current_team_id": "579",
+            "position": "G",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-11-20T02:10:24.307Z"
+        },
+        {
+            "id": "27728",
+            "first_name": "Joakim",
+            "last_name": "Kemell",
+            "current_team_id": "576",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2025-02-08T01:27:09.834Z"
+        },
+        {
+            "id": "27733",
+            "first_name": "Jere",
+            "last_name": "Lassila",
+            "current_team_id": "576",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2023-09-13T23:29:20.961Z"
+        },
+        {
+            "id": "27740",
+            "first_name": "Topias",
+            "last_name": "Leinonen",
+            "current_team_id": "576",
+            "position": "G",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2024-09-20T16:52:44.144Z"
+        },
+        {
+            "id": "27835",
+            "first_name": "Ondrej",
+            "last_name": "Bizon",
+            "current_team_id": "579",
+            "position": "G",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-06-19T21:10:14.086Z"
+        },
+        {
+            "id": "27924",
+            "first_name": "Grayden",
+            "last_name": "Siepmann",
+            "current_team_id": "572",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-03-06T02:59:27.750Z"
+        },
+        {
+            "id": "27945",
+            "first_name": "Reid",
+            "last_name": "Dyck",
+            "current_team_id": "572",
+            "position": "G",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2023-04-28T23:09:14.714Z"
+        },
+        {
+            "id": "27956",
+            "first_name": "Josh",
+            "last_name": "Filmon",
+            "current_team_id": "572",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2025-03-08T09:47:24.681Z"
+        },
+        {
+            "id": "27957",
+            "first_name": "Owen",
+            "last_name": "Pickering",
+            "current_team_id": "572",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2024-11-27T16:26:22.415Z"
+        },
+        {
+            "id": "28103",
+            "first_name": "Kalem",
+            "last_name": "Parker",
+            "current_team_id": "572",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2024-09-22T00:08:48.227Z"
+        },
+        {
+            "id": "28440",
+            "first_name": "Lukas",
+            "last_name": "Dragicevic",
+            "current_team_id": "572",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2024-11-27T16:26:24.276Z"
+        },
+        {
+            "id": "28448",
+            "first_name": "Tommi",
+            "last_name": "Mannisto",
+            "current_team_id": "576",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2023-10-20T00:36:10.648Z"
+        },
+        {
+            "id": "28461",
+            "first_name": "Thomas",
+            "last_name": "Gronlund",
+            "current_team_id": "576",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-11-13T14:20:17.065Z"
+        },
+        {
+            "id": "28470",
+            "first_name": "Sandis",
+            "last_name": "Vilmanis",
+            "current_team_id": "810",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2024-10-12T23:46:55.493Z"
+        },
+        {
+            "id": "28530",
+            "first_name": "Tanner",
+            "last_name": "Howe",
+            "current_team_id": "572",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-04-14T06:06:00.946Z"
+        },
+        {
+            "id": "28543",
+            "first_name": "Tadeas",
+            "last_name": "Tuma",
+            "current_team_id": "579",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2023-02-16T14:44:50.778Z"
+        },
+        {
+            "id": "28546",
+            "first_name": "Ji\u0159\u00ed",
+            "last_name": "Kulich",
+            "current_team_id": "579",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2024-11-27T16:26:23.035Z"
+        },
+        {
+            "id": "28622",
+            "first_name": "Niko",
+            "last_name": "Minkkinen",
+            "current_team_id": "576",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-10-01T00:44:19.418Z"
+        },
+        {
+            "id": "28686",
+            "first_name": "Simon",
+            "last_name": "Wolf",
+            "current_team_id": "1275",
+            "position": "G",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-09-13T19:48:27.052Z"
+        },
+        {
+            "id": "28688",
+            "first_name": "Rayan",
+            "last_name": "Bettahar",
+            "current_team_id": "1275",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-10-02T01:28:33.678Z"
+        },
+        {
+            "id": "28703",
+            "first_name": "Luca",
+            "last_name": "Hauf",
+            "current_team_id": "1275",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-09-24T01:24:16.879Z"
+        },
+        {
+            "id": "28705",
+            "first_name": "Julian",
+            "last_name": "Lutz",
+            "current_team_id": "1275",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2024-10-12T01:38:27.554Z"
+        },
+        {
+            "id": "28725",
+            "first_name": "Simon",
+            "last_name": "Slavicek",
+            "current_team_id": "579",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2024-11-29T22:07:47.026Z"
+        },
+        {
+            "id": "28753",
+            "first_name": "Dans",
+            "last_name": "Locmelis",
+            "current_team_id": "810",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2025-04-04T23:16:44.420Z"
+        },
+        {
+            "id": "28757",
+            "first_name": "Rainers",
+            "last_name": "Darzins",
+            "current_team_id": "810",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2024-10-07T00:11:27.951Z"
+        },
+        {
+            "id": "28775",
+            "first_name": "Noah",
+            "last_name": "Greuter",
+            "current_team_id": "574",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-04-27T21:38:08.954Z"
+        },
+        {
+            "id": "28817",
+            "first_name": "Matyas",
+            "last_name": "Sapovaliv",
+            "current_team_id": "579",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2024-10-12T00:38:19.016Z"
+        },
+        {
+            "id": "28924",
+            "first_name": "Tim",
+            "last_name": "Almgren",
+            "current_team_id": "573",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-11-19T16:50:45.172Z"
+        },
+        {
+            "id": "29008",
+            "first_name": "Kocha",
+            "last_name": "Delic",
+            "current_team_id": "572",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-10-08T23:48:40.733Z"
+        },
+        {
+            "id": "29011",
+            "first_name": "Spencer",
+            "last_name": "Sova",
+            "current_team_id": "572",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-10-09T23:33:09.417Z"
+        },
+        {
+            "id": "29022",
+            "first_name": "Nolan",
+            "last_name": "Lalonde",
+            "current_team_id": "572",
+            "position": "G",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-10-21T19:17:35.748Z"
+        },
+        {
+            "id": "29076",
+            "first_name": "Niklas",
+            "last_name": "Kokko",
+            "current_team_id": "576",
+            "position": "G",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2025-02-26T00:54:02.175Z"
+        },
+        {
+            "id": "29077",
+            "first_name": "Jan",
+            "last_name": "Spunar",
+            "current_team_id": "579",
+            "position": "G",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2024-10-05T01:00:08.578Z"
+        },
+        {
+            "id": "29079",
+            "first_name": "Frantisek",
+            "last_name": "Nemec",
+            "current_team_id": "579",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2024-10-30T22:30:25.834Z"
+        },
+        {
+            "id": "29080",
+            "first_name": "Elmeri",
+            "last_name": "Laakso",
+            "current_team_id": "576",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2023-03-01T21:32:10.229Z"
+        },
+        {
+            "id": "29081",
+            "first_name": "Denis",
+            "last_name": "Puchala",
+            "current_team_id": "579",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-08-12T16:28:10.410Z"
+        },
+        {
+            "id": "29082",
+            "first_name": "Otto",
+            "last_name": "Salin",
+            "current_team_id": "576",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2025-04-13T00:54:21.099Z"
+        },
+        {
+            "id": "29085",
+            "first_name": "Matej",
+            "last_name": "Prcik",
+            "current_team_id": "579",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2023-02-01T21:26:12.043Z"
+        },
+        {
+            "id": "29087",
+            "first_name": "Ales",
+            "last_name": "Cech",
+            "current_team_id": "579",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-11-10T17:47:35.662Z"
+        },
+        {
+            "id": "29091",
+            "first_name": "Samu",
+            "last_name": "Bau",
+            "current_team_id": "576",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-03-31T10:53:57.882Z"
+        },
+        {
+            "id": "29092",
+            "first_name": "Kasper",
+            "last_name": "Halttunen",
+            "current_team_id": "576",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2024-10-13T04:14:07.199Z"
+        },
+        {
+            "id": "29093",
+            "first_name": "Marek",
+            "last_name": "Soukup",
+            "current_team_id": "579",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2023-02-16T14:41:18.209Z"
+        },
+        {
+            "id": "29094",
+            "first_name": "Aleksanteri",
+            "last_name": "Kaskimaki",
+            "current_team_id": "576",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2024-10-12T23:10:25.731Z"
+        },
+        {
+            "id": "29095",
+            "first_name": "Kasper",
+            "last_name": "Lundell",
+            "current_team_id": "576",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2023-01-19T15:12:46.879Z"
+        },
+        {
+            "id": "29096",
+            "first_name": "Dennis",
+            "last_name": "Good Bogg",
+            "current_team_id": "573",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-10-06T19:40:43.797Z"
+        },
+        {
+            "id": "29097",
+            "first_name": "Elias",
+            "last_name": "Pettersson",
+            "current_team_id": "573",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2025-01-26T02:57:58.949Z"
+        },
+        {
+            "id": "29098",
+            "first_name": "Eduard",
+            "last_name": "Sale",
+            "current_team_id": "579",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2024-12-26T22:22:06.031Z"
+        },
+        {
+            "id": "29099",
+            "first_name": "Robin",
+            "last_name": "Sapousek",
+            "current_team_id": "579",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2023-01-14T03:43:15.309Z"
+        },
+        {
+            "id": "29100",
+            "first_name": "Dominik",
+            "last_name": "Petr",
+            "current_team_id": "579",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2023-09-23T00:16:24.275Z"
+        },
+        {
+            "id": "29101",
+            "first_name": "Dominik",
+            "last_name": "Rymon",
+            "current_team_id": "579",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-09-25T02:52:20.513Z"
+        },
+        {
+            "id": "29103",
+            "first_name": "Adam",
+            "last_name": "Bares",
+            "current_team_id": "579",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2023-09-13T23:18:46.921Z"
+        },
+        {
+            "id": "29106",
+            "first_name": "Rasmus",
+            "last_name": "Rudslatt",
+            "current_team_id": "573",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-10-06T19:43:57.392Z"
+        },
+        {
+            "id": "29107",
+            "first_name": "Linus",
+            "last_name": "Hemstrom",
+            "current_team_id": "573",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2025-03-08T07:12:09.558Z"
+        },
+        {
+            "id": "29147",
+            "first_name": "Lauri",
+            "last_name": "Raiman",
+            "current_team_id": "576",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2023-10-20T23:34:32.214Z"
+        },
+        {
+            "id": "29161",
+            "first_name": "Simone",
+            "last_name": "Terraneo",
+            "current_team_id": "574",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2023-02-18T11:12:23.278Z"
+        },
+        {
+            "id": "29162",
+            "first_name": "Louis",
+            "last_name": "Fullemann",
+            "current_team_id": "574",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2023-02-01T21:14:09.143Z"
+        },
+        {
+            "id": "29163",
+            "first_name": "Ga\u00ebl",
+            "last_name": "Christe",
+            "current_team_id": "574",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2024-02-27T01:11:17.498Z"
+        },
+        {
+            "id": "29167",
+            "first_name": "Thierry",
+            "last_name": "Schild",
+            "current_team_id": "574",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2023-04-25T21:14:52.747Z"
+        },
+        {
+            "id": "29168",
+            "first_name": "Finn",
+            "last_name": "Naber",
+            "current_team_id": "574",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-08-22T23:32:12.239Z"
+        },
+        {
+            "id": "29169",
+            "first_name": "Julien",
+            "last_name": "Rod",
+            "current_team_id": "574",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2025-02-12T18:19:37.979Z"
+        },
+        {
+            "id": "29174",
+            "first_name": "Alessandro",
+            "last_name": "Lurati",
+            "current_team_id": "574",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2023-09-15T23:32:22.508Z"
+        },
+        {
+            "id": "29175",
+            "first_name": "Mattheo",
+            "last_name": "Reinhard",
+            "current_team_id": "574",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2023-04-14T23:54:55.224Z"
+        },
+        {
+            "id": "29176",
+            "first_name": "Gregory",
+            "last_name": "Weber",
+            "current_team_id": "574",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2023-04-14T22:21:49.052Z"
+        },
+        {
+            "id": "29177",
+            "first_name": "Kelian",
+            "last_name": "Fiebiger",
+            "current_team_id": "574",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2023-09-07T15:37:41.614Z"
+        },
+        {
+            "id": "29204",
+            "first_name": "Niklas",
+            "last_name": "Hubner",
+            "current_team_id": "1275",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-12-18T01:13:35.598Z"
+        },
+        {
+            "id": "29205",
+            "first_name": "Jesse",
+            "last_name": "Kauhanen",
+            "current_team_id": "1275",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-09-14T16:28:09.786Z"
+        },
+        {
+            "id": "29206",
+            "first_name": "Phillip",
+            "last_name": "Sinn",
+            "current_team_id": "1275",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-09-14T16:54:48.772Z"
+        },
+        {
+            "id": "29209",
+            "first_name": "Moritz",
+            "last_name": "Elias",
+            "current_team_id": "1275",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-10-02T01:23:00.451Z"
+        },
+        {
+            "id": "29210",
+            "first_name": "Rik",
+            "last_name": "Gaidel",
+            "current_team_id": "1275",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-09-14T17:10:42.382Z"
+        },
+        {
+            "id": "29211",
+            "first_name": "Eric",
+            "last_name": "H\u00f6rdler",
+            "current_team_id": "1275",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-09-14T17:01:04.463Z"
+        },
+        {
+            "id": "29212",
+            "first_name": "Roman",
+            "last_name": "Kechter",
+            "current_team_id": "1275",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-08-17T21:44:50.968Z"
+        },
+        {
+            "id": "29213",
+            "first_name": "Philipp",
+            "last_name": "Krening",
+            "current_team_id": "1275",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-09-14T16:52:12.424Z"
+        },
+        {
+            "id": "29215",
+            "first_name": "Veit",
+            "last_name": "Oswald",
+            "current_team_id": "1275",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-08-17T21:47:28.924Z"
+        },
+        {
+            "id": "29216",
+            "first_name": "Ralf",
+            "last_name": "Rollinger",
+            "current_team_id": "1275",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-11-02T18:35:29.889Z"
+        },
+        {
+            "id": "29661",
+            "first_name": "Alexander",
+            "last_name": "Tell",
+            "current_team_id": "573",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2024-10-06T23:22:08.855Z"
+        },
+        {
+            "id": "29746",
+            "first_name": "Trey",
+            "last_name": "Augustine",
+            "current_team_id": "571",
+            "position": "G",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2024-05-10T17:59:02.252Z"
+        },
+        {
+            "id": "29750",
+            "first_name": "Brady",
+            "last_name": "Cleveland",
+            "current_team_id": "571",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2023-10-20T23:21:21.482Z"
+        },
+        {
+            "id": "29757",
+            "first_name": "Ryan",
+            "last_name": "Leonard",
+            "current_team_id": "571",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2025-04-01T23:03:55.778Z"
+        },
+        {
+            "id": "29764",
+            "first_name": "William",
+            "last_name": "Smith",
+            "current_team_id": "571",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2024-11-27T16:26:24.418Z"
+        },
+        {
+            "id": "29798",
+            "first_name": "Connor",
+            "last_name": "Hvidston",
+            "current_team_id": "572",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2023-04-01T23:17:17.166Z"
+        },
+        {
+            "id": "30133",
+            "first_name": "Pano",
+            "last_name": "Fimis",
+            "current_team_id": "572",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-10-22T21:20:44.535Z"
+        },
+        {
+            "id": "30181",
+            "first_name": "Nolan",
+            "last_name": "Collins",
+            "current_team_id": "572",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-10-09T19:10:15.573Z"
+        },
+        {
+            "id": "30183",
+            "first_name": "David",
+            "last_name": "Goyette",
+            "current_team_id": "572",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2024-11-27T16:26:22.713Z"
+        },
+        {
+            "id": "30312",
+            "first_name": "Otto",
+            "last_name": "Stenberg",
+            "current_team_id": "573",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2025-01-19T00:07:52.465Z"
+        },
+        {
+            "id": "30444",
+            "first_name": "Theo",
+            "last_name": "Lindstein",
+            "current_team_id": "573",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2024-11-06T13:02:07.081Z"
+        },
+        {
+            "id": "30543",
+            "first_name": "Oskar",
+            "last_name": "Pettersson",
+            "current_team_id": "573",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2024-02-03T00:31:04.607Z"
+        },
+        {
+            "id": "30602",
+            "first_name": "Arttu",
+            "last_name": "Karki",
+            "current_team_id": "576",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2023-09-30T02:55:50.436Z"
+        },
+        {
+            "id": "30804",
+            "first_name": "Eriks",
+            "last_name": "Mateiko",
+            "current_team_id": "810",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-09-25T19:21:12.833Z"
+        },
+        {
+            "id": "30846",
+            "first_name": "Cyril",
+            "last_name": "Pont",
+            "current_team_id": "574",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2023-09-02T17:56:51.199Z"
+        },
+        {
+            "id": "30847",
+            "first_name": "David",
+            "last_name": "Moser",
+            "current_team_id": "574",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2023-04-14T22:19:02.208Z"
+        },
+        {
+            "id": "30848",
+            "first_name": "Janick",
+            "last_name": "Liechti",
+            "current_team_id": "574",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2023-04-28T22:37:42.497Z"
+        },
+        {
+            "id": "30849",
+            "first_name": "Pascal",
+            "last_name": "Kilchenmann",
+            "current_team_id": "574",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-11-11T16:33:57.276Z"
+        },
+        {
+            "id": "30852",
+            "first_name": "Kevin",
+            "last_name": "Zurcher",
+            "current_team_id": "574",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2025-01-31T23:09:20.119Z"
+        },
+        {
+            "id": "30853",
+            "first_name": "Alessio",
+            "last_name": "Beglieri",
+            "current_team_id": "574",
+            "position": "G",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-10-09T04:26:26.598Z"
+        },
+        {
+            "id": "30854",
+            "first_name": "Loris",
+            "last_name": "Uberti",
+            "current_team_id": "574",
+            "position": "G",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2023-04-14T22:10:54.181Z"
+        },
+        {
+            "id": "30855",
+            "first_name": "Lenni",
+            "last_name": "Hameenaho",
+            "current_team_id": "576",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2023-04-28T22:23:54.234Z"
+        },
+        {
+            "id": "30859",
+            "first_name": "Ondrej",
+            "last_name": "Becher",
+            "current_team_id": "579",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2024-11-03T23:22:40.117Z"
+        },
+        {
+            "id": "30911",
+            "first_name": "Tuomas",
+            "last_name": "Uronen",
+            "current_team_id": "576",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2023-09-30T21:28:09.615Z"
+        },
+        {
+            "id": "30956",
+            "first_name": "Ryan",
+            "last_name": "Mazzola",
+            "current_team_id": "574",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2024-01-30T22:46:17.018Z"
+        },
+        {
+            "id": "31130",
+            "first_name": "Matthew",
+            "last_name": "Wood",
+            "current_team_id": "572",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2025-04-06T23:02:11.031Z"
+        },
+        {
+            "id": "31141",
+            "first_name": "Yann",
+            "last_name": "Voegeli",
+            "current_team_id": "574",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2023-04-28T22:37:04.171Z"
+        },
+        {
+            "id": "31275",
+            "first_name": "Aron",
+            "last_name": "Kiviharju",
+            "current_team_id": "576",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2023-02-22T17:26:31.405Z"
+        },
+        {
+            "id": "31771",
+            "first_name": "Matthew",
+            "last_name": "Morden",
+            "current_team_id": "572",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2023-10-27T23:25:33.965Z"
+        },
+        {
+            "id": "32963",
+            "first_name": "Jan",
+            "last_name": "Gaspar",
+            "current_team_id": "579",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-12-16T18:54:31.158Z"
+        },
+        {
+            "id": "33358",
+            "first_name": "Deivs",
+            "last_name": "Rolovs",
+            "current_team_id": "810",
+            "position": "G",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2024-10-07T00:14:04.707Z"
+        },
+        {
+            "id": "33359",
+            "first_name": "Kristers",
+            "last_name": "Urbanovics",
+            "current_team_id": "810",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2023-09-11T01:00:37.552Z"
+        },
+        {
+            "id": "33360",
+            "first_name": "Viktors",
+            "last_name": "Kurbaka",
+            "current_team_id": "810",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-04-23T15:33:18.498Z"
+        },
+        {
+            "id": "33361",
+            "first_name": "Elvis",
+            "last_name": "Laskovs",
+            "current_team_id": "810",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2025-03-19T14:29:45.059Z"
+        },
+        {
+            "id": "33362",
+            "first_name": "Rainers",
+            "last_name": "Rullers",
+            "current_team_id": "810",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2024-10-07T00:10:07.244Z"
+        },
+        {
+            "id": "33364",
+            "first_name": "Otto",
+            "last_name": "Polakovs",
+            "current_team_id": "810",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-04-23T15:36:43.774Z"
+        },
+        {
+            "id": "33365",
+            "first_name": "Davids",
+            "last_name": "Livsics",
+            "current_team_id": "810",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2025-01-13T03:57:45.392Z"
+        },
+        {
+            "id": "33366",
+            "first_name": "Raivis",
+            "last_name": "Strazdins",
+            "current_team_id": "810",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2024-12-03T20:33:47.556Z"
+        },
+        {
+            "id": "33367",
+            "first_name": "Markuss",
+            "last_name": "Streikiss",
+            "current_team_id": "810",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-10-16T14:12:55.014Z"
+        },
+        {
+            "id": "33368",
+            "first_name": "Emils",
+            "last_name": "Veckaktins",
+            "current_team_id": "810",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2024-09-24T01:02:36.673Z"
+        },
+        {
+            "id": "33369",
+            "first_name": "Peteris",
+            "last_name": "Bulans",
+            "current_team_id": "810",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-09-25T19:21:44.706Z"
+        },
+        {
+            "id": "33370",
+            "first_name": "Renarts",
+            "last_name": "Berzins",
+            "current_team_id": "810",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-04-23T15:41:21.061Z"
+        },
+        {
+            "id": "33371",
+            "first_name": "Alekss",
+            "last_name": "Simanovics",
+            "current_team_id": "810",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-04-23T15:42:18.756Z"
+        },
+        {
+            "id": "33372",
+            "first_name": "Dario",
+            "last_name": "Mackevics",
+            "current_team_id": "810",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-04-23T15:42:55.088Z"
+        },
+        {
+            "id": "33373",
+            "first_name": "Rodzers",
+            "last_name": "Bukarts",
+            "current_team_id": "810",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2023-09-23T12:12:10.729Z"
+        },
+        {
+            "id": "33374",
+            "first_name": "Martins",
+            "last_name": "Kruklitis",
+            "current_team_id": "810",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2023-09-28T02:00:59.456Z"
+        },
+        {
+            "id": "33375",
+            "first_name": "Erasts",
+            "last_name": "Nazarenko",
+            "current_team_id": "810",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2023-03-20T13:44:08.944Z"
+        },
+        {
+            "id": "33376",
+            "first_name": "Linards",
+            "last_name": "Feldbergs",
+            "current_team_id": "810",
+            "position": "G",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2024-09-20T23:55:28.680Z"
+        },
+        {
+            "id": "33391",
+            "first_name": "Jakub",
+            "last_name": "Dvo\u0159\u00e1k",
+            "current_team_id": "579",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2024-12-26T22:21:27.530Z"
+        },
+        {
+            "id": "33392",
+            "first_name": "Matyas",
+            "last_name": "Melovsky",
+            "current_team_id": "579",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2024-10-01T22:52:34.224Z"
+        },
+        {
+            "id": "33393",
+            "first_name": "Luk\u00e1\u0161",
+            "last_name": "Plos",
+            "current_team_id": "579",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-11-10T17:56:31.684Z"
+        },
+        {
+            "id": "33394",
+            "first_name": "Maurice",
+            "last_name": "Pauli",
+            "current_team_id": "574",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-04-24T17:05:28.305Z"
+        },
+        {
+            "id": "33395",
+            "first_name": "Antoine",
+            "last_name": "Guignard",
+            "current_team_id": "574",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2024-09-28T16:39:00.799Z"
+        },
+        {
+            "id": "33396",
+            "first_name": "Daniel",
+            "last_name": "Assavolyuk",
+            "current_team_id": "1275",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-04-24T17:14:36.899Z"
+        },
+        {
+            "id": "33397",
+            "first_name": "Edwin",
+            "last_name": "Tropmann",
+            "current_team_id": "1275",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-04-24T17:16:55.957Z"
+        },
+        {
+            "id": "33398",
+            "first_name": "Noel",
+            "last_name": "Saffran",
+            "current_team_id": "1275",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-04-24T17:17:05.631Z"
+        },
+        {
+            "id": "33399",
+            "first_name": "Till",
+            "last_name": "Michel",
+            "current_team_id": "1275",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-04-24T17:18:38.679Z"
+        },
+        {
+            "id": "33400",
+            "first_name": "Michael",
+            "last_name": "Reich",
+            "current_team_id": "1275",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-04-24T17:19:16.491Z"
+        },
+        {
+            "id": "33401",
+            "first_name": "Nick",
+            "last_name": "Meile",
+            "current_team_id": "574",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2023-04-14T22:21:27.836Z"
+        },
+        {
+            "id": "33402",
+            "first_name": "Marlon",
+            "last_name": "Braun",
+            "current_team_id": "1275",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-04-24T17:20:43.362Z"
+        },
+        {
+            "id": "33404",
+            "first_name": "Philipp",
+            "last_name": "Dietl",
+            "current_team_id": "1275",
+            "position": "G",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-04-24T17:26:35.183Z"
+        },
+        {
+            "id": "33405",
+            "first_name": "Leon",
+            "last_name": "Willerscheid",
+            "current_team_id": "1275",
+            "position": "G",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-04-24T17:28:31.758Z"
+        },
+        {
+            "id": "33407",
+            "first_name": "Nikita",
+            "last_name": "Krymskiy",
+            "current_team_id": "1275",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2023-04-28T22:38:21.012Z"
+        },
+        {
+            "id": "33408",
+            "first_name": "Carl",
+            "last_name": "Konze",
+            "current_team_id": "1275",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-04-26T19:14:58.020Z"
+        },
+        {
+            "id": "33442",
+            "first_name": "Davis",
+            "last_name": "Borozinskis",
+            "current_team_id": "810",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-09-14T18:21:32.731Z"
+        },
+        {
+            "id": "38760",
+            "first_name": "Vojtech",
+            "last_name": "Polak",
+            "current_team_id": "579",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-11-09T17:39:09.568Z"
+        },
+        {
+            "id": "46602",
+            "first_name": "Kristers",
+            "last_name": "Zvagulis",
+            "current_team_id": "810",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2024-12-27T18:06:00.482Z"
+        },
+        {
+            "id": "46623",
+            "first_name": "Jakob",
+            "last_name": "Weber",
+            "current_team_id": "1275",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2023-12-23T14:27:44.949Z"
+        }
+    ]
+}

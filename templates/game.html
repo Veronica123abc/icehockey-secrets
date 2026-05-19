@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+
+{% block title %}Game {{ info.game_id }} — {{ info.home_team }} vs {{ info.away_team }}{% endblock %}
+
+{% block extra_style %}
+    .game-header {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+        flex-wrap: wrap;
+    }
+
+    .game-header h2 {
+        font-size: 1.4rem;
+        color: #f8fafc;
+    }
+
+    .matchup {
+        font-size: 1rem;
+        color: #94a3b8;
+    }
+
+    .stats-row {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        margin-bottom: 1.5rem;
+    }
+
+    .stat {
+        background: #1e293b;
+        border: 1px solid #334155;
+        border-radius: 0.5rem;
+        padding: 0.75rem 1.25rem;
+        text-align: center;
+    }
+
+    .stat .value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #f8fafc;
+    }
+
+    .stat .label {
+        font-size: 0.75rem;
+        color: #94a3b8;
+        margin-top: 0.15rem;
+    }
+
+    .chart-scroll {
+        overflow-x: auto;
+        margin-bottom: 1.5rem;
+    }
+
+    .chart-container {
+        background: #fff;
+        border-radius: 0.5rem;
+        padding: 0.5rem;
+        min-width: 3600px;
+    }
+
+    .section-heading {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #94a3b8;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        margin-bottom: 0.75rem;
+    }
+
+    .entries-container {
+        border-radius: 0.5rem;
+        overflow: hidden;
+        margin-bottom: 1.5rem;
+        max-width: 1400px;
+    }
+
+    .back-link {
+        display: inline-block;
+        margin-bottom: 1rem;
+        font-size: 0.9rem;
+    }
+{% endblock %}
+
+{% block content %}
+    <a href="/" class="back-link" id="back-link">&larr; All games</a>
+    <script>
+        var saved = sessionStorage.getItem('homeUrl');
+        if (saved) document.getElementById('back-link').href = saved;
+    </script>
+
+    <div class="game-header">
+        <h2>Game {{ info.game_id }}</h2>
+        <span class="matchup">{{ info.home_team }} vs {{ info.away_team }}</span>
+    </div>
+
+    <div class="stats-row">
+        <div class="stat">
+            <div class="value">{{ info.num_events }}</div>
+            <div class="label">Events</div>
+        </div>
+        <div class="stat">
+            <div class="value">{{ info.num_players }}</div>
+            <div class="label">Players</div>
+        </div>
+        <div class="stat">
+            <div class="value">{{ info.num_toi_intervals }}</div>
+            <div class="label">TOI Intervals</div>
+        </div>
+    </div>
+
+    <p class="section-heading">Shift TOI &amp; Scoring Chances</p>
+    <div class="chart-scroll">
+        <div class="chart-container">
+            {{ chart_html | safe }}
+        </div>
+    </div>
+
+    <p class="section-heading">xG & Shift TOI Diff</p>
+    <div class="entries-container">
+        {{ xg_html | safe }}
+    </div>
+
+    <p class="section-heading">Zone Entries</p>
+    <div class="entries-container">
+        {{ entries_html | safe }}
+    </div>
+
+    <div class="card">
+        <h2>API</h2>
+        <p style="font-family: monospace; font-size: 0.85rem; color: #86efac;">
+            GET <a href="/api/game/{{ info.game_id }}">/api/game/{{ info.game_id }}</a>
+            &nbsp;&nbsp;|&nbsp;&nbsp;
+            GET <a href="/api/game/{{ info.game_id }}/events">/api/game/{{ info.game_id }}/events</a>
+        </p>
+    </div>
+{% endblock %}

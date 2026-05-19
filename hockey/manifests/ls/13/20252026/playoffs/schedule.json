@@ -1,0 +1,613 @@
+{
+    "season": "20252026",
+    "stage": "playoffs",
+    "competition_id": "13",
+    "games": [
+        {
+            "id": "202404",
+            "date": "2026-04-05",
+            "scheduled_time": "2026-04-05T13:00:00+00:00",
+            "scheduled_venue_time": "2026-04-05T15:00:00",
+            "stage": "playoffs",
+            "away_team_id": "130",
+            "home_team_id": "128",
+            "venue_id": "1050",
+            "event_status": "upcoming",
+            "score": null,
+            "reference_id": "22834",
+            "reference_name": "SHL",
+            "last_metrics_full_process_time": null
+        },
+        {
+            "id": "202958",
+            "date": "2026-04-04",
+            "scheduled_time": "2026-04-04T13:15:00+00:00",
+            "scheduled_venue_time": "2026-04-04T15:15:00",
+            "stage": "playoffs",
+            "away_team_id": "179",
+            "home_team_id": "310",
+            "venue_id": "1047",
+            "event_status": "upcoming",
+            "score": null,
+            "reference_id": "22832",
+            "reference_name": "SHL",
+            "last_metrics_full_process_time": null
+        },
+        {
+            "id": "202403",
+            "date": "2026-04-03",
+            "scheduled_time": "2026-04-03T13:00:00+00:00",
+            "scheduled_venue_time": "2026-04-03T15:00:00",
+            "stage": "playoffs",
+            "away_team_id": "128",
+            "home_team_id": "130",
+            "venue_id": "1396",
+            "event_status": "live",
+            "score": {
+                "128": 3,
+                "130": 0
+            },
+            "reference_id": "22830",
+            "reference_name": "SHL",
+            "last_metrics_full_process_time": null
+        },
+        {
+            "id": "202955",
+            "date": "2026-04-02",
+            "scheduled_time": "2026-04-02T17:00:00+00:00",
+            "scheduled_venue_time": "2026-04-02T19:00:00",
+            "stage": "playoffs",
+            "away_team_id": "310",
+            "home_team_id": "179",
+            "venue_id": "1049",
+            "event_status": "over",
+            "score": {
+                "179": 1,
+                "310": 0
+            },
+            "reference_id": "22828",
+            "reference_name": "SHL",
+            "last_metrics_full_process_time": "2026-04-02T23:53:55.186Z"
+        },
+        {
+            "id": "202401",
+            "date": "2026-04-01",
+            "scheduled_time": "2026-04-01T17:00:00+00:00",
+            "scheduled_venue_time": "2026-04-01T16:00:00",
+            "stage": "playoffs",
+            "away_team_id": "308",
+            "home_team_id": "200",
+            "venue_id": "3175",
+            "event_status": "over",
+            "score": {
+                "200": 2,
+                "308": 1
+            },
+            "reference_id": "22825",
+            "reference_name": "SHL",
+            "last_metrics_full_process_time": "2026-04-02T05:32:00.094Z"
+        },
+        {
+            "id": "202400",
+            "date": "2026-04-01",
+            "scheduled_time": "2026-04-01T17:00:00+00:00",
+            "scheduled_venue_time": "2026-04-01T19:00:00",
+            "stage": "playoffs",
+            "away_team_id": "130",
+            "home_team_id": "128",
+            "venue_id": "1050",
+            "event_status": "over",
+            "score": {
+                "128": 7,
+                "130": 2
+            },
+            "reference_id": "22826",
+            "reference_name": "SHL",
+            "last_metrics_full_process_time": "2026-04-01T20:47:42.297Z"
+        },
+        {
+            "id": "202954",
+            "date": "2026-03-31",
+            "scheduled_time": "2026-03-31T17:00:00+00:00",
+            "scheduled_venue_time": "2026-03-31T19:00:00",
+            "stage": "playoffs",
+            "away_team_id": "179",
+            "home_team_id": "310",
+            "venue_id": "1047",
+            "event_status": "over",
+            "score": {
+                "179": 1,
+                "310": 2
+            },
+            "reference_id": "22824",
+            "reference_name": "SHL",
+            "last_metrics_full_process_time": "2026-04-01T00:26:40.196Z"
+        },
+        {
+            "id": "202953",
+            "date": "2026-03-31",
+            "scheduled_time": "2026-03-31T17:00:00+00:00",
+            "scheduled_venue_time": "2026-03-31T19:00:00",
+            "stage": "playoffs",
+            "away_team_id": "126",
+            "home_team_id": "82",
+            "venue_id": "1397",
+            "event_status": "over",
+            "score": {
+                "82": 4,
+                "126": 0
+            },
+            "reference_id": "22823",
+            "reference_name": "SHL",
+            "last_metrics_full_process_time": "2026-03-31T19:43:08.841Z"
+        },
+        {
+            "id": "202398",
+            "date": "2026-03-30",
+            "scheduled_time": "2026-03-30T17:00:00+00:00",
+            "scheduled_venue_time": "2026-03-30T19:00:00",
+            "stage": "playoffs",
+            "away_team_id": "128",
+            "home_team_id": "130",
+            "venue_id": "1396",
+            "event_status": "over",
+            "score": {
+                "128": 2,
+                "130": 1
+            },
+            "reference_id": "22822",
+            "reference_name": "SHL",
+            "last_metrics_full_process_time": "2026-03-30T20:30:51.566Z"
+        },
+        {
+            "id": "202397",
+            "date": "2026-03-30",
+            "scheduled_time": "2026-03-30T17:00:00+00:00",
+            "scheduled_venue_time": "2026-03-30T19:00:00",
+            "stage": "playoffs",
+            "away_team_id": "200",
+            "home_team_id": "308",
+            "venue_id": "2380",
+            "event_status": "over",
+            "score": {
+                "200": 3,
+                "308": 2
+            },
+            "reference_id": "22821",
+            "reference_name": "SHL",
+            "last_metrics_full_process_time": "2026-03-31T01:36:29.680Z"
+        },
+        {
+            "id": "202952",
+            "date": "2026-03-29",
+            "scheduled_time": "2026-03-29T13:00:00+00:00",
+            "scheduled_venue_time": "2026-03-29T15:00:00",
+            "stage": "playoffs",
+            "away_team_id": "310",
+            "home_team_id": "179",
+            "venue_id": "1049",
+            "event_status": "over",
+            "score": {
+                "179": 4,
+                "310": 3
+            },
+            "reference_id": "22820",
+            "reference_name": "SHL",
+            "last_metrics_full_process_time": "2026-03-30T02:28:30.723Z"
+        },
+        {
+            "id": "202951",
+            "date": "2026-03-29",
+            "scheduled_time": "2026-03-29T13:00:00+00:00",
+            "scheduled_venue_time": "2026-03-29T15:00:00",
+            "stage": "playoffs",
+            "away_team_id": "82",
+            "home_team_id": "126",
+            "venue_id": "1398",
+            "event_status": "over",
+            "score": {
+                "82": 1,
+                "126": 2
+            },
+            "reference_id": "22819",
+            "reference_name": "SHL",
+            "last_metrics_full_process_time": "2026-03-30T02:14:07.366Z"
+        },
+        {
+            "id": "202395",
+            "date": "2026-03-28",
+            "scheduled_time": "2026-03-28T14:15:00+00:00",
+            "scheduled_venue_time": "2026-03-28T15:15:00",
+            "stage": "playoffs",
+            "away_team_id": "128",
+            "home_team_id": "130",
+            "venue_id": "1396",
+            "event_status": "over",
+            "score": {
+                "128": 0,
+                "130": 2
+            },
+            "reference_id": "22818",
+            "reference_name": "SHL",
+            "last_metrics_full_process_time": "2026-03-28T17:15:22.536Z"
+        },
+        {
+            "id": "202394",
+            "date": "2026-03-28",
+            "scheduled_time": "2026-03-28T14:15:00+00:00",
+            "scheduled_venue_time": "2026-03-28T15:15:00",
+            "stage": "playoffs",
+            "away_team_id": "200",
+            "home_team_id": "308",
+            "venue_id": "2380",
+            "event_status": "over",
+            "score": {
+                "200": 2,
+                "308": 3
+            },
+            "reference_id": "22817",
+            "reference_name": "SHL",
+            "last_metrics_full_process_time": "2026-03-28T22:26:11.472Z"
+        },
+        {
+            "id": "202950",
+            "date": "2026-03-27",
+            "scheduled_time": "2026-03-27T18:00:00+00:00",
+            "scheduled_venue_time": "2026-03-27T19:00:00",
+            "stage": "playoffs",
+            "away_team_id": "310",
+            "home_team_id": "179",
+            "venue_id": "1049",
+            "event_status": "over",
+            "score": {
+                "179": 2,
+                "310": 1
+            },
+            "reference_id": "22816",
+            "reference_name": "SHL",
+            "last_metrics_full_process_time": "2026-03-28T00:04:30.690Z"
+        },
+        {
+            "id": "202949",
+            "date": "2026-03-27",
+            "scheduled_time": "2026-03-27T18:00:00+00:00",
+            "scheduled_venue_time": "2026-03-27T19:00:00",
+            "stage": "playoffs",
+            "away_team_id": "82",
+            "home_team_id": "126",
+            "venue_id": "1398",
+            "event_status": "over",
+            "score": {
+                "82": 4,
+                "126": 2
+            },
+            "reference_id": "22815",
+            "reference_name": "SHL",
+            "last_metrics_full_process_time": "2026-03-28T01:47:46.343Z"
+        },
+        {
+            "id": "202392",
+            "date": "2026-03-26",
+            "scheduled_time": "2026-03-26T18:00:00+00:00",
+            "scheduled_venue_time": "2026-03-26T17:00:00",
+            "stage": "playoffs",
+            "away_team_id": "308",
+            "home_team_id": "200",
+            "venue_id": "3175",
+            "event_status": "over",
+            "score": {
+                "200": 6,
+                "308": 4
+            },
+            "reference_id": "22813",
+            "reference_name": "SHL",
+            "last_metrics_full_process_time": "2026-03-26T22:44:48.062Z"
+        },
+        {
+            "id": "202391",
+            "date": "2026-03-26",
+            "scheduled_time": "2026-03-26T18:00:00+00:00",
+            "scheduled_venue_time": "2026-03-26T19:00:00",
+            "stage": "playoffs",
+            "away_team_id": "130",
+            "home_team_id": "128",
+            "venue_id": "1050",
+            "event_status": "over",
+            "score": {
+                "128": 5,
+                "130": 6
+            },
+            "reference_id": "22814",
+            "reference_name": "SHL",
+            "last_metrics_full_process_time": "2026-03-26T21:31:27.107Z"
+        },
+        {
+            "id": "202948",
+            "date": "2026-03-25",
+            "scheduled_time": "2026-03-25T18:00:00+00:00",
+            "scheduled_venue_time": "2026-03-25T19:00:00",
+            "stage": "playoffs",
+            "away_team_id": "126",
+            "home_team_id": "82",
+            "venue_id": "1397",
+            "event_status": "over",
+            "score": {
+                "82": 3,
+                "126": 2
+            },
+            "reference_id": "22811",
+            "reference_name": "SHL",
+            "last_metrics_full_process_time": "2026-03-26T07:10:32.586Z"
+        },
+        {
+            "id": "202947",
+            "date": "2026-03-25",
+            "scheduled_time": "2026-03-25T18:00:00+00:00",
+            "scheduled_venue_time": "2026-03-25T19:00:00",
+            "stage": "playoffs",
+            "away_team_id": "179",
+            "home_team_id": "310",
+            "venue_id": "1047",
+            "event_status": "over",
+            "score": {
+                "179": 0,
+                "310": 7
+            },
+            "reference_id": "22812",
+            "reference_name": "SHL",
+            "last_metrics_full_process_time": "2026-03-26T12:37:24.169Z"
+        },
+        {
+            "id": "202390",
+            "date": "2026-03-24",
+            "scheduled_time": "2026-03-24T18:00:00+00:00",
+            "scheduled_venue_time": "2026-03-24T17:00:00",
+            "stage": "playoffs",
+            "away_team_id": "308",
+            "home_team_id": "200",
+            "venue_id": "3175",
+            "event_status": "over",
+            "score": {
+                "200": 6,
+                "308": 2
+            },
+            "reference_id": "22809",
+            "reference_name": "SHL",
+            "last_metrics_full_process_time": "2026-04-01T04:55:52.634Z"
+        },
+        {
+            "id": "202389",
+            "date": "2026-03-24",
+            "scheduled_time": "2026-03-24T18:00:00+00:00",
+            "scheduled_venue_time": "2026-03-24T19:00:00",
+            "stage": "playoffs",
+            "away_team_id": "130",
+            "home_team_id": "128",
+            "venue_id": "1050",
+            "event_status": "over",
+            "score": {
+                "128": 1,
+                "130": 2
+            },
+            "reference_id": "22810",
+            "reference_name": "SHL",
+            "last_metrics_full_process_time": "2026-03-24T21:05:45.503Z"
+        },
+        {
+            "id": "202388",
+            "date": "2026-03-24",
+            "scheduled_time": "2026-03-24T18:00:00+00:00",
+            "scheduled_venue_time": "2026-03-24T19:00:00",
+            "stage": "playoffs",
+            "away_team_id": "129",
+            "home_team_id": "324",
+            "venue_id": "1048",
+            "event_status": "over",
+            "score": {
+                "129": 2,
+                "324": 1
+            },
+            "reference_id": "22859",
+            "reference_name": "SHL",
+            "last_metrics_full_process_time": "2026-03-25T00:43:26.172Z"
+        },
+        {
+            "id": "202946",
+            "date": "2026-03-23",
+            "scheduled_time": "2026-03-23T18:00:00+00:00",
+            "scheduled_venue_time": "2026-03-23T19:00:00",
+            "stage": "playoffs",
+            "away_team_id": "126",
+            "home_team_id": "82",
+            "venue_id": "1397",
+            "event_status": "over",
+            "score": {
+                "82": 4,
+                "126": 1
+            },
+            "reference_id": "22807",
+            "reference_name": "SHL",
+            "last_metrics_full_process_time": "2026-03-24T02:26:26.937Z"
+        },
+        {
+            "id": "202945",
+            "date": "2026-03-23",
+            "scheduled_time": "2026-03-23T18:00:00+00:00",
+            "scheduled_venue_time": "2026-03-23T19:00:00",
+            "stage": "playoffs",
+            "away_team_id": "179",
+            "home_team_id": "310",
+            "venue_id": "1047",
+            "event_status": "over",
+            "score": {
+                "179": 3,
+                "310": 2
+            },
+            "reference_id": "22808",
+            "reference_name": "SHL",
+            "last_metrics_full_process_time": "2026-03-23T21:27:02.860Z"
+        },
+        {
+            "id": "202387",
+            "date": "2026-03-22",
+            "scheduled_time": "2026-03-22T17:30:00+00:00",
+            "scheduled_venue_time": "2026-03-22T18:30:00",
+            "stage": "playoffs",
+            "away_team_id": "129",
+            "home_team_id": "324",
+            "venue_id": "1048",
+            "event_status": "over",
+            "score": {
+                "129": 3,
+                "324": 1
+            },
+            "reference_id": "22858",
+            "reference_name": "SHL",
+            "last_metrics_full_process_time": "2026-03-23T00:23:00.995Z"
+        },
+        {
+            "id": "202386",
+            "date": "2026-03-21",
+            "scheduled_time": "2026-03-21T14:15:00+00:00",
+            "scheduled_venue_time": "2026-03-21T15:15:00",
+            "stage": "playoffs",
+            "away_team_id": "323",
+            "home_team_id": "126",
+            "venue_id": "1398",
+            "event_status": "over",
+            "score": {
+                "126": 3,
+                "323": 1
+            },
+            "reference_id": "22806",
+            "reference_name": "SHL",
+            "last_metrics_full_process_time": "2026-03-28T07:27:50.665Z"
+        },
+        {
+            "id": "202385",
+            "date": "2026-03-21",
+            "scheduled_time": "2026-03-21T14:15:00+00:00",
+            "scheduled_venue_time": "2026-03-21T15:15:00",
+            "stage": "playoffs",
+            "away_team_id": "201",
+            "home_team_id": "179",
+            "venue_id": "1049",
+            "event_status": "over",
+            "score": {
+                "179": 4,
+                "201": 2
+            },
+            "reference_id": "22805",
+            "reference_name": "SHL",
+            "last_metrics_full_process_time": "2026-03-22T00:04:19.032Z"
+        },
+        {
+            "id": "202384",
+            "date": "2026-03-20",
+            "scheduled_time": "2026-03-20T18:00:00+00:00",
+            "scheduled_venue_time": "2026-03-20T19:00:00",
+            "stage": "playoffs",
+            "away_team_id": "324",
+            "home_team_id": "129",
+            "venue_id": "1058",
+            "event_status": "over",
+            "score": {
+                "129": 3,
+                "324": 2
+            },
+            "reference_id": "22857",
+            "reference_name": "SHL",
+            "last_metrics_full_process_time": "2026-03-21T03:32:28.976Z"
+        },
+        {
+            "id": "202383",
+            "date": "2026-03-19",
+            "scheduled_time": "2026-03-19T18:00:00+00:00",
+            "scheduled_venue_time": "2026-03-19T19:00:00",
+            "stage": "playoffs",
+            "away_team_id": "323",
+            "home_team_id": "126",
+            "venue_id": "1398",
+            "event_status": "over",
+            "score": {
+                "126": 2,
+                "323": 1
+            },
+            "reference_id": "22804",
+            "reference_name": "SHL",
+            "last_metrics_full_process_time": "2026-03-28T07:27:19.223Z"
+        },
+        {
+            "id": "202382",
+            "date": "2026-03-19",
+            "scheduled_time": "2026-03-19T18:00:00+00:00",
+            "scheduled_venue_time": "2026-03-19T19:00:00",
+            "stage": "playoffs",
+            "away_team_id": "201",
+            "home_team_id": "179",
+            "venue_id": "1049",
+            "event_status": "over",
+            "score": {
+                "179": 1,
+                "201": 3
+            },
+            "reference_id": "22803",
+            "reference_name": "SHL",
+            "last_metrics_full_process_time": "2026-03-20T06:03:07.243Z"
+        },
+        {
+            "id": "202381",
+            "date": "2026-03-18",
+            "scheduled_time": "2026-03-18T18:00:00+00:00",
+            "scheduled_venue_time": "2026-03-18T19:00:00",
+            "stage": "playoffs",
+            "away_team_id": "324",
+            "home_team_id": "129",
+            "venue_id": "1058",
+            "event_status": "over",
+            "score": {
+                "129": 2,
+                "324": 1
+            },
+            "reference_id": "22856",
+            "reference_name": "SHL",
+            "last_metrics_full_process_time": "2026-03-19T02:11:48.641Z"
+        },
+        {
+            "id": "202380",
+            "date": "2026-03-17",
+            "scheduled_time": "2026-03-17T18:00:00+00:00",
+            "scheduled_venue_time": "2026-03-17T19:00:00",
+            "stage": "playoffs",
+            "away_team_id": "179",
+            "home_team_id": "201",
+            "venue_id": "1053",
+            "event_status": "over",
+            "score": {
+                "179": 6,
+                "201": 2
+            },
+            "reference_id": "22801",
+            "reference_name": "SHL",
+            "last_metrics_full_process_time": "2026-03-17T20:50:37.416Z"
+        },
+        {
+            "id": "202379",
+            "date": "2026-03-17",
+            "scheduled_time": "2026-03-17T18:00:00+00:00",
+            "scheduled_venue_time": "2026-03-17T19:00:00",
+            "stage": "playoffs",
+            "away_team_id": "126",
+            "home_team_id": "323",
+            "venue_id": "1792",
+            "event_status": "over",
+            "score": {
+                "126": 2,
+                "323": 3
+            },
+            "reference_id": "22802",
+            "reference_name": "SHL",
+            "last_metrics_full_process_time": "2026-03-28T07:27:07.310Z"
+        }
+    ]
+}

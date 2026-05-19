@@ -1,0 +1,75 @@
+{
+    "id": "170813",
+    "date": "2025-05-24",
+    "scheduled_time": "2025-05-24T12:20:00+00:00",
+    "scheduled_venue_time": "2025-05-24T14:20:00",
+    "stage": "regular",
+    "winning_team_id": "1334",
+    "away_final_score": 6,
+    "home_final_score": 2,
+    "away_score": [
+        2,
+        2,
+        2
+    ],
+    "home_score": [
+        0,
+        0,
+        2
+    ],
+    "away_shootout_score": null,
+    "home_shootout_score": null,
+    "period_count": 3,
+    "ot_period_count": 0,
+    "period_clock": null,
+    "event_status": "over",
+    "away_team": {
+        "id": "1334",
+        "name": "Team United States",
+        "location": "United States",
+        "shorthand": "USA",
+        "division": null,
+        "conference": null
+    },
+    "home_team": {
+        "id": "1339",
+        "name": "Team Sweden",
+        "location": "Sweden",
+        "shorthand": "SWE",
+        "division": null,
+        "conference": null
+    },
+    "attendance": null,
+    "game_length": null,
+    "venue_id": "1905",
+    "videos": [
+        {
+            "id": "170813-1",
+            "frame_rate": 30,
+            "width": 1280,
+            "height": 720,
+            "period": 1,
+            "period_type": "regular",
+            "url": "https://media11.sportlogiq.com/170813/170813-1.m3u8?auth=AAAAIOvNuOpS1RIs3XS42H779ChHJS2aLnYf2e6Jl8UW74HgeyJ1IjoiMTE2NDQiLCJzIjoiaCIsImciOiIxNzA4MTMiLCJ4IjoiMjAyNS0wOS0wOFQwNzoxMjowOSJ9"
+        },
+        {
+            "id": "170813-2",
+            "frame_rate": 30,
+            "width": 1280,
+            "height": 720,
+            "period": 2,
+            "period_type": "regular",
+            "url": "https://media11.sportlogiq.com/170813/170813-2.m3u8?auth=AAAAIOvNuOpS1RIs3XS42H779ChHJS2aLnYf2e6Jl8UW74HgeyJ1IjoiMTE2NDQiLCJzIjoiaCIsImciOiIxNzA4MTMiLCJ4IjoiMjAyNS0wOS0wOFQwNzoxMjowOSJ9"
+        },
+        {
+            "id": "170813-3",
+            "frame_rate": 30,
+            "width": 1280,
+            "height": 720,
+            "period": 3,
+            "period_type": "regular",
+            "url": "https://media11.sportlogiq.com/170813/170813-3.m3u8?auth=AAAAIOvNuOpS1RIs3XS42H779ChHJS2aLnYf2e6Jl8UW74HgeyJ1IjoiMTE2NDQiLCJzIjoiaCIsImciOiIxNzA4MTMiLCJ4IjoiMjAyNS0wOS0wOFQwNzoxMjowOSJ9"
+        }
+    ],
+    "season": "20242025"
+}

@@ -1,0 +1,66 @@
+{
+    "id": "52",
+    "name": "Karjala Tournament",
+    "seasons": [
+        {
+            "name": "20242025",
+            "stages": [
+                {
+                    "name": "regular",
+                    "start_date": "2024-11-07",
+                    "end_date": "2024-11-10"
+                }
+            ]
+        },
+        {
+            "name": "20232024",
+            "stages": [
+                {
+                    "name": "regular",
+                    "start_date": "2023-11-09",
+                    "end_date": "2023-11-12"
+                }
+            ]
+        },
+        {
+            "name": "20222023",
+            "stages": [
+                {
+                    "name": "regular",
+                    "start_date": "2022-11-10",
+                    "end_date": "2022-11-13"
+                }
+            ]
+        },
+        {
+            "name": "20212022",
+            "stages": [
+                {
+                    "name": "regular",
+                    "start_date": "2021-11-10",
+                    "end_date": "2021-11-14"
+                }
+            ]
+        },
+        {
+            "name": "20202021",
+            "stages": [
+                {
+                    "name": "regular",
+                    "start_date": "2020-11-05",
+                    "end_date": "2020-11-08"
+                }
+            ]
+        },
+        {
+            "name": "20182019",
+            "stages": [
+                {
+                    "name": "regular",
+                    "start_date": "2018-11-08",
+                    "end_date": "2018-11-11"
+                }
+            ]
+        }
+    ]
+}

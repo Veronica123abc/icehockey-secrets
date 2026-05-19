@@ -1,0 +1,36 @@
+{
+    "id": "303",
+    "name": "5 Nations Tournament U17",
+    "seasons": [
+        {
+            "name": "20242025",
+            "stages": [
+                {
+                    "name": "regular",
+                    "start_date": "2025-02-05",
+                    "end_date": "2025-04-19"
+                }
+            ]
+        },
+        {
+            "name": "20232024",
+            "stages": [
+                {
+                    "name": "regular",
+                    "start_date": "2023-12-28",
+                    "end_date": "2024-04-21"
+                }
+            ]
+        },
+        {
+            "name": "20222023",
+            "stages": [
+                {
+                    "name": "regular",
+                    "start_date": "2023-02-07",
+                    "end_date": "2023-04-16"
+                }
+            ]
+        }
+    ]
+}

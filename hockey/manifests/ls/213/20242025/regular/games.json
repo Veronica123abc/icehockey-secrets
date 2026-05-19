@@ -1,0 +1,1159 @@
+{
+    "season": "20242025",
+    "stage": "regular",
+    "competition_id": "213",
+    "games": [
+        {
+            "id": "170855",
+            "date": "2025-05-25",
+            "scheduled_time": "2025-05-25T18:20:00+00:00",
+            "scheduled_venue_time": "2025-05-25T20:20:00",
+            "stage": "regular",
+            "away_team_id": "1334",
+            "home_team_id": "1335",
+            "venue_id": "1905",
+            "event_status": "over",
+            "score": {
+                "1334": 1,
+                "1335": 0
+            },
+            "reference_id": null,
+            "reference_name": null,
+            "last_metrics_full_process_time": "2025-08-21T07:38:25.861Z"
+        },
+        {
+            "id": "170854",
+            "date": "2025-05-25",
+            "scheduled_time": "2025-05-25T13:20:00+00:00",
+            "scheduled_venue_time": "2025-05-25T15:20:00",
+            "stage": "regular",
+            "away_team_id": "1337",
+            "home_team_id": "1339",
+            "venue_id": "1905",
+            "event_status": "over",
+            "score": {
+                "1337": 2,
+                "1339": 6
+            },
+            "reference_id": null,
+            "reference_name": null,
+            "last_metrics_full_process_time": "2025-09-18T10:08:36.927Z"
+        },
+        {
+            "id": "170814",
+            "date": "2025-05-24",
+            "scheduled_time": "2025-05-24T16:20:00+00:00",
+            "scheduled_venue_time": "2025-05-24T18:20:00",
+            "stage": "regular",
+            "away_team_id": "1337",
+            "home_team_id": "1335",
+            "venue_id": "1905",
+            "event_status": "over",
+            "score": {
+                "1335": 7,
+                "1337": 0
+            },
+            "reference_id": null,
+            "reference_name": null,
+            "last_metrics_full_process_time": "2025-09-18T10:08:19.632Z"
+        },
+        {
+            "id": "170813",
+            "date": "2025-05-24",
+            "scheduled_time": "2025-05-24T12:20:00+00:00",
+            "scheduled_venue_time": "2025-05-24T14:20:00",
+            "stage": "regular",
+            "away_team_id": "1334",
+            "home_team_id": "1339",
+            "venue_id": "1905",
+            "event_status": "over",
+            "score": {
+                "1334": 6,
+                "1339": 2
+            },
+            "reference_id": null,
+            "reference_name": null,
+            "last_metrics_full_process_time": "2025-08-21T07:37:33.656Z"
+        },
+        {
+            "id": "170661",
+            "date": "2025-05-22",
+            "scheduled_time": "2025-05-22T18:20:00+00:00",
+            "scheduled_venue_time": "2025-05-22T20:20:00",
+            "stage": "regular",
+            "away_team_id": "1337",
+            "home_team_id": "1330",
+            "venue_id": "3237",
+            "event_status": "over",
+            "score": {
+                "1330": 1,
+                "1337": 2
+            },
+            "reference_id": null,
+            "reference_name": null,
+            "last_metrics_full_process_time": "2025-10-10T07:39:52.333Z"
+        },
+        {
+            "id": "170660",
+            "date": "2025-05-22",
+            "scheduled_time": "2025-05-22T18:20:00+00:00",
+            "scheduled_venue_time": "2025-05-22T20:20:00",
+            "stage": "regular",
+            "away_team_id": "1327",
+            "home_team_id": "1339",
+            "venue_id": "1905",
+            "event_status": "over",
+            "score": {
+                "1327": 2,
+                "1339": 5
+            },
+            "reference_id": null,
+            "reference_name": null,
+            "last_metrics_full_process_time": "2025-09-13T09:20:48.680Z"
+        },
+        {
+            "id": "170659",
+            "date": "2025-05-22",
+            "scheduled_time": "2025-05-22T14:20:00+00:00",
+            "scheduled_venue_time": "2025-05-22T16:20:00",
+            "stage": "regular",
+            "away_team_id": "1576",
+            "home_team_id": "1335",
+            "venue_id": "3237",
+            "event_status": "over",
+            "score": {
+                "1335": 6,
+                "1576": 0
+            },
+            "reference_id": null,
+            "reference_name": null,
+            "last_metrics_full_process_time": "2025-09-26T08:47:34.255Z"
+        },
+        {
+            "id": "170658",
+            "date": "2025-05-22",
+            "scheduled_time": "2025-05-22T14:20:00+00:00",
+            "scheduled_venue_time": "2025-05-22T16:20:00",
+            "stage": "regular",
+            "away_team_id": "1333",
+            "home_team_id": "1334",
+            "venue_id": "1905",
+            "event_status": "over",
+            "score": {
+                "1333": 2,
+                "1334": 5
+            },
+            "reference_id": null,
+            "reference_name": null,
+            "last_metrics_full_process_time": "2025-10-12T12:01:08.663Z"
+        },
+        {
+            "id": "169235",
+            "date": "2025-05-20",
+            "scheduled_time": "2025-05-20T18:20:00+00:00",
+            "scheduled_venue_time": "2025-05-20T20:20:00",
+            "stage": "regular",
+            "away_team_id": "1337",
+            "home_team_id": "1328",
+            "venue_id": "3237",
+            "event_status": "over",
+            "score": {
+                "1328": 1,
+                "1337": 2
+            },
+            "reference_id": null,
+            "reference_name": null,
+            "last_metrics_full_process_time": "2025-10-12T12:00:27.888Z"
+        },
+        {
+            "id": "168718",
+            "date": "2025-05-20",
+            "scheduled_time": "2025-05-20T18:20:00+00:00",
+            "scheduled_venue_time": "2025-05-20T20:20:00",
+            "stage": "regular",
+            "away_team_id": "1330",
+            "home_team_id": "1339",
+            "venue_id": "1905",
+            "event_status": "over",
+            "score": {
+                "1330": 5,
+                "1339": 3
+            },
+            "reference_id": null,
+            "reference_name": null,
+            "last_metrics_full_process_time": "2025-10-10T07:39:35.558Z"
+        },
+        {
+            "id": "169234",
+            "date": "2025-05-20",
+            "scheduled_time": "2025-05-20T14:20:00+00:00",
+            "scheduled_venue_time": "2025-05-20T16:20:00",
+            "stage": "regular",
+            "away_team_id": "1334",
+            "home_team_id": "1327",
+            "venue_id": "3237",
+            "event_status": "over",
+            "score": {
+                "1327": 2,
+                "1334": 5
+            },
+            "reference_id": null,
+            "reference_name": null,
+            "last_metrics_full_process_time": "2025-09-13T09:20:15.884Z"
+        },
+        {
+            "id": "169233",
+            "date": "2025-05-20",
+            "scheduled_time": "2025-05-20T14:20:00+00:00",
+            "scheduled_venue_time": "2025-05-20T16:20:00",
+            "stage": "regular",
+            "away_team_id": "1333",
+            "home_team_id": "1338",
+            "venue_id": "1905",
+            "event_status": "over",
+            "score": {
+                "1333": 2,
+                "1338": 1
+            },
+            "reference_id": null,
+            "reference_name": null,
+            "last_metrics_full_process_time": "2025-10-12T12:00:09.708Z"
+        },
+        {
+            "id": "169232",
+            "date": "2025-05-20",
+            "scheduled_time": "2025-05-20T10:20:00+00:00",
+            "scheduled_venue_time": "2025-05-20T12:20:00",
+            "stage": "regular",
+            "away_team_id": "1336",
+            "home_team_id": "1335",
+            "venue_id": "3237",
+            "event_status": "over",
+            "score": {
+                "1335": 4,
+                "1336": 1
+            },
+            "reference_id": null,
+            "reference_name": null,
+            "last_metrics_full_process_time": "2025-09-16T08:13:58.049Z"
+        },
+        {
+            "id": "169231",
+            "date": "2025-05-20",
+            "scheduled_time": "2025-05-20T10:20:00+00:00",
+            "scheduled_venue_time": "2025-05-20T12:20:00",
+            "stage": "regular",
+            "away_team_id": "1576",
+            "home_team_id": "1331",
+            "venue_id": "1905",
+            "event_status": "over",
+            "score": {
+                "1331": 1,
+                "1576": 6
+            },
+            "reference_id": null,
+            "reference_name": null,
+            "last_metrics_full_process_time": "2025-10-18T08:50:01.752Z"
+        },
+        {
+            "id": "169230",
+            "date": "2025-05-19",
+            "scheduled_time": "2025-05-19T18:20:00+00:00",
+            "scheduled_venue_time": "2025-05-19T20:20:00",
+            "stage": "regular",
+            "away_team_id": "1332",
+            "home_team_id": "2041",
+            "venue_id": "3237",
+            "event_status": "over",
+            "score": {
+                "1332": 1,
+                "2041": 0
+            },
+            "reference_id": null,
+            "reference_name": null,
+            "last_metrics_full_process_time": "2025-09-30T08:19:23.695Z"
+        },
+        {
+            "id": "168730",
+            "date": "2025-05-19",
+            "scheduled_time": "2025-05-19T18:20:00+00:00",
+            "scheduled_venue_time": "2025-05-19T20:20:00",
+            "stage": "regular",
+            "away_team_id": "1333",
+            "home_team_id": "1330",
+            "venue_id": "1905",
+            "event_status": "over",
+            "score": {
+                "1330": 1,
+                "1333": 2
+            },
+            "reference_id": null,
+            "reference_name": null,
+            "last_metrics_full_process_time": "2025-10-12T11:59:54.457Z"
+        },
+        {
+            "id": "169229",
+            "date": "2025-05-19",
+            "scheduled_time": "2025-05-19T14:20:00+00:00",
+            "scheduled_venue_time": "2025-05-19T16:20:00",
+            "stage": "regular",
+            "away_team_id": "1327",
+            "home_team_id": "1328",
+            "venue_id": "3237",
+            "event_status": "over",
+            "score": {
+                "1327": 5,
+                "1328": 0
+            },
+            "reference_id": null,
+            "reference_name": null,
+            "last_metrics_full_process_time": "2025-10-12T11:59:36.421Z"
+        },
+        {
+            "id": "169228",
+            "date": "2025-05-19",
+            "scheduled_time": "2025-05-19T14:20:00+00:00",
+            "scheduled_venue_time": "2025-05-19T16:20:00",
+            "stage": "regular",
+            "away_team_id": "2009",
+            "home_team_id": "1575",
+            "venue_id": "1905",
+            "event_status": "over",
+            "score": {
+                "1575": 1,
+                "2009": 3
+            },
+            "reference_id": null,
+            "reference_name": null,
+            "last_metrics_full_process_time": "2025-09-16T08:13:45.100Z"
+        },
+        {
+            "id": "169227",
+            "date": "2025-05-18",
+            "scheduled_time": "2025-05-18T18:20:00+00:00",
+            "scheduled_venue_time": "2025-05-18T20:20:00",
+            "stage": "regular",
+            "away_team_id": "1335",
+            "home_team_id": "2041",
+            "venue_id": "3237",
+            "event_status": "over",
+            "score": {
+                "1335": 10,
+                "2041": 0
+            },
+            "reference_id": null,
+            "reference_name": null,
+            "last_metrics_full_process_time": "2025-08-21T07:33:10.037Z"
+        },
+        {
+            "id": "169226",
+            "date": "2025-05-18",
+            "scheduled_time": "2025-05-18T18:20:00+00:00",
+            "scheduled_venue_time": "2025-05-18T20:20:00",
+            "stage": "regular",
+            "away_team_id": "1331",
+            "home_team_id": "1338",
+            "venue_id": "1905",
+            "event_status": "over",
+            "score": {
+                "1331": 5,
+                "1338": 1
+            },
+            "reference_id": null,
+            "reference_name": null,
+            "last_metrics_full_process_time": "2025-10-18T08:49:45.599Z"
+        },
+        {
+            "id": "169225",
+            "date": "2025-05-18",
+            "scheduled_time": "2025-05-18T14:20:00+00:00",
+            "scheduled_venue_time": "2025-05-18T16:20:00",
+            "stage": "regular",
+            "away_team_id": "1334",
+            "home_team_id": "1336",
+            "venue_id": "3237",
+            "event_status": "over",
+            "score": {
+                "1334": 6,
+                "1336": 1
+            },
+            "reference_id": null,
+            "reference_name": null,
+            "last_metrics_full_process_time": "2025-09-16T08:13:31.599Z"
+        },
+        {
+            "id": "169224",
+            "date": "2025-05-18",
+            "scheduled_time": "2025-05-18T14:20:00+00:00",
+            "scheduled_venue_time": "2025-05-18T16:20:00",
+            "stage": "regular",
+            "away_team_id": "1576",
+            "home_team_id": "2009",
+            "venue_id": "1905",
+            "event_status": "over",
+            "score": {
+                "1576": 3,
+                "2009": 2
+            },
+            "reference_id": null,
+            "reference_name": null,
+            "last_metrics_full_process_time": "2025-09-26T08:46:51.206Z"
+        },
+        {
+            "id": "169223",
+            "date": "2025-05-17",
+            "scheduled_time": "2025-05-17T18:20:00+00:00",
+            "scheduled_venue_time": "2025-05-17T20:20:00",
+            "stage": "regular",
+            "away_team_id": "1332",
+            "home_team_id": "1337",
+            "venue_id": "3237",
+            "event_status": "over",
+            "score": {
+                "1332": 3,
+                "1337": 6
+            },
+            "reference_id": null,
+            "reference_name": null,
+            "last_metrics_full_process_time": "2025-09-30T08:19:09.228Z"
+        },
+        {
+            "id": "168726",
+            "date": "2025-05-17",
+            "scheduled_time": "2025-05-17T18:20:00+00:00",
+            "scheduled_venue_time": "2025-05-17T20:20:00",
+            "stage": "regular",
+            "away_team_id": "1338",
+            "home_team_id": "1330",
+            "venue_id": "1905",
+            "event_status": "over",
+            "score": {
+                "1330": 7,
+                "1338": 0
+            },
+            "reference_id": null,
+            "reference_name": null,
+            "last_metrics_full_process_time": "2025-09-25T10:14:20.380Z"
+        },
+        {
+            "id": "169222",
+            "date": "2025-05-17",
+            "scheduled_time": "2025-05-17T14:20:00+00:00",
+            "scheduled_venue_time": "2025-05-17T16:20:00",
+            "stage": "regular",
+            "away_team_id": "1336",
+            "home_team_id": "1327",
+            "venue_id": "3237",
+            "event_status": "over",
+            "score": {
+                "1327": 8,
+                "1336": 1
+            },
+            "reference_id": null,
+            "reference_name": null,
+            "last_metrics_full_process_time": "2025-09-16T08:13:17.042Z"
+        },
+        {
+            "id": "168717",
+            "date": "2025-05-17",
+            "scheduled_time": "2025-05-17T14:20:00+00:00",
+            "scheduled_venue_time": "2025-05-17T16:20:00",
+            "stage": "regular",
+            "away_team_id": "1339",
+            "home_team_id": "1575",
+            "venue_id": "1905",
+            "event_status": "over",
+            "score": {
+                "1339": 4,
+                "1575": 0
+            },
+            "reference_id": null,
+            "reference_name": null,
+            "last_metrics_full_process_time": "2025-09-16T08:13:03.901Z"
+        },
+        {
+            "id": "169221",
+            "date": "2025-05-17",
+            "scheduled_time": "2025-05-17T10:20:00+00:00",
+            "scheduled_venue_time": "2025-05-17T12:20:00",
+            "stage": "regular",
+            "away_team_id": "1328",
+            "home_team_id": "1334",
+            "venue_id": "3237",
+            "event_status": "over",
+            "score": {
+                "1328": 3,
+                "1334": 6
+            },
+            "reference_id": null,
+            "reference_name": null,
+            "last_metrics_full_process_time": "2025-10-12T11:58:38.409Z"
+        },
+        {
+            "id": "169220",
+            "date": "2025-05-17",
+            "scheduled_time": "2025-05-17T10:20:00+00:00",
+            "scheduled_venue_time": "2025-05-17T12:20:00",
+            "stage": "regular",
+            "away_team_id": "1331",
+            "home_team_id": "1333",
+            "venue_id": "1905",
+            "event_status": "over",
+            "score": {
+                "1331": 1,
+                "1333": 2
+            },
+            "reference_id": null,
+            "reference_name": null,
+            "last_metrics_full_process_time": "2025-10-18T08:49:30.950Z"
+        },
+        {
+            "id": "169219",
+            "date": "2025-05-16",
+            "scheduled_time": "2025-05-16T18:20:00+00:00",
+            "scheduled_venue_time": "2025-05-16T20:20:00",
+            "stage": "regular",
+            "away_team_id": "1332",
+            "home_team_id": "1335",
+            "venue_id": "3237",
+            "event_status": "over",
+            "score": {
+                "1332": 0,
+                "1335": 3
+            },
+            "reference_id": null,
+            "reference_name": null,
+            "last_metrics_full_process_time": "2025-09-30T08:18:28.285Z"
+        },
+        {
+            "id": "168732",
+            "date": "2025-05-16",
+            "scheduled_time": "2025-05-16T18:20:00+00:00",
+            "scheduled_venue_time": "2025-05-16T20:20:00",
+            "stage": "regular",
+            "away_team_id": "2009",
+            "home_team_id": "1339",
+            "venue_id": "1905",
+            "event_status": "over",
+            "score": {
+                "1339": 4,
+                "2009": 0
+            },
+            "reference_id": null,
+            "reference_name": null,
+            "last_metrics_full_process_time": "2025-09-13T09:19:34.768Z"
+        },
+        {
+            "id": "169218",
+            "date": "2025-05-16",
+            "scheduled_time": "2025-05-16T14:20:00+00:00",
+            "scheduled_venue_time": "2025-05-16T16:20:00",
+            "stage": "regular",
+            "away_team_id": "1337",
+            "home_team_id": "2041",
+            "venue_id": "3237",
+            "event_status": "over",
+            "score": {
+                "1337": 8,
+                "2041": 2
+            },
+            "reference_id": null,
+            "reference_name": null,
+            "last_metrics_full_process_time": "2025-09-18T10:06:09.309Z"
+        },
+        {
+            "id": "169217",
+            "date": "2025-05-16",
+            "scheduled_time": "2025-05-16T14:20:00+00:00",
+            "scheduled_venue_time": "2025-05-16T16:20:00",
+            "stage": "regular",
+            "away_team_id": "1575",
+            "home_team_id": "1576",
+            "venue_id": "1905",
+            "event_status": "over",
+            "score": {
+                "1575": 2,
+                "1576": 5
+            },
+            "reference_id": null,
+            "reference_name": null,
+            "last_metrics_full_process_time": "2025-09-26T08:46:20.406Z"
+        },
+        {
+            "id": "169216",
+            "date": "2025-05-15",
+            "scheduled_time": "2025-05-15T18:20:00+00:00",
+            "scheduled_venue_time": "2025-05-15T20:20:00",
+            "stage": "regular",
+            "away_team_id": "2041",
+            "home_team_id": "1327",
+            "venue_id": "3237",
+            "event_status": "over",
+            "score": {
+                "1327": 6,
+                "2041": 1
+            },
+            "reference_id": null,
+            "reference_name": null,
+            "last_metrics_full_process_time": "2025-09-13T09:19:05.590Z"
+        },
+        {
+            "id": "168722",
+            "date": "2025-05-15",
+            "scheduled_time": "2025-05-15T18:20:00+00:00",
+            "scheduled_venue_time": "2025-05-15T20:20:00",
+            "stage": "regular",
+            "away_team_id": "1576",
+            "home_team_id": "1330",
+            "venue_id": "1905",
+            "event_status": "over",
+            "score": {
+                "1330": 5,
+                "1576": 1
+            },
+            "reference_id": null,
+            "reference_name": null,
+            "last_metrics_full_process_time": "2025-09-26T08:46:05.630Z"
+        },
+        {
+            "id": "169215",
+            "date": "2025-05-15",
+            "scheduled_time": "2025-05-15T14:20:00+00:00",
+            "scheduled_venue_time": "2025-05-15T16:20:00",
+            "stage": "regular",
+            "away_team_id": "1328",
+            "home_team_id": "1335",
+            "venue_id": "3237",
+            "event_status": "over",
+            "score": {
+                "1328": 1,
+                "1335": 5
+            },
+            "reference_id": null,
+            "reference_name": null,
+            "last_metrics_full_process_time": "2025-10-12T11:57:01.291Z"
+        },
+        {
+            "id": "169214",
+            "date": "2025-05-15",
+            "scheduled_time": "2025-05-15T14:20:00+00:00",
+            "scheduled_venue_time": "2025-05-15T16:20:00",
+            "stage": "regular",
+            "away_team_id": "2009",
+            "home_team_id": "1333",
+            "venue_id": "1905",
+            "event_status": "over",
+            "score": {
+                "1333": 9,
+                "2009": 1
+            },
+            "reference_id": null,
+            "reference_name": null,
+            "last_metrics_full_process_time": "2025-10-12T11:56:04.811Z"
+        },
+        {
+            "id": "169212",
+            "date": "2025-05-14",
+            "scheduled_time": "2025-05-14T18:20:00+00:00",
+            "scheduled_venue_time": "2025-05-14T20:20:00",
+            "stage": "regular",
+            "away_team_id": "1337",
+            "home_team_id": "1336",
+            "venue_id": "3237",
+            "event_status": "over",
+            "score": {
+                "1336": 1,
+                "1337": 5
+            },
+            "reference_id": null,
+            "reference_name": null,
+            "last_metrics_full_process_time": "2025-09-18T10:05:37.561Z"
+        },
+        {
+            "id": "168734",
+            "date": "2025-05-14",
+            "scheduled_time": "2025-05-14T18:20:00+00:00",
+            "scheduled_venue_time": "2025-05-14T20:20:00",
+            "stage": "regular",
+            "away_team_id": "1339",
+            "home_team_id": "1331",
+            "venue_id": "1905",
+            "event_status": "over",
+            "score": {
+                "1331": 0,
+                "1339": 6
+            },
+            "reference_id": null,
+            "reference_name": null,
+            "last_metrics_full_process_time": "2025-10-18T08:49:04.767Z"
+        },
+        {
+            "id": "169213",
+            "date": "2025-05-14",
+            "scheduled_time": "2025-05-14T14:20:00+00:00",
+            "scheduled_venue_time": "2025-05-14T16:20:00",
+            "stage": "regular",
+            "away_team_id": "1332",
+            "home_team_id": "1334",
+            "venue_id": "3237",
+            "event_status": "over",
+            "score": {
+                "1332": 5,
+                "1334": 6
+            },
+            "reference_id": null,
+            "reference_name": null,
+            "last_metrics_full_process_time": "2025-09-30T08:18:11.005Z"
+        },
+        {
+            "id": "169211",
+            "date": "2025-05-14",
+            "scheduled_time": "2025-05-14T14:20:00+00:00",
+            "scheduled_venue_time": "2025-05-14T16:20:00",
+            "stage": "regular",
+            "away_team_id": "1575",
+            "home_team_id": "1338",
+            "venue_id": "1905",
+            "event_status": "over",
+            "score": {
+                "1338": 2,
+                "1575": 1
+            },
+            "reference_id": null,
+            "reference_name": null,
+            "last_metrics_full_process_time": "2025-09-25T10:11:41.372Z"
+        },
+        {
+            "id": "169210",
+            "date": "2025-05-13",
+            "scheduled_time": "2025-05-13T18:20:00+00:00",
+            "scheduled_venue_time": "2025-05-13T20:20:00",
+            "stage": "regular",
+            "away_team_id": "2041",
+            "home_team_id": "1336",
+            "venue_id": "3237",
+            "event_status": "over",
+            "score": {
+                "1336": 2,
+                "2041": 4
+            },
+            "reference_id": null,
+            "reference_name": null,
+            "last_metrics_full_process_time": "2025-09-16T08:11:57.189Z"
+        },
+        {
+            "id": "168721",
+            "date": "2025-05-13",
+            "scheduled_time": "2025-05-13T18:20:00+00:00",
+            "scheduled_venue_time": "2025-05-13T20:20:00",
+            "stage": "regular",
+            "away_team_id": "1575",
+            "home_team_id": "1330",
+            "venue_id": "1905",
+            "event_status": "over",
+            "score": {
+                "1330": 5,
+                "1575": 0
+            },
+            "reference_id": null,
+            "reference_name": null,
+            "last_metrics_full_process_time": "2025-09-16T08:12:10.772Z"
+        },
+        {
+            "id": "169209",
+            "date": "2025-05-13",
+            "scheduled_time": "2025-05-13T14:20:00+00:00",
+            "scheduled_venue_time": "2025-05-13T16:20:00",
+            "stage": "regular",
+            "away_team_id": "1328",
+            "home_team_id": "1332",
+            "venue_id": "3237",
+            "event_status": "over",
+            "score": {
+                "1328": 5,
+                "1332": 2
+            },
+            "reference_id": null,
+            "reference_name": null,
+            "last_metrics_full_process_time": "2025-10-12T11:54:42.384Z"
+        },
+        {
+            "id": "169208",
+            "date": "2025-05-13",
+            "scheduled_time": "2025-05-13T14:20:00+00:00",
+            "scheduled_venue_time": "2025-05-13T16:20:00",
+            "stage": "regular",
+            "away_team_id": "1331",
+            "home_team_id": "2009",
+            "venue_id": "1905",
+            "event_status": "over",
+            "score": {
+                "1331": 5,
+                "2009": 2
+            },
+            "reference_id": null,
+            "reference_name": null,
+            "last_metrics_full_process_time": "2025-10-18T08:48:37.036Z"
+        },
+        {
+            "id": "169207",
+            "date": "2025-05-12",
+            "scheduled_time": "2025-05-12T18:20:00+00:00",
+            "scheduled_venue_time": "2025-05-12T20:20:00",
+            "stage": "regular",
+            "away_team_id": "1337",
+            "home_team_id": "1327",
+            "venue_id": "3237",
+            "event_status": "over",
+            "score": {
+                "1327": 7,
+                "1337": 2
+            },
+            "reference_id": null,
+            "reference_name": null,
+            "last_metrics_full_process_time": "2025-09-18T10:04:30.135Z"
+        },
+        {
+            "id": "168736",
+            "date": "2025-05-12",
+            "scheduled_time": "2025-05-12T18:20:00+00:00",
+            "scheduled_venue_time": "2025-05-12T20:20:00",
+            "stage": "regular",
+            "away_team_id": "1339",
+            "home_team_id": "1333",
+            "venue_id": "1905",
+            "event_status": "over",
+            "score": {
+                "1333": 1,
+                "1339": 2
+            },
+            "reference_id": null,
+            "reference_name": null,
+            "last_metrics_full_process_time": "2025-10-12T11:54:06.208Z"
+        },
+        {
+            "id": "169206",
+            "date": "2025-05-12",
+            "scheduled_time": "2025-05-12T14:20:00+00:00",
+            "scheduled_venue_time": "2025-05-12T16:20:00",
+            "stage": "regular",
+            "away_team_id": "1335",
+            "home_team_id": "1334",
+            "venue_id": "3237",
+            "event_status": "over",
+            "score": {
+                "1334": 0,
+                "1335": 3
+            },
+            "reference_id": null,
+            "reference_name": null,
+            "last_metrics_full_process_time": "2025-09-27T11:29:00.539Z"
+        },
+        {
+            "id": "169205",
+            "date": "2025-05-12",
+            "scheduled_time": "2025-05-12T14:20:00+00:00",
+            "scheduled_venue_time": "2025-05-12T16:20:00",
+            "stage": "regular",
+            "away_team_id": "1338",
+            "home_team_id": "1576",
+            "venue_id": "1905",
+            "event_status": "over",
+            "score": {
+                "1338": 2,
+                "1576": 3
+            },
+            "reference_id": null,
+            "reference_name": null,
+            "last_metrics_full_process_time": "2025-09-26T08:45:36.342Z"
+        },
+        {
+            "id": "169196",
+            "date": "2025-05-11",
+            "scheduled_time": "2025-05-11T18:20:00+00:00",
+            "scheduled_venue_time": "2025-05-11T20:20:00",
+            "stage": "regular",
+            "away_team_id": "1327",
+            "home_team_id": "1332",
+            "venue_id": "3237",
+            "event_status": "over",
+            "score": {
+                "1327": 2,
+                "1332": 1
+            },
+            "reference_id": null,
+            "reference_name": null,
+            "last_metrics_full_process_time": "2025-09-25T10:09:00.763Z"
+        },
+        {
+            "id": "169195",
+            "date": "2025-05-11",
+            "scheduled_time": "2025-05-11T18:20:00+00:00",
+            "scheduled_venue_time": "2025-05-11T20:20:00",
+            "stage": "regular",
+            "away_team_id": "1575",
+            "home_team_id": "1333",
+            "venue_id": "1905",
+            "event_status": "over",
+            "score": {
+                "1333": 4,
+                "1575": 3
+            },
+            "reference_id": null,
+            "reference_name": null,
+            "last_metrics_full_process_time": "2025-10-12T11:53:09.499Z"
+        },
+        {
+            "id": "169194",
+            "date": "2025-05-11",
+            "scheduled_time": "2025-05-11T14:20:00+00:00",
+            "scheduled_venue_time": "2025-05-11T16:20:00",
+            "stage": "regular",
+            "away_team_id": "1336",
+            "home_team_id": "1328",
+            "venue_id": "3237",
+            "event_status": "over",
+            "score": {
+                "1328": 4,
+                "1336": 1
+            },
+            "reference_id": null,
+            "reference_name": null,
+            "last_metrics_full_process_time": "2025-10-12T11:52:53.644Z"
+        },
+        {
+            "id": "168720",
+            "date": "2025-05-11",
+            "scheduled_time": "2025-05-11T14:20:00+00:00",
+            "scheduled_venue_time": "2025-05-11T16:20:00",
+            "stage": "regular",
+            "away_team_id": "1330",
+            "home_team_id": "1331",
+            "venue_id": "1905",
+            "event_status": "over",
+            "score": {
+                "1330": 7,
+                "1331": 1
+            },
+            "reference_id": null,
+            "reference_name": null,
+            "last_metrics_full_process_time": "2025-10-18T08:48:01.727Z"
+        },
+        {
+            "id": "169193",
+            "date": "2025-05-11",
+            "scheduled_time": "2025-05-11T10:20:00+00:00",
+            "scheduled_venue_time": "2025-05-11T12:20:00",
+            "stage": "regular",
+            "away_team_id": "2041",
+            "home_team_id": "1334",
+            "venue_id": "3237",
+            "event_status": "over",
+            "score": {
+                "1334": 6,
+                "2041": 0
+            },
+            "reference_id": null,
+            "reference_name": null,
+            "last_metrics_full_process_time": "2025-08-21T07:32:29.272Z"
+        },
+        {
+            "id": "169192",
+            "date": "2025-05-11",
+            "scheduled_time": "2025-05-11T10:20:00+00:00",
+            "scheduled_venue_time": "2025-05-11T12:20:00",
+            "stage": "regular",
+            "away_team_id": "2009",
+            "home_team_id": "1338",
+            "venue_id": "1905",
+            "event_status": "over",
+            "score": {
+                "1338": 3,
+                "2009": 1
+            },
+            "reference_id": null,
+            "reference_name": null,
+            "last_metrics_full_process_time": "2025-09-25T10:09:41.552Z"
+        },
+        {
+            "id": "169191",
+            "date": "2025-05-10",
+            "scheduled_time": "2025-05-10T18:20:00+00:00",
+            "scheduled_venue_time": "2025-05-10T20:20:00",
+            "stage": "regular",
+            "away_team_id": "1335",
+            "home_team_id": "1337",
+            "venue_id": "3237",
+            "event_status": "over",
+            "score": {
+                "1335": 5,
+                "1337": 2
+            },
+            "reference_id": null,
+            "reference_name": null,
+            "last_metrics_full_process_time": "2025-09-18T10:03:41.228Z"
+        },
+        {
+            "id": "169190",
+            "date": "2025-05-10",
+            "scheduled_time": "2025-05-10T18:20:00+00:00",
+            "scheduled_venue_time": "2025-05-10T20:20:00",
+            "stage": "regular",
+            "away_team_id": "1331",
+            "home_team_id": "1575",
+            "venue_id": "1905",
+            "event_status": "over",
+            "score": {
+                "1331": 4,
+                "1575": 1
+            },
+            "reference_id": null,
+            "reference_name": null,
+            "last_metrics_full_process_time": "2025-10-18T08:47:36.155Z"
+        },
+        {
+            "id": "169189",
+            "date": "2025-05-10",
+            "scheduled_time": "2025-05-10T14:20:00+00:00",
+            "scheduled_venue_time": "2025-05-10T16:20:00",
+            "stage": "regular",
+            "away_team_id": "2041",
+            "home_team_id": "1328",
+            "venue_id": "3237",
+            "event_status": "over",
+            "score": {
+                "1328": 6,
+                "2041": 1
+            },
+            "reference_id": null,
+            "reference_name": null,
+            "last_metrics_full_process_time": "2025-10-12T11:51:54.527Z"
+        },
+        {
+            "id": "168740",
+            "date": "2025-05-10",
+            "scheduled_time": "2025-05-10T14:20:00+00:00",
+            "scheduled_venue_time": "2025-05-10T16:20:00",
+            "stage": "regular",
+            "away_team_id": "1576",
+            "home_team_id": "1339",
+            "venue_id": "1905",
+            "event_status": "over",
+            "score": {
+                "1339": 4,
+                "1576": 2
+            },
+            "reference_id": null,
+            "reference_name": null,
+            "last_metrics_full_process_time": "2025-09-26T08:45:24.018Z"
+        },
+        {
+            "id": "169188",
+            "date": "2025-05-10",
+            "scheduled_time": "2025-05-10T10:20:00+00:00",
+            "scheduled_venue_time": "2025-05-10T12:20:00",
+            "stage": "regular",
+            "away_team_id": "1336",
+            "home_team_id": "1332",
+            "venue_id": "3237",
+            "event_status": "over",
+            "score": {
+                "1332": 1,
+                "1336": 2
+            },
+            "reference_id": null,
+            "reference_name": null,
+            "last_metrics_full_process_time": "2025-09-25T10:23:55.671Z"
+        },
+        {
+            "id": "168719",
+            "date": "2025-05-10",
+            "scheduled_time": "2025-05-10T10:20:00+00:00",
+            "scheduled_venue_time": "2025-05-10T12:20:00",
+            "stage": "regular",
+            "away_team_id": "1330",
+            "home_team_id": "2009",
+            "venue_id": "1905",
+            "event_status": "over",
+            "score": {
+                "1330": 4,
+                "2009": 0
+            },
+            "reference_id": null,
+            "reference_name": null,
+            "last_metrics_full_process_time": "2025-09-13T09:18:24.976Z"
+        },
+        {
+            "id": "169187",
+            "date": "2025-05-09",
+            "scheduled_time": "2025-05-09T18:20:00+00:00",
+            "scheduled_venue_time": "2025-05-09T20:20:00",
+            "stage": "regular",
+            "away_team_id": "1334",
+            "home_team_id": "1337",
+            "venue_id": "3237",
+            "event_status": "over",
+            "score": {
+                "1334": 5,
+                "1337": 0
+            },
+            "reference_id": null,
+            "reference_name": null,
+            "last_metrics_full_process_time": "2025-09-27T11:27:26.799Z"
+        },
+        {
+            "id": "168742",
+            "date": "2025-05-09",
+            "scheduled_time": "2025-05-09T18:20:00+00:00",
+            "scheduled_venue_time": "2025-05-09T20:20:00",
+            "stage": "regular",
+            "away_team_id": "1338",
+            "home_team_id": "1339",
+            "venue_id": "1905",
+            "event_status": "over",
+            "score": {
+                "1338": 0,
+                "1339": 5
+            },
+            "reference_id": null,
+            "reference_name": null,
+            "last_metrics_full_process_time": "2025-09-25T10:22:42.418Z"
+        },
+        {
+            "id": "169186",
+            "date": "2025-05-09",
+            "scheduled_time": "2025-05-09T14:20:00+00:00",
+            "scheduled_venue_time": "2025-05-09T16:20:00",
+            "stage": "regular",
+            "away_team_id": "1327",
+            "home_team_id": "1335",
+            "venue_id": "3237",
+            "event_status": "over",
+            "score": {
+                "1327": 5,
+                "1335": 4
+            },
+            "reference_id": null,
+            "reference_name": null,
+            "last_metrics_full_process_time": "2025-09-13T09:18:10.860Z"
+        },
+        {
+            "id": "169185",
+            "date": "2025-05-09",
+            "scheduled_time": "2025-05-09T14:20:00+00:00",
+            "scheduled_venue_time": "2025-05-09T16:20:00",
+            "stage": "regular",
+            "away_team_id": "1333",
+            "home_team_id": "1576",
+            "venue_id": "1905",
+            "event_status": "over",
+            "score": {
+                "1333": 2,
+                "1576": 1
+            },
+            "reference_id": null,
+            "reference_name": null,
+            "last_metrics_full_process_time": "2025-10-12T11:50:59.179Z"
+        }
+    ]
+}

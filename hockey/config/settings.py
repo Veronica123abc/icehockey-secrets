@@ -26,23 +26,36 @@ def _load_dotenv_if_present(dotenv_path: Path) -> None:
         os.environ.setdefault(key, value)
 
 
+def _find_dotenv(start: Path) -> Path | None:
+    """Walk up directory tree from start until a .env file is found."""
+    for directory in [start, *start.parents]:
+        candidate = directory / ".env"
+        if candidate.exists():
+            return candidate
+    return None
+
+
 @dataclass(frozen=True, slots=True)
 class Settings:
     data_root_dir: Path
     output_dir: Path
+    project_root: Path | None = None
+
 
 
     @classmethod
     def from_env(cls, *, project_root: Path | None = None) -> "Settings":
-        # If project_root is provided, we try loading project_root/.env
         if project_root is not None:
-            _load_dotenv_if_present(project_root / ".env")
+            dotenv = _find_dotenv(project_root)
+            if dotenv:
+                _load_dotenv_if_present(dotenv)
 
         data_root = os.getenv("DATA_ROOT_DIR") or os.getenv("DATA_ROOT")
         if not data_root:
             raise ValueError(
                 "DATA_ROOT_DIR is not set. Define it in your environment or in .env."
             )
+
 
         output_dir = os.getenv("OUTPUT_DIR", "./output")
         data_root_path = Path(data_root).expanduser()
@@ -53,6 +66,7 @@ class Settings:
                 data_root_path = (project_root / data_root_path).resolve()
             if not output_path.is_absolute():
                 output_path = (project_root / output_path).resolve()
+            project_root = Path(data_root_path)
 
         return cls(
             data_root_dir=data_root_path,

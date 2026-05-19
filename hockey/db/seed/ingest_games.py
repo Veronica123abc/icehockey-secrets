@@ -1,18 +1,11 @@
-import struct
-from azure.identity import InteractiveBrowserCredential
-import pyodbc
-import json
-from typing import List, Dict
-import database
+from hockey.db import database
 from hockey.config.settings import Settings
-import pathlib
 from pathlib import Path
 from tqdm import tqdm
 from hockey.helpers.pretty_print import *
 from datetime import datetime
+
 settings = Settings.from_env(project_root=Path(__file__).resolve().parent)
-import pandas as pd
-from sqlalchemy import create_engine
 __all__ = [
     'settings',
 ]
@@ -25,17 +18,34 @@ def get_table_columns(cursor, table_name):
 
 
 
+def ingest_participation(cursor, league_id: int, season: str, team_map: dict, games: list) -> None:
+    seen = set()
+    for record in games:
+        for sl_team_id in (int(record['home_team_id']), int(record['away_team_id'])):
+            if sl_team_id in seen:
+                continue
+            seen.add(sl_team_id)
+            team_id = team_map.get(sl_team_id)
+            if team_id is None:
+                err(f"No team mapping for sl_team_id {sl_team_id}, skipping participation entry")
+                continue
+            cursor.execute(
+                "INSERT IGNORE INTO participation (league_id, team_id, season, sl_team_id) "
+                "VALUES (%s, %s, %s, %s)",
+                (league_id, team_id, season, sl_team_id),
+            )
+
+
 def ingest_game(games):
-    db = database.open_database()
+    db = database.open_database_azure("sportlogiq")
     cursor = db.cursor()
-    #columns = ['id', 'home_team', 'away_team', 'score', 'date']  # your actual column names
-    #columns = get_table_columns(cursor, 'game')
     team_map = database.create_map('team', cursor)
     league_map = database.create_map('league', cursor)
     league_id = league_map[int(games['competition_id'])]
     season = games['season']
     error_ctr = 0
     for record in tqdm(games['games']):
+
         record_data = {
             'sl_id': record['id'],
             'home_team_id': team_map[int(record['home_team_id'])],
@@ -49,35 +59,37 @@ def ingest_game(games):
             'event_status': record['event_status'],
             'sl_reference_id': record['reference_id'],
             'sl_reference_name': record['reference_name'],
-            'last_metrics_full_process_time': datetime.fromisoformat(record['last_metrics_full_process_time'].replace('Z', '+00:00'))
+            'last_metrics_full_process_time': None if not record['last_metrics_full_process_time'] else datetime.fromisoformat(record['last_metrics_full_process_time'].replace('Z', '+00:00')),
+            'home_team_goals': record['score'][record['home_team_id']] if record['score'] else None,
+            'away_team_goals': record['score'][record['away_team_id']] if record['score'] else None,
         }
         try:
-            # Build the SQL dynamically
             cols = ', '.join(record_data.keys())
             placeholders = ', '.join(['%s'] * len(record_data))
-            sql = f"INSERT INTO game ({cols}) VALUES ({placeholders})"
+            updates = ', '.join(f"{col}=VALUES({col})" for col in record_data if col != 'id')
+            sql = f"INSERT INTO game ({cols}) VALUES ({placeholders}) ON DUPLICATE KEY UPDATE {updates}"
             cursor.execute(sql, tuple(record_data.values()))
         except Exception as e:
             err(f"Error inserting game record: {e}")
             error_ctr += 1
 
-    # Try to commit the staged changes to the database
+    ingest_participation(cursor, league_id, season, team_map, games['games'])
+
     try:
         db.commit()
-        ok(f"Successfully inserted {len(games['games']) - error_ctr} of "
-           f"{len(games['games'])}record")
+        ok(f"Successfully inserted {len(games['games']) - error_ctr} of {len(games['games'])} games")
     except Exception as e:
-        err(f"Error inserting game records: {e}")
-        raise Exception(f"Error inserting {len(games['games']) - error_ctr} "
-                          f"records into {len(games['games'])} records: {len(games['games'])} "
-        )
+        err(f"Error committing records: {e}")
+        raise
     finally:
         cursor.close()
 
 
 if __name__ == "__main__":
-    # TODO: Replace with your Azure tenant ID
+    from hockey.catalog import DataCatalog
 
-    #leagues = json.load(open("/home/veronica/hockeystats/ver3/leagues/leagues.json", "r"))
-    game = json.load(open(settings.data_root_dir / 'leagues' / '13' / '20252026' / 'games.json' ))
-    ingest_game(game)
+    LEAGUE_ID = 39
+    SEASON = "20252026"
+
+    catalog = DataCatalog(settings.data_root_dir)
+    ingest_game(catalog.season_schedule(LEAGUE_ID, SEASON))

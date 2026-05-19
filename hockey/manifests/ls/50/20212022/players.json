@@ -1,0 +1,2497 @@
+{
+    "season": "20212022",
+    "stage": "all",
+    "competition_id": "50",
+    "players": [
+        {
+            "id": "1080",
+            "first_name": "Alexander",
+            "last_name": "Dergachyov",
+            "current_team_id": "1427",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-10-18T17:41:49.159Z"
+        },
+        {
+            "id": "1508",
+            "first_name": "Rinat",
+            "last_name": "Valiev",
+            "current_team_id": "668",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-09-12T20:20:58.977Z"
+        },
+        {
+            "id": "2886",
+            "first_name": "Dmitry",
+            "last_name": "Sokolov",
+            "current_team_id": "1427",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-10-31T18:13:29.818Z"
+        },
+        {
+            "id": "4558",
+            "first_name": "Semyon",
+            "last_name": "Afonasyevsky",
+            "current_team_id": "661",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-03-13T10:40:48.023Z"
+        },
+        {
+            "id": "4586",
+            "first_name": "Stanislav",
+            "last_name": "Alshevsky",
+            "current_team_id": "659",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-07-28T13:25:15.888Z"
+        },
+        {
+            "id": "4587",
+            "first_name": "Yaroslav",
+            "last_name": "Alshevsky",
+            "current_team_id": "659",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-07-28T13:25:39.557Z"
+        },
+        {
+            "id": "4636",
+            "first_name": "Artyom",
+            "last_name": "Artyomov",
+            "current_team_id": "660",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-09-14T14:42:00.911Z"
+        },
+        {
+            "id": "4690",
+            "first_name": "Rafael",
+            "last_name": "Batyrshin",
+            "current_team_id": "670",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-09-14T14:47:09.077Z"
+        },
+        {
+            "id": "4758",
+            "first_name": "Vladimir",
+            "last_name": "Bobylyov",
+            "current_team_id": "659",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-09-14T14:50:19.846Z"
+        },
+        {
+            "id": "4932",
+            "first_name": "Alexander",
+            "last_name": "Denezhkin",
+            "current_team_id": "681",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-09-14T15:37:33.817Z"
+        },
+        {
+            "id": "4934",
+            "first_name": "Sergei",
+            "last_name": "Denisov",
+            "current_team_id": "670",
+            "position": "G",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-09-14T15:38:02.502Z"
+        },
+        {
+            "id": "4939",
+            "first_name": "Ilya",
+            "last_name": "Dervuk",
+            "current_team_id": "1427",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2025-01-28T14:29:07.567Z"
+        },
+        {
+            "id": "4954",
+            "first_name": "Maxim",
+            "last_name": "Dorozhko",
+            "current_team_id": "670",
+            "position": "G",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-11-02T19:12:01.380Z"
+        },
+        {
+            "id": "4978",
+            "first_name": "Denis",
+            "last_name": "Dyuryagin",
+            "current_team_id": "660",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-07-20T12:13:26.235Z"
+        },
+        {
+            "id": "5077",
+            "first_name": "Ivan",
+            "last_name": "Gavrilenko",
+            "current_team_id": "660",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-07-20T12:16:36.661Z"
+        },
+        {
+            "id": "5113",
+            "first_name": "Nikolai",
+            "last_name": "Glukhov",
+            "current_team_id": "660",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-09-14T23:46:32.906Z"
+        },
+        {
+            "id": "5274",
+            "first_name": "Ivan S.",
+            "last_name": "Ivanov",
+            "current_team_id": "670",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-02-08T15:53:19.307Z"
+        },
+        {
+            "id": "5275",
+            "first_name": "Maxim",
+            "last_name": "Ivanov",
+            "current_team_id": "676",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-02-08T15:53:19.307Z"
+        },
+        {
+            "id": "5357",
+            "first_name": "Vladimir",
+            "last_name": "Karpov",
+            "current_team_id": "670",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-02-08T15:53:19.307Z"
+        },
+        {
+            "id": "5429",
+            "first_name": "Maxim",
+            "last_name": "Kitsyn",
+            "current_team_id": "660",
+            "position": "F",
+            "role": "C",
+            "status": "Active",
+            "updated_on": "2021-09-15T02:02:54.501Z"
+        },
+        {
+            "id": "5436",
+            "first_name": "Konstantin",
+            "last_name": "Klimontov",
+            "current_team_id": "658",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-03-13T10:01:23.053Z"
+        },
+        {
+            "id": "5486",
+            "first_name": "Albert",
+            "last_name": "Konozov",
+            "current_team_id": "665",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-02-08T15:53:19.307Z"
+        },
+        {
+            "id": "5498",
+            "first_name": "Ilya",
+            "last_name": "Korenev",
+            "current_team_id": "661",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-02-08T15:53:19.307Z"
+        },
+        {
+            "id": "5522",
+            "first_name": "Kirill",
+            "last_name": "Koshurnikov",
+            "current_team_id": "658",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-09-15T02:35:31.262Z"
+        },
+        {
+            "id": "5702",
+            "first_name": "Igor",
+            "last_name": "Levitsky",
+            "current_team_id": "663",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-09-22T18:56:09.098Z"
+        },
+        {
+            "id": "5718",
+            "first_name": "Nikita",
+            "last_name": "Lisov",
+            "current_team_id": "665",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-09-17T00:17:06.074Z"
+        },
+        {
+            "id": "5744",
+            "first_name": "Pavel",
+            "last_name": "Lukin",
+            "current_team_id": "681",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-03-12T17:29:13.650Z"
+        },
+        {
+            "id": "5762",
+            "first_name": "Nikita",
+            "last_name": "Lysenkov",
+            "current_team_id": "660",
+            "position": "G",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-09-17T00:25:23.692Z"
+        },
+        {
+            "id": "5778",
+            "first_name": "Danil",
+            "last_name": "Makarov",
+            "current_team_id": "681",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-02-20T08:23:50.013Z"
+        },
+        {
+            "id": "5837",
+            "first_name": "Kirill",
+            "last_name": "Maslov",
+            "current_team_id": "660",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-09-17T00:59:02.365Z"
+        },
+        {
+            "id": "5917",
+            "first_name": "Mikhail",
+            "last_name": "Mokin",
+            "current_team_id": "659",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-07-28T13:26:27.605Z"
+        },
+        {
+            "id": "5966",
+            "first_name": "Vladislav",
+            "last_name": "Naumov",
+            "current_team_id": "659",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-07-28T13:21:19.716Z"
+        },
+        {
+            "id": "6018",
+            "first_name": "Vyacheslav",
+            "last_name": "Novitsky",
+            "current_team_id": "1427",
+            "position": "G",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-11-27T16:23:02.732Z"
+        },
+        {
+            "id": "6055",
+            "first_name": "Evgeny",
+            "last_name": "Orlov",
+            "current_team_id": "1427",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-12-30T09:36:09.017Z"
+        },
+        {
+            "id": "6129",
+            "first_name": "Maxim",
+            "last_name": "Pestushko",
+            "current_team_id": "668",
+            "position": "F",
+            "role": "C",
+            "status": "Active",
+            "updated_on": "2021-10-21T01:24:19.573Z"
+        },
+        {
+            "id": "6176",
+            "first_name": "Zigurds",
+            "last_name": "Podzinsh",
+            "current_team_id": "659",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-10-21T01:23:53.622Z"
+        },
+        {
+            "id": "6200",
+            "first_name": "Dmitry",
+            "last_name": "Popov",
+            "current_team_id": "681",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-03-12T18:02:51.872Z"
+        },
+        {
+            "id": "6223",
+            "first_name": "Artyom",
+            "last_name": "Prokhorov",
+            "current_team_id": "670",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2025-01-28T14:24:25.751Z"
+        },
+        {
+            "id": "6226",
+            "first_name": "Ilya",
+            "last_name": "Proskuryakov",
+            "current_team_id": "659",
+            "position": "G",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-07-28T13:09:56.030Z"
+        },
+        {
+            "id": "6277",
+            "first_name": "Anton",
+            "last_name": "Rekhtin",
+            "current_team_id": "661",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-10-21T01:17:37.159Z"
+        },
+        {
+            "id": "6362",
+            "first_name": "Artur",
+            "last_name": "Sarvarov",
+            "current_team_id": "676",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-10-21T00:25:17.698Z"
+        },
+        {
+            "id": "6406",
+            "first_name": "Yury",
+            "last_name": "Sergiyenko",
+            "current_team_id": "681",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-03-12T17:34:48.671Z"
+        },
+        {
+            "id": "6497",
+            "first_name": "Ivan",
+            "last_name": "Silayev",
+            "current_team_id": "663",
+            "position": "F",
+            "role": "A",
+            "status": "Active",
+            "updated_on": "2021-09-22T18:59:16.136Z"
+        },
+        {
+            "id": "6642",
+            "first_name": "Alexander",
+            "last_name": "Svitov",
+            "current_team_id": "1427",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-02-20T09:46:41.573Z"
+        },
+        {
+            "id": "6680",
+            "first_name": "Sergei",
+            "last_name": "Teryayev",
+            "current_team_id": "660",
+            "position": "D",
+            "role": "A",
+            "status": "Active",
+            "updated_on": "2021-10-20T22:39:32.316Z"
+        },
+        {
+            "id": "6726",
+            "first_name": "Alexander",
+            "last_name": "Trushkov",
+            "current_team_id": "659",
+            "position": "G",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-07-28T13:09:09.616Z"
+        },
+        {
+            "id": "6755",
+            "first_name": "Alexander",
+            "last_name": "Ugolnikov",
+            "current_team_id": "1427",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-11-27T17:16:34.868Z"
+        },
+        {
+            "id": "6780",
+            "first_name": "Isaak",
+            "last_name": "Valitsky",
+            "current_team_id": "670",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-02-08T15:53:19.307Z"
+        },
+        {
+            "id": "6792",
+            "first_name": "Grigory",
+            "last_name": "Vashchenko",
+            "current_team_id": "665",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-10-20T22:31:51.444Z"
+        },
+        {
+            "id": "6917",
+            "first_name": "Evgeny",
+            "last_name": "Yaroslavlev",
+            "current_team_id": "661",
+            "position": "G",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-10-20T22:24:24.367Z"
+        },
+        {
+            "id": "6942",
+            "first_name": "Daniil",
+            "last_name": "Yerdakov",
+            "current_team_id": "660",
+            "position": "F",
+            "role": "A",
+            "status": "Active",
+            "updated_on": "2022-07-20T12:16:05.806Z"
+        },
+        {
+            "id": "6946",
+            "first_name": "Andrei",
+            "last_name": "Yerofeyev",
+            "current_team_id": "658",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-10-20T22:21:44.767Z"
+        },
+        {
+            "id": "6953",
+            "first_name": "Alexander",
+            "last_name": "Yevseyenkov",
+            "current_team_id": "659",
+            "position": "D",
+            "role": "C",
+            "status": "Active",
+            "updated_on": "2022-07-28T13:11:43.194Z"
+        },
+        {
+            "id": "7038",
+            "first_name": "Vitaly",
+            "last_name": "Zotov",
+            "current_team_id": "661",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-03-13T10:34:15.942Z"
+        },
+        {
+            "id": "8917",
+            "first_name": "Pavel",
+            "last_name": "Koltygin",
+            "current_team_id": "665",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-10-31T17:39:45.858Z"
+        },
+        {
+            "id": "8943",
+            "first_name": "Ivan",
+            "last_name": "Kosorenkov",
+            "current_team_id": "663",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-02-08T15:53:19.307Z"
+        },
+        {
+            "id": "10332",
+            "first_name": "Marsel",
+            "last_name": "Ibragimov",
+            "current_team_id": "663",
+            "position": "D",
+            "role": "A",
+            "status": "Active",
+            "updated_on": "2021-05-31T05:17:42.356Z"
+        },
+        {
+            "id": "12952",
+            "first_name": "Roman",
+            "last_name": "Kalinichenko",
+            "current_team_id": "663",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-06-16T23:03:11.385Z"
+        },
+        {
+            "id": "13461",
+            "first_name": "Nikita",
+            "last_name": "Popugayev",
+            "current_team_id": "663",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-02-08T15:53:19.307Z"
+        },
+        {
+            "id": "14023",
+            "first_name": "Nikita",
+            "last_name": "Sirotkin",
+            "current_team_id": "661",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-03-13T10:50:34.066Z"
+        },
+        {
+            "id": "14026",
+            "first_name": "Alexander",
+            "last_name": "Tridchikov",
+            "current_team_id": "658",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-03-13T10:12:55.441Z"
+        },
+        {
+            "id": "14063",
+            "first_name": "Andrei",
+            "last_name": "Revatsky",
+            "current_team_id": "670",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-02-08T15:53:19.307Z"
+        },
+        {
+            "id": "14087",
+            "first_name": "Ivan",
+            "last_name": "Romanov",
+            "current_team_id": "659",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2023-09-11T00:21:54.403Z"
+        },
+        {
+            "id": "14091",
+            "first_name": "Vladislav",
+            "last_name": "Chervonenko",
+            "current_team_id": "659",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2023-09-07T15:22:44.430Z"
+        },
+        {
+            "id": "14106",
+            "first_name": "Mark",
+            "last_name": "Pavlikov",
+            "current_team_id": "681",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-02-08T15:53:19.307Z"
+        },
+        {
+            "id": "14135",
+            "first_name": "Vladislav",
+            "last_name": "Kurbatov",
+            "current_team_id": "665",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-02-08T15:53:19.307Z"
+        },
+        {
+            "id": "14138",
+            "first_name": "Alexei",
+            "last_name": "Ozhgikhin",
+            "current_team_id": "665",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-10-31T17:38:37.082Z"
+        },
+        {
+            "id": "14146",
+            "first_name": "Kirill",
+            "last_name": "Basisty",
+            "current_team_id": "670",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2024-12-04T19:41:19.238Z"
+        },
+        {
+            "id": "14148",
+            "first_name": "Evgeny",
+            "last_name": "Kalabushkin",
+            "current_team_id": "665",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2023-09-07T20:46:15.302Z"
+        },
+        {
+            "id": "14197",
+            "first_name": "Dmitry",
+            "last_name": "Alexeyev",
+            "current_team_id": "658",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-04-11T07:20:33.072Z"
+        },
+        {
+            "id": "14220",
+            "first_name": "Oleg",
+            "last_name": "Kholodenin",
+            "current_team_id": "676",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-03-12T19:24:33.472Z"
+        },
+        {
+            "id": "15071",
+            "first_name": "Alexander",
+            "last_name": "Podkorytov",
+            "current_team_id": "658",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-04-11T07:20:47.980Z"
+        },
+        {
+            "id": "15240",
+            "first_name": "Bogdan",
+            "last_name": "Zhilyakov",
+            "current_team_id": "658",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-04-11T07:20:34.071Z"
+        },
+        {
+            "id": "15378",
+            "first_name": "Bogdan",
+            "last_name": "Denisevich",
+            "current_team_id": "1427",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-02-08T15:53:19.307Z"
+        },
+        {
+            "id": "15382",
+            "first_name": "Dmitry",
+            "last_name": "Yushkevich",
+            "current_team_id": "663",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-02-13T06:42:57.145Z"
+        },
+        {
+            "id": "15401",
+            "first_name": "Makar",
+            "last_name": "Nikishanin",
+            "current_team_id": "1427",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-11-27T17:54:12.777Z"
+        },
+        {
+            "id": "15456",
+            "first_name": "Evgeny",
+            "last_name": "Groshev",
+            "current_team_id": "659",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2023-09-13T05:06:49.230Z"
+        },
+        {
+            "id": "15457",
+            "first_name": "Vladimir",
+            "last_name": "Zhuravlyov",
+            "current_team_id": "661",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-04-29T18:47:17.963Z"
+        },
+        {
+            "id": "15465",
+            "first_name": "Daniil",
+            "last_name": "Valiullov",
+            "current_team_id": "676",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-02-08T15:53:19.307Z"
+        },
+        {
+            "id": "15470",
+            "first_name": "Igor",
+            "last_name": "Usmanov",
+            "current_team_id": "659",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-02-08T15:53:19.307Z"
+        },
+        {
+            "id": "15476",
+            "first_name": "Maxim",
+            "last_name": "Denezhkin",
+            "current_team_id": "659",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-10-31T20:38:56.759Z"
+        },
+        {
+            "id": "15478",
+            "first_name": "Ivan",
+            "last_name": "Lisin",
+            "current_team_id": "681",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-09-13T17:07:45.639Z"
+        },
+        {
+            "id": "15487",
+            "first_name": "Lev",
+            "last_name": "Komissarov",
+            "current_team_id": "663",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-02-08T15:53:19.307Z"
+        },
+        {
+            "id": "15488",
+            "first_name": "Yegor",
+            "last_name": "Korbit",
+            "current_team_id": "663",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2024-01-01T21:06:16.836Z"
+        },
+        {
+            "id": "15494",
+            "first_name": "Artyom",
+            "last_name": "Ikamatskikh",
+            "current_team_id": "661",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-02-08T15:53:19.307Z"
+        },
+        {
+            "id": "15528",
+            "first_name": "Mikhail",
+            "last_name": "Byakin",
+            "current_team_id": "661",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-05-31T04:19:19.899Z"
+        },
+        {
+            "id": "15531",
+            "first_name": "Yegor",
+            "last_name": "Filin",
+            "current_team_id": "663",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2023-09-29T14:20:20.044Z"
+        },
+        {
+            "id": "15548",
+            "first_name": "Ilya",
+            "last_name": "Avvakumov",
+            "current_team_id": "661",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-03-13T10:32:02.468Z"
+        },
+        {
+            "id": "15552",
+            "first_name": "Artyom",
+            "last_name": "Onishko",
+            "current_team_id": "676",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-03-12T19:19:52.916Z"
+        },
+        {
+            "id": "15562",
+            "first_name": "Maxim",
+            "last_name": "Bain",
+            "current_team_id": "660",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-02-08T15:53:19.307Z"
+        },
+        {
+            "id": "15563",
+            "first_name": "Artur",
+            "last_name": "Brovkin",
+            "current_team_id": "668",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-11-14T23:27:03.222Z"
+        },
+        {
+            "id": "15565",
+            "first_name": "Airat",
+            "last_name": "Vildanov",
+            "current_team_id": "668",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-02-08T15:53:19.307Z"
+        },
+        {
+            "id": "15567",
+            "first_name": "Kirill",
+            "last_name": "Krutov",
+            "current_team_id": "668",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2023-11-28T14:37:52.891Z"
+        },
+        {
+            "id": "15790",
+            "first_name": "Sergei",
+            "last_name": "Alkhimov",
+            "current_team_id": "1427",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-11-03T21:38:47.290Z"
+        },
+        {
+            "id": "15801",
+            "first_name": "Nikolai",
+            "last_name": "Burenov",
+            "current_team_id": "670",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-10-31T17:51:55.273Z"
+        },
+        {
+            "id": "15802",
+            "first_name": "Semyon",
+            "last_name": "Chistyakov",
+            "current_team_id": "1427",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-01-24T22:41:00.781Z"
+        },
+        {
+            "id": "16143",
+            "first_name": "Alexei",
+            "last_name": "Tsyplakov",
+            "current_team_id": "659",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-02-08T15:53:19.307Z"
+        },
+        {
+            "id": "16308",
+            "first_name": "Egor",
+            "last_name": "Serdyuk",
+            "current_team_id": "1427",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-01-21T09:46:09.091Z"
+        },
+        {
+            "id": "16417",
+            "first_name": "Pavel",
+            "last_name": "Zhirnov",
+            "current_team_id": "676",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-03-12T19:53:41.479Z"
+        },
+        {
+            "id": "16426",
+            "first_name": "Airat",
+            "last_name": "Zamaliyev",
+            "current_team_id": "676",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-03-12T19:56:54.077Z"
+        },
+        {
+            "id": "16438",
+            "first_name": "Rostislav",
+            "last_name": "Khaliullin",
+            "current_team_id": "670",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-02-08T15:53:19.307Z"
+        },
+        {
+            "id": "16687",
+            "first_name": "Mark",
+            "last_name": "Lypkan",
+            "current_team_id": "660",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2025-03-02T21:50:49.633Z"
+        },
+        {
+            "id": "16690",
+            "first_name": "Alexander",
+            "last_name": "Shikun",
+            "current_team_id": "659",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-02-08T15:53:19.307Z"
+        },
+        {
+            "id": "16694",
+            "first_name": "Oleg",
+            "last_name": "Lomako",
+            "current_team_id": "660",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-10-20T21:48:26.587Z"
+        },
+        {
+            "id": "16700",
+            "first_name": "Georgy",
+            "last_name": "Solyannikov",
+            "current_team_id": "665",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-10-20T21:47:18.951Z"
+        },
+        {
+            "id": "16707",
+            "first_name": "Denis",
+            "last_name": "Orlovich-Grudkov",
+            "current_team_id": "665",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2025-02-12T18:17:11.235Z"
+        },
+        {
+            "id": "16714",
+            "first_name": "Andrei",
+            "last_name": "Belozyorov",
+            "current_team_id": "659",
+            "position": "F",
+            "role": "A",
+            "status": "Active",
+            "updated_on": "2022-10-31T18:20:09.702Z"
+        },
+        {
+            "id": "16716",
+            "first_name": "Nikita",
+            "last_name": "Kurakin",
+            "current_team_id": "670",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-02-08T15:53:19.307Z"
+        },
+        {
+            "id": "16860",
+            "first_name": "Evgeny",
+            "last_name": "Kanitsky",
+            "current_team_id": "663",
+            "position": "F",
+            "role": "C",
+            "status": "Active",
+            "updated_on": "2021-02-08T15:53:19.307Z"
+        },
+        {
+            "id": "17347",
+            "first_name": "Maxim",
+            "last_name": "Groshev",
+            "current_team_id": "665",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2023-10-14T01:34:54.086Z"
+        },
+        {
+            "id": "17350",
+            "first_name": "Vsevolod",
+            "last_name": "Skotnikov",
+            "current_team_id": "663",
+            "position": "G",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-10-31T16:42:30.794Z"
+        },
+        {
+            "id": "17540",
+            "first_name": "Dmitry",
+            "last_name": "Nikolayev",
+            "current_team_id": "665",
+            "position": "G",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-01-19T20:19:18.704Z"
+        },
+        {
+            "id": "17557",
+            "first_name": "Semyon",
+            "last_name": "Astashevsky",
+            "current_team_id": "1427",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-11-07T16:12:22.947Z"
+        },
+        {
+            "id": "17564",
+            "first_name": "Maxim",
+            "last_name": "Makhrin",
+            "current_team_id": "1427",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-11-27T17:47:13.207Z"
+        },
+        {
+            "id": "17569",
+            "first_name": "Kirill",
+            "last_name": "Spitsenko",
+            "current_team_id": "1427",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2023-11-28T14:07:54.929Z"
+        },
+        {
+            "id": "17571",
+            "first_name": "Danil",
+            "last_name": "Shchyokin",
+            "current_team_id": "1427",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-11-27T17:18:41.616Z"
+        },
+        {
+            "id": "17573",
+            "first_name": "Nikita",
+            "last_name": "Dianov",
+            "current_team_id": "1427",
+            "position": "G",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-12-30T08:35:12.648Z"
+        },
+        {
+            "id": "17576",
+            "first_name": "Denis",
+            "last_name": "Komkov",
+            "current_team_id": "668",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2024-11-08T06:07:32.093Z"
+        },
+        {
+            "id": "17577",
+            "first_name": "Razat",
+            "last_name": "Timirov",
+            "current_team_id": "676",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-03-12T20:13:53.482Z"
+        },
+        {
+            "id": "17582",
+            "first_name": "Artur",
+            "last_name": "Akhtyamov",
+            "current_team_id": "668",
+            "position": "G",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2024-11-27T16:26:19.332Z"
+        },
+        {
+            "id": "17632",
+            "first_name": "Maxim",
+            "last_name": "Bykov",
+            "current_team_id": "668",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-10-31T18:22:11.596Z"
+        },
+        {
+            "id": "18420",
+            "first_name": "Yegor",
+            "last_name": "Buyalski",
+            "current_team_id": "658",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-09-12T20:40:05.244Z"
+        },
+        {
+            "id": "18509",
+            "first_name": "Khassan",
+            "last_name": "Al Dzhilaui",
+            "current_team_id": "681",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-05-31T15:34:08.634Z"
+        },
+        {
+            "id": "18624",
+            "first_name": "Andrei",
+            "last_name": "Migur",
+            "current_team_id": "1427",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2025-01-10T22:03:15.471Z"
+        },
+        {
+            "id": "18631",
+            "first_name": "Ruslan",
+            "last_name": "Gospodynko",
+            "current_team_id": "1427",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-11-27T17:22:56.732Z"
+        },
+        {
+            "id": "18639",
+            "first_name": "Timur",
+            "last_name": "Khairullin",
+            "current_team_id": "660",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-10-31T17:41:31.872Z"
+        },
+        {
+            "id": "18641",
+            "first_name": "Yegor",
+            "last_name": "Martynov",
+            "current_team_id": "1427",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-11-27T16:24:25.082Z"
+        },
+        {
+            "id": "18646",
+            "first_name": "Nikita",
+            "last_name": "Kamyshnikov",
+            "current_team_id": "660",
+            "position": "G",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-02-08T15:53:19.307Z"
+        },
+        {
+            "id": "18649",
+            "first_name": "Evgeny",
+            "last_name": "Koreshkov",
+            "current_team_id": "663",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-06-16T23:36:00.619Z"
+        },
+        {
+            "id": "18861",
+            "first_name": "Alexander",
+            "last_name": "Kirpichnikov",
+            "current_team_id": "658",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-01-24T22:04:19.868Z"
+        },
+        {
+            "id": "19034",
+            "first_name": "Nikolai",
+            "last_name": "Averin",
+            "current_team_id": "668",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-02-08T15:53:19.307Z"
+        },
+        {
+            "id": "19158",
+            "first_name": "Oleg",
+            "last_name": "Kachelovsky",
+            "current_team_id": "668",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-09-12T20:18:00.710Z"
+        },
+        {
+            "id": "19173",
+            "first_name": "Ilya",
+            "last_name": "Gorbunov",
+            "current_team_id": "676",
+            "position": "G",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2025-03-23T20:43:06.422Z"
+        },
+        {
+            "id": "19263",
+            "first_name": "Mikhail",
+            "last_name": "Stikhanovsky",
+            "current_team_id": "661",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-03-13T10:39:16.794Z"
+        },
+        {
+            "id": "19883",
+            "first_name": "Vadim",
+            "last_name": "Kravchenko",
+            "current_team_id": "1427",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2024-05-20T19:39:16.497Z"
+        },
+        {
+            "id": "19889",
+            "first_name": "Semyon",
+            "last_name": "Lugivyak",
+            "current_team_id": "663",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-11-02T18:26:18.577Z"
+        },
+        {
+            "id": "19891",
+            "first_name": "Maxim",
+            "last_name": "Uskov",
+            "current_team_id": "661",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-02-08T15:53:19.307Z"
+        },
+        {
+            "id": "19929",
+            "first_name": "Nikolai",
+            "last_name": "Polunin",
+            "current_team_id": "670",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-02-08T15:53:19.307Z"
+        },
+        {
+            "id": "20573",
+            "first_name": "Dmitri",
+            "last_name": "Zugan",
+            "current_team_id": "663",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2024-06-18T18:48:00.209Z"
+        },
+        {
+            "id": "21249",
+            "first_name": "Alexei",
+            "last_name": "Solovyov",
+            "current_team_id": "1427",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-10-31T17:51:52.216Z"
+        },
+        {
+            "id": "21347",
+            "first_name": "Mikhail",
+            "last_name": "Kalashnikov",
+            "current_team_id": "676",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-03-12T19:58:23.492Z"
+        },
+        {
+            "id": "21348",
+            "first_name": "Artur",
+            "last_name": "Yegorov",
+            "current_team_id": "681",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-03-12T17:48:55.798Z"
+        },
+        {
+            "id": "21350",
+            "first_name": "Alexei",
+            "last_name": "Kapustin",
+            "current_team_id": "681",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-03-12T17:51:03.306Z"
+        },
+        {
+            "id": "21355",
+            "first_name": "Nikita",
+            "last_name": "Lukhovskoi",
+            "current_team_id": "681",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-02-20T08:20:42.882Z"
+        },
+        {
+            "id": "21393",
+            "first_name": "Kirill",
+            "last_name": "Kadyshev",
+            "current_team_id": "658",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2024-01-09T23:40:37.651Z"
+        },
+        {
+            "id": "21396",
+            "first_name": "Konstantin",
+            "last_name": "Lukin",
+            "current_team_id": "658",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-04-11T07:20:48.824Z"
+        },
+        {
+            "id": "21419",
+            "first_name": "Kirill",
+            "last_name": "Tagirov",
+            "current_team_id": "676",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-02-08T15:53:19.307Z"
+        },
+        {
+            "id": "21562",
+            "first_name": "Nikolai",
+            "last_name": "Mayorov",
+            "current_team_id": "1427",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2024-09-04T13:34:09.771Z"
+        },
+        {
+            "id": "22550",
+            "first_name": "Yegor",
+            "last_name": "Stepanov",
+            "current_team_id": "658",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-03-13T10:11:11.204Z"
+        },
+        {
+            "id": "22885",
+            "first_name": "Danila",
+            "last_name": "Khulapov",
+            "current_team_id": "663",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-06-16T23:03:35.534Z"
+        },
+        {
+            "id": "22930",
+            "first_name": "Daniil",
+            "last_name": "Lazutin",
+            "current_team_id": "665",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-03-13T12:53:22.087Z"
+        },
+        {
+            "id": "22935",
+            "first_name": "Nikita",
+            "last_name": "Chibrikov",
+            "current_team_id": "665",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2024-11-27T16:26:21.076Z"
+        },
+        {
+            "id": "22938",
+            "first_name": "Arman",
+            "last_name": "Iritsyan",
+            "current_team_id": "658",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-03-13T09:59:51.023Z"
+        },
+        {
+            "id": "22966",
+            "first_name": "Timur",
+            "last_name": "Karimov",
+            "current_team_id": "681",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2023-02-27T06:38:08.186Z"
+        },
+        {
+            "id": "22985",
+            "first_name": "Prokhor",
+            "last_name": "Poltapov",
+            "current_team_id": "663",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-06-16T23:04:34.557Z"
+        },
+        {
+            "id": "23282",
+            "first_name": "Grigory",
+            "last_name": "Kuzmin",
+            "current_team_id": "665",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2024-03-03T06:20:48.826Z"
+        },
+        {
+            "id": "23293",
+            "first_name": "Yegor",
+            "last_name": "Zelenov",
+            "current_team_id": "665",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-03-13T12:43:16.775Z"
+        },
+        {
+            "id": "23295",
+            "first_name": "Nikita",
+            "last_name": "Smirnov",
+            "current_team_id": "665",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-12-06T23:20:09.809Z"
+        },
+        {
+            "id": "23603",
+            "first_name": "Stanislav",
+            "last_name": "Kondratyev",
+            "current_team_id": "670",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-02-08T15:53:19.307Z"
+        },
+        {
+            "id": "23633",
+            "first_name": "Viktor",
+            "last_name": "Plastinin",
+            "current_team_id": "670",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2025-01-12T21:53:38.352Z"
+        },
+        {
+            "id": "23638",
+            "first_name": "Evgeny",
+            "last_name": "Kiselyov",
+            "current_team_id": "663",
+            "position": "G",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2024-12-04T19:31:27.578Z"
+        },
+        {
+            "id": "23641",
+            "first_name": "Anton",
+            "last_name": "Savelyev",
+            "current_team_id": "659",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-09-15T15:15:46.798Z"
+        },
+        {
+            "id": "23643",
+            "first_name": "Ilya",
+            "last_name": "Bochkov",
+            "current_team_id": "661",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-09-15T15:16:33.405Z"
+        },
+        {
+            "id": "23644",
+            "first_name": "Anton",
+            "last_name": "Vilkov",
+            "current_team_id": "681",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-09-15T15:17:06.523Z"
+        },
+        {
+            "id": "23800",
+            "first_name": "Vyacheslav",
+            "last_name": "Shevchenko",
+            "current_team_id": "660",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2020-05-04T18:25:35.164Z"
+        },
+        {
+            "id": "23889",
+            "first_name": "Georgy",
+            "last_name": "Dedov",
+            "current_team_id": "670",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2025-01-10T22:19:20.045Z"
+        },
+        {
+            "id": "23912",
+            "first_name": "Fyodor",
+            "last_name": "Svechkov",
+            "current_team_id": "665",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2024-11-27T16:26:20.846Z"
+        },
+        {
+            "id": "23917",
+            "first_name": "Kirill",
+            "last_name": "Shumilov",
+            "current_team_id": "660",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-11-27T18:10:14.731Z"
+        },
+        {
+            "id": "24575",
+            "first_name": "Nikita",
+            "last_name": "Goncharov",
+            "current_team_id": "670",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2025-01-10T12:39:27.593Z"
+        },
+        {
+            "id": "24576",
+            "first_name": "Semyon",
+            "last_name": "Demidov",
+            "current_team_id": "665",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2024-11-19T16:07:32.351Z"
+        },
+        {
+            "id": "24591",
+            "first_name": "Vyacheslav",
+            "last_name": "Sarayev",
+            "current_team_id": "670",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2025-01-10T19:10:07.268Z"
+        },
+        {
+            "id": "24596",
+            "first_name": "Vladimir",
+            "last_name": "Mashkov",
+            "current_team_id": "1427",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-11-27T17:48:04.813Z"
+        },
+        {
+            "id": "24597",
+            "first_name": "Nikita",
+            "last_name": "Savchenko",
+            "current_team_id": "1427",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-03-13T09:54:55.298Z"
+        },
+        {
+            "id": "24598",
+            "first_name": "Timofei",
+            "last_name": "Davydov",
+            "current_team_id": "1427",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-01-24T22:41:07.059Z"
+        },
+        {
+            "id": "24601",
+            "first_name": "Artyom",
+            "last_name": "Murylyov",
+            "current_team_id": "1427",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2023-09-10T21:44:47.460Z"
+        },
+        {
+            "id": "24979",
+            "first_name": "Ilya",
+            "last_name": "Ivantsov",
+            "current_team_id": "665",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-10-28T18:26:06.548Z"
+        },
+        {
+            "id": "25195",
+            "first_name": "Sergei",
+            "last_name": "Martynov",
+            "current_team_id": "661",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-03-13T10:35:59.384Z"
+        },
+        {
+            "id": "25198",
+            "first_name": "Yegor",
+            "last_name": "Toropov",
+            "current_team_id": "676",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-03-12T19:21:59.317Z"
+        },
+        {
+            "id": "25251",
+            "first_name": "Daniil",
+            "last_name": "Melnikov",
+            "current_team_id": "681",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-02-20T08:28:25.134Z"
+        },
+        {
+            "id": "25400",
+            "first_name": "Sergei",
+            "last_name": "Drugalya",
+            "current_team_id": "658",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2024-10-04T05:31:48.239Z"
+        },
+        {
+            "id": "25401",
+            "first_name": "Stepan",
+            "last_name": "Myslyayev",
+            "current_team_id": "658",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-03-13T10:03:43.927Z"
+        },
+        {
+            "id": "25409",
+            "first_name": "Adel",
+            "last_name": "Bulatov",
+            "current_team_id": "668",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-02-08T15:53:19.307Z"
+        },
+        {
+            "id": "25411",
+            "first_name": "Emil",
+            "last_name": "Galiaskarov",
+            "current_team_id": "668",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-12-30T10:37:21.730Z"
+        },
+        {
+            "id": "25412",
+            "first_name": "Ivan",
+            "last_name": "Mekhovov",
+            "current_team_id": "668",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-12-30T10:52:32.144Z"
+        },
+        {
+            "id": "25441",
+            "first_name": "Alexei",
+            "last_name": "Prokopenko",
+            "current_team_id": "1427",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-11-27T17:56:01.391Z"
+        },
+        {
+            "id": "25442",
+            "first_name": "Alexander",
+            "last_name": "Figurin",
+            "current_team_id": "1427",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-12-28T07:47:16.823Z"
+        },
+        {
+            "id": "25483",
+            "first_name": "Danila",
+            "last_name": "Filippov",
+            "current_team_id": "676",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-03-12T19:23:30.232Z"
+        },
+        {
+            "id": "25589",
+            "first_name": "Danil",
+            "last_name": "Voyevodin",
+            "current_team_id": "670",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-09-25T00:10:37.160Z"
+        },
+        {
+            "id": "25838",
+            "first_name": "Malik",
+            "last_name": "Alishlalov",
+            "current_team_id": "663",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-06-16T23:02:48.412Z"
+        },
+        {
+            "id": "25907",
+            "first_name": "Alexei",
+            "last_name": "Yegorov",
+            "current_team_id": "665",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-03-13T12:41:54.038Z"
+        },
+        {
+            "id": "26136",
+            "first_name": "Alexei",
+            "last_name": "Bogdanov",
+            "current_team_id": "661",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-09-27T22:57:45.029Z"
+        },
+        {
+            "id": "26140",
+            "first_name": "Artyom",
+            "last_name": "Rozhkovsky",
+            "current_team_id": "661",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-09-27T23:02:46.993Z"
+        },
+        {
+            "id": "26306",
+            "first_name": "Semyon",
+            "last_name": "Terekhov",
+            "current_team_id": "668",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-11-14T23:26:52.789Z"
+        },
+        {
+            "id": "26340",
+            "first_name": "Gleb",
+            "last_name": "Trikozov",
+            "current_team_id": "1427",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2024-10-13T04:07:18.885Z"
+        },
+        {
+            "id": "26341",
+            "first_name": "Nikita",
+            "last_name": "Kholodilin",
+            "current_team_id": "1427",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-10-31T20:41:42.538Z"
+        },
+        {
+            "id": "26345",
+            "first_name": "Andrei",
+            "last_name": "Mishurov",
+            "current_team_id": "1427",
+            "position": "G",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-10-31T16:37:59.328Z"
+        },
+        {
+            "id": "26456",
+            "first_name": "Ilya",
+            "last_name": "Golubev",
+            "current_team_id": "668",
+            "position": "G",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-09-14T23:53:24.091Z"
+        },
+        {
+            "id": "26460",
+            "first_name": "Alexander",
+            "last_name": "Redkov",
+            "current_team_id": "668",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-09-29T19:17:47.754Z"
+        },
+        {
+            "id": "26467",
+            "first_name": "Aslan",
+            "last_name": "Raisov",
+            "current_team_id": "681",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-09-29T19:29:26.747Z"
+        },
+        {
+            "id": "26870",
+            "first_name": "Evgeny",
+            "last_name": "Stepanov",
+            "current_team_id": "661",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-09-30T22:49:05.310Z"
+        },
+        {
+            "id": "26873",
+            "first_name": "Ruslan",
+            "last_name": "Ibatullin",
+            "current_team_id": "660",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-10-28T18:36:42.604Z"
+        },
+        {
+            "id": "26874",
+            "first_name": "Alexander",
+            "last_name": "Loktev",
+            "current_team_id": "660",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-09-30T22:50:27.051Z"
+        },
+        {
+            "id": "26875",
+            "first_name": "Valery",
+            "last_name": "Polyakov",
+            "current_team_id": "660",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-09-30T22:52:42.260Z"
+        },
+        {
+            "id": "26876",
+            "first_name": "Alexander",
+            "last_name": "Tarasov",
+            "current_team_id": "660",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-09-30T22:53:12.989Z"
+        },
+        {
+            "id": "27214",
+            "first_name": "Dmitry",
+            "last_name": "Muzhikov",
+            "current_team_id": "668",
+            "position": "D",
+            "role": "A",
+            "status": "Active",
+            "updated_on": "2021-09-28T01:40:12.825Z"
+        },
+        {
+            "id": "27215",
+            "first_name": "Nikolai",
+            "last_name": "Bogatov",
+            "current_team_id": "668",
+            "position": "D",
+            "role": "A",
+            "status": "Active",
+            "updated_on": "2021-09-28T01:38:32.551Z"
+        },
+        {
+            "id": "27218",
+            "first_name": "Dmitry",
+            "last_name": "Sergeyev",
+            "current_team_id": "1427",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-09-22T18:59:40.627Z"
+        },
+        {
+            "id": "27229",
+            "first_name": "Ivan",
+            "last_name": "Krylov",
+            "current_team_id": "658",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-09-28T00:09:12.996Z"
+        },
+        {
+            "id": "27230",
+            "first_name": "Andrei",
+            "last_name": "Bannikov",
+            "current_team_id": "661",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-09-28T00:08:29.108Z"
+        },
+        {
+            "id": "27342",
+            "first_name": "Donat",
+            "last_name": "Stalnov",
+            "current_team_id": "659",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-10-31T16:51:28.109Z"
+        },
+        {
+            "id": "27358",
+            "first_name": "Alexei",
+            "last_name": "Sleptsov",
+            "current_team_id": "670",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-09-27T03:54:23.918Z"
+        },
+        {
+            "id": "27612",
+            "first_name": "Nikita",
+            "last_name": "Bobryashov",
+            "current_team_id": "659",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-09-23T22:53:00.668Z"
+        },
+        {
+            "id": "27648",
+            "first_name": "Ivan",
+            "last_name": "Miroshnichenko",
+            "current_team_id": "1427",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2024-11-27T16:26:23.013Z"
+        },
+        {
+            "id": "27649",
+            "first_name": "Pavel",
+            "last_name": "Leuka",
+            "current_team_id": "1427",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2024-10-15T04:31:21.087Z"
+        },
+        {
+            "id": "28496",
+            "first_name": "Sergei",
+            "last_name": "Mylnikov",
+            "current_team_id": "658",
+            "position": "G",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-01-24T22:04:26.141Z"
+        },
+        {
+            "id": "28498",
+            "first_name": "Leonid",
+            "last_name": "Lavrinenko",
+            "current_team_id": "658",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-09-16T02:46:32.342Z"
+        },
+        {
+            "id": "28573",
+            "first_name": "Yegor",
+            "last_name": "Gorbunov",
+            "current_team_id": "658",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-03-13T10:06:08.214Z"
+        },
+        {
+            "id": "28575",
+            "first_name": "Vadim",
+            "last_name": "Shaveko",
+            "current_team_id": "658",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-03-13T10:14:47.521Z"
+        },
+        {
+            "id": "29006",
+            "first_name": "Nikita",
+            "last_name": "Yevseyev",
+            "current_team_id": "668",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-10-31T18:05:41.833Z"
+        },
+        {
+            "id": "29499",
+            "first_name": "Alexander",
+            "last_name": "Shurygin",
+            "current_team_id": "663",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-02-20T00:21:15.273Z"
+        },
+        {
+            "id": "29500",
+            "first_name": "Vladislav",
+            "last_name": "Barulin",
+            "current_team_id": "663",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-09-13T16:51:10.562Z"
+        },
+        {
+            "id": "29501",
+            "first_name": "Sergei",
+            "last_name": "Lapin",
+            "current_team_id": "663",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-10-28T18:38:05.760Z"
+        },
+        {
+            "id": "30327",
+            "first_name": "Arsen",
+            "last_name": "Nurgaliyev",
+            "current_team_id": "1427",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-11-27T17:14:14.991Z"
+        },
+        {
+            "id": "30328",
+            "first_name": "Sergei",
+            "last_name": "Kolesnikov",
+            "current_team_id": "1427",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2023-10-18T13:05:36.428Z"
+        },
+        {
+            "id": "30330",
+            "first_name": "Maxim",
+            "last_name": "Sergeyev",
+            "current_team_id": "670",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-10-12T19:41:25.020Z"
+        },
+        {
+            "id": "30953",
+            "first_name": "Zakhar",
+            "last_name": "Vinogradov",
+            "current_team_id": "681",
+            "position": "G",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2023-02-03T02:52:10.967Z"
+        },
+        {
+            "id": "31124",
+            "first_name": "Evgeny",
+            "last_name": "Astankov",
+            "current_team_id": "660",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-07-20T14:42:02.160Z"
+        },
+        {
+            "id": "31747",
+            "first_name": "Demid",
+            "last_name": "Podrezov",
+            "current_team_id": "1427",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-12-30T09:39:21.448Z"
+        },
+        {
+            "id": "31748",
+            "first_name": "Alexei K.",
+            "last_name": "Prokopenko",
+            "current_team_id": "1427",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-12-30T09:52:02.424Z"
+        },
+        {
+            "id": "31750",
+            "first_name": "Konstantin",
+            "last_name": "Luchevnikov",
+            "current_team_id": "668",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-11-19T23:01:03.317Z"
+        },
+        {
+            "id": "31751",
+            "first_name": "Vladimir",
+            "last_name": "Sychushkin",
+            "current_team_id": "668",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-12-30T10:32:46.259Z"
+        },
+        {
+            "id": "31753",
+            "first_name": "Lenar",
+            "last_name": "Mansurov",
+            "current_team_id": "668",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-12-30T10:46:18.458Z"
+        },
+        {
+            "id": "32684",
+            "first_name": "Mikhail",
+            "last_name": "Nazarov",
+            "current_team_id": "659",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-10-31T18:18:53.790Z"
+        },
+        {
+            "id": "32721",
+            "first_name": "Dmitry A.",
+            "last_name": "Kuznetsov",
+            "current_team_id": "681",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-02-20T07:54:47.876Z"
+        },
+        {
+            "id": "32722",
+            "first_name": "Oleg",
+            "last_name": "Misyul",
+            "current_team_id": "681",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-02-20T07:56:32.504Z"
+        },
+        {
+            "id": "32724",
+            "first_name": "Andrei",
+            "last_name": "Demidov",
+            "current_team_id": "681",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-02-20T08:04:10.552Z"
+        },
+        {
+            "id": "32727",
+            "first_name": "Alexander",
+            "last_name": "Shipilov",
+            "current_team_id": "681",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-02-20T08:30:18.711Z"
+        },
+        {
+            "id": "32906",
+            "first_name": "Vadim",
+            "last_name": "Yefimov",
+            "current_team_id": "681",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-03-12T12:56:12.125Z"
+        },
+        {
+            "id": "32907",
+            "first_name": "Iskander",
+            "last_name": "Mulyukov",
+            "current_team_id": "676",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-11-11T20:28:47.912Z"
+        },
+        {
+            "id": "32908",
+            "first_name": "Vladislav",
+            "last_name": "Boldin",
+            "current_team_id": "676",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-03-12T19:32:10.007Z"
+        },
+        {
+            "id": "32909",
+            "first_name": "Alexander",
+            "last_name": "Vasilyev",
+            "current_team_id": "676",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-03-12T19:40:18.292Z"
+        },
+        {
+            "id": "32910",
+            "first_name": "Denis",
+            "last_name": "Vidilin",
+            "current_team_id": "676",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-03-12T19:46:44.932Z"
+        },
+        {
+            "id": "32911",
+            "first_name": "Kirill",
+            "last_name": "Ovchinnikov",
+            "current_team_id": "676",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-03-12T20:07:17.850Z"
+        },
+        {
+            "id": "32912",
+            "first_name": "Maxim",
+            "last_name": "Pavlov",
+            "current_team_id": "676",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-03-12T20:12:00.194Z"
+        },
+        {
+            "id": "32924",
+            "first_name": "Yegor",
+            "last_name": "Ivanov",
+            "current_team_id": "658",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-03-13T10:08:01.766Z"
+        },
+        {
+            "id": "32939",
+            "first_name": "Stepan",
+            "last_name": "Gavrilov",
+            "current_team_id": "661",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-03-13T10:43:53.058Z"
+        },
+        {
+            "id": "32940",
+            "first_name": "Alexander",
+            "last_name": "Remov",
+            "current_team_id": "661",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2022-03-13T10:48:33.473Z"
+        },
+        {
+            "id": "32941",
+            "first_name": "Igor",
+            "last_name": "Ugolnikov",
+            "current_team_id": "661",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2023-09-11T00:59:41.691Z"
+        },
+        {
+            "id": "32942",
+            "first_name": "Alexander",
+            "last_name": "Skorenov",
+            "current_team_id": "665",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2024-01-01T21:16:44.217Z"
+        }
+    ]
+}

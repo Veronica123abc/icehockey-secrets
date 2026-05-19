@@ -1,0 +1,46 @@
+{
+    "id": "255",
+    "name": "4 Nations Tournament U16",
+    "seasons": [
+        {
+            "name": "20242025",
+            "stages": [
+                {
+                    "name": "regular",
+                    "start_date": "2025-04-18",
+                    "end_date": "2025-04-20"
+                }
+            ]
+        },
+        {
+            "name": "20232024",
+            "stages": [
+                {
+                    "name": "regular",
+                    "start_date": "2024-04-19",
+                    "end_date": "2024-04-21"
+                }
+            ]
+        },
+        {
+            "name": "20222023",
+            "stages": [
+                {
+                    "name": "regular",
+                    "start_date": "2023-04-14",
+                    "end_date": "2023-04-16"
+                }
+            ]
+        },
+        {
+            "name": "20212022",
+            "stages": [
+                {
+                    "name": "regular",
+                    "start_date": "2022-04-14",
+                    "end_date": "2022-04-16"
+                }
+            ]
+        }
+    ]
+}

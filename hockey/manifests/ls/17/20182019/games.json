@@ -1,0 +1,25 @@
+{
+    "season": "20182019",
+    "stage": "all",
+    "competition_id": "17",
+    "games": [
+        {
+            "id": "18406",
+            "date": "2018-12-12",
+            "scheduled_time": "2018-12-12T17:00:00+00:00",
+            "scheduled_venue_time": "2018-12-12T12:00:00",
+            "stage": "regular",
+            "away_team_id": "91",
+            "home_team_id": "722",
+            "venue_id": "282",
+            "event_status": "over",
+            "score": {
+                "91": 3,
+                "722": 5
+            },
+            "reference_id": null,
+            "reference_name": null,
+            "last_metrics_full_process_time": "2026-03-10T06:33:48.914Z"
+        }
+    ]
+}

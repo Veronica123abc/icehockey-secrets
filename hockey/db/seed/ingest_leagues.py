@@ -1,11 +1,8 @@
 import struct
 from azure.identity import InteractiveBrowserCredential
-import pyodbc
-import json
 from typing import List, Dict
-import database
+from hockey.db import database
 from hockey.config.settings import Settings
-import pathlib
 from pathlib import Path
 settings = Settings.from_env(project_root=Path(__file__).resolve().parent)
 
@@ -30,7 +27,8 @@ def ingest_leagues(league_records: List[Dict]):
         tenant_id: Azure tenant ID (optional)
     """
 
-    db = database.open_database()
+    #db = database.open_database()
+    db = database.open_database_azure()
     cursor = db.cursor()
     try:
         for record in league_records:
@@ -53,8 +51,7 @@ def ingest_leagues(league_records: List[Dict]):
 
 
 if __name__ == "__main__":
-    # TODO: Replace with your Azure tenant ID
+    from hockey.catalog import DataCatalog
 
-    #leagues = json.load(open("/home/veronica/hockeystats/ver3/leagues/leagues.json", "r"))
-    leagues = json.load(open(settings.data_root_dir / 'leagues' / 'leagues.json' ))
-    ingest_leagues(leagues)
+    catalog = DataCatalog(settings.data_root_dir)
+    ingest_leagues(catalog.leagues())

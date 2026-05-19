@@ -1,0 +1,246 @@
+{% extends "base.html" %}
+
+{% block title %}Chat — Ice Hockey Analytics{% endblock %}
+
+{% block extra_style %}
+    .chat-wrap {
+        max-width: 860px;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        height: calc(100vh - 140px);
+    }
+
+    .chat-log {
+        flex: 1;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 1.25rem;
+        padding-right: 0.25rem;
+        margin-bottom: 1rem;
+    }
+
+    .msg {
+        max-width: 80%;
+        padding: 0.75rem 1rem;
+        border-radius: 0.5rem;
+        font-size: 0.95rem;
+        line-height: 1.5;
+        white-space: pre-wrap;
+    }
+
+    .msg-user {
+        align-self: flex-end;
+        background: #1e3a5f;
+        border: 1px solid #2563eb;
+        color: #e2e8f0;
+    }
+
+    .msg-assistant {
+        align-self: flex-start;
+        background: #1e293b;
+        border: 1px solid #334155;
+        color: #e2e8f0;
+    }
+
+    .msg-error {
+        align-self: flex-start;
+        background: #450a0a;
+        border: 1px solid #991b1b;
+        color: #fca5a5;
+    }
+
+    .sql-toggle {
+        margin-top: 0.5rem;
+        font-size: 0.8rem;
+        color: #64748b;
+        cursor: pointer;
+        user-select: none;
+    }
+
+    .sql-toggle:hover { color: #94a3b8; }
+
+    .sql-block {
+        margin-top: 0.4rem;
+        background: #0f172a;
+        border: 1px solid #334155;
+        border-radius: 0.375rem;
+        padding: 0.6rem 0.75rem;
+        font-family: monospace;
+        font-size: 0.8rem;
+        color: #86efac;
+        white-space: pre-wrap;
+        display: none;
+    }
+
+    .sql-block.open { display: block; }
+
+    .chat-input-row {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .chat-input-row textarea {
+        flex: 1;
+        background: #1e293b;
+        color: #e2e8f0;
+        border: 1px solid #334155;
+        border-radius: 0.375rem;
+        padding: 0.6rem 0.75rem;
+        font-size: 0.95rem;
+        font-family: inherit;
+        resize: none;
+        height: 3rem;
+        line-height: 1.5;
+    }
+
+    .chat-input-row textarea:focus {
+        outline: none;
+        border-color: #60a5fa;
+    }
+
+    .chat-input-row button {
+        background: #2563eb;
+        color: #fff;
+        border: none;
+        border-radius: 0.375rem;
+        padding: 0 1.25rem;
+        font-size: 0.95rem;
+        font-family: inherit;
+        cursor: pointer;
+        white-space: nowrap;
+    }
+
+    .chat-input-row button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .chat-input-row button:hover:not(:disabled) { background: #1d4ed8; }
+
+    .thinking {
+        align-self: flex-start;
+        color: #64748b;
+        font-size: 0.9rem;
+        font-style: italic;
+    }
+{% endblock %}
+
+{% block content %}
+<div class="chat-wrap">
+    <div id="chat-log" class="chat-log"></div>
+
+    <div class="chat-input-row">
+        <textarea id="chat-input" placeholder="Ask a question about the hockey data…"></textarea>
+        <button id="send-btn">Send</button>
+    </div>
+</div>
+
+<script>
+(function () {
+    var log   = document.getElementById('chat-log');
+    var input = document.getElementById('chat-input');
+    var btn   = document.getElementById('send-btn');
+
+    var sessionId = localStorage.getItem('chat_session_id');
+    if (!sessionId) {
+        sessionId = crypto.randomUUID();
+        localStorage.setItem('chat_session_id', sessionId);
+    }
+
+    function scrollBottom() {
+        log.scrollTop = log.scrollHeight;
+    }
+
+    function addMsg(text, cls) {
+        var el = document.createElement('div');
+        el.className = 'msg ' + cls;
+        el.textContent = text;
+        log.appendChild(el);
+        scrollBottom();
+        return el;
+    }
+
+    function addAssistant(answer, sql, rowCount) {
+        var el = document.createElement('div');
+        el.className = 'msg msg-assistant';
+
+        var answerEl = document.createElement('div');
+        answerEl.textContent = answer;
+        el.appendChild(answerEl);
+
+        if (sql) {
+            var toggle = document.createElement('div');
+            toggle.className = 'sql-toggle';
+            toggle.textContent = '▶ Show SQL (' + rowCount + ' row' + (rowCount !== 1 ? 's' : '') + ')';
+            var sqlEl = document.createElement('div');
+            sqlEl.className = 'sql-block';
+            sqlEl.textContent = sql;
+            toggle.addEventListener('click', function () {
+                sqlEl.classList.toggle('open');
+                toggle.textContent = (sqlEl.classList.contains('open') ? '▼ Hide SQL' : '▶ Show SQL') +
+                    ' (' + rowCount + ' row' + (rowCount !== 1 ? 's' : '') + ')';
+            });
+            el.appendChild(toggle);
+            el.appendChild(sqlEl);
+        }
+
+        log.appendChild(el);
+        scrollBottom();
+    }
+
+    function send() {
+        var question = input.value.trim();
+        if (!question) return;
+
+        input.value = '';
+        btn.disabled = true;
+        addMsg(question, 'msg-user');
+
+        var thinking = document.createElement('div');
+        thinking.className = 'thinking';
+        thinking.textContent = 'Thinking…';
+        log.appendChild(thinking);
+        scrollBottom();
+
+        fetch('/api/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ question: question, session_id: sessionId }),
+        })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+            log.removeChild(thinking);
+            if (data.error) {
+                var errEl = addMsg(data.error, 'msg-error');
+                if (data.sql) {
+                    var sqlEl = document.createElement('div');
+                    sqlEl.className = 'sql-block open';
+                    sqlEl.textContent = data.sql;
+                    errEl.appendChild(sqlEl);
+                }
+            } else {
+                addAssistant(data.answer, data.sql, data.row_count);
+            }
+        })
+        .catch(function (err) {
+            log.removeChild(thinking);
+            addMsg('Request failed: ' + err, 'msg-error');
+        })
+        .finally(function () {
+            btn.disabled = false;
+            input.focus();
+        });
+    }
+
+    btn.addEventListener('click', send);
+    input.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            send();
+        }
+    });
+})();
+</script>
+{% endblock %}

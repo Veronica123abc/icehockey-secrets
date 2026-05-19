@@ -1,0 +1,36 @@
+{
+    "id": "219",
+    "name": "Olympic Games",
+    "seasons": [
+        {
+            "name": "20212022",
+            "stages": [
+                {
+                    "name": "regular",
+                    "start_date": "2022-02-09",
+                    "end_date": "2022-02-19"
+                }
+            ]
+        },
+        {
+            "name": "20132014",
+            "stages": [
+                {
+                    "name": "regular",
+                    "start_date": "2014-02-16",
+                    "end_date": "2014-02-23"
+                }
+            ]
+        },
+        {
+            "name": "20092010",
+            "stages": [
+                {
+                    "name": "regular",
+                    "start_date": "2010-02-18",
+                    "end_date": "2010-02-28"
+                }
+            ]
+        }
+    ]
+}

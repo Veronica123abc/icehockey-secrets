@@ -1,0 +1,61 @@
+{
+    "season": "20202021",
+    "stage": "preseason",
+    "competition_id": "13",
+    "games": [
+        {
+            "id": "40297",
+            "date": "2020-08-27",
+            "scheduled_time": "2020-08-27T12:00:00+00:00",
+            "scheduled_venue_time": "2020-08-27T08:00:00",
+            "stage": "preseason",
+            "away_team_id": "129",
+            "home_team_id": "128",
+            "venue_id": "243",
+            "event_status": "over",
+            "score": {
+                "128": 2,
+                "129": 3
+            },
+            "reference_id": "13475",
+            "reference_name": "SHL",
+            "last_metrics_full_process_time": "2025-02-10T09:07:12.580Z"
+        },
+        {
+            "id": "40238",
+            "date": "2020-08-27",
+            "scheduled_time": "2020-08-27T12:00:00+00:00",
+            "scheduled_venue_time": "2020-08-27T08:00:00",
+            "stage": "preseason",
+            "away_team_id": "126",
+            "home_team_id": "310",
+            "venue_id": "240",
+            "event_status": "over",
+            "score": {
+                "126": 3,
+                "310": 8
+            },
+            "reference_id": "13476",
+            "reference_name": "SHL",
+            "last_metrics_full_process_time": "2025-05-10T07:52:53.255Z"
+        },
+        {
+            "id": "40237",
+            "date": "2020-08-27",
+            "scheduled_time": "2020-08-27T12:00:00+00:00",
+            "scheduled_venue_time": "2020-08-27T08:00:00",
+            "stage": "preseason",
+            "away_team_id": "323",
+            "home_team_id": "309",
+            "venue_id": "230",
+            "event_status": "over",
+            "score": {
+                "309": 4,
+                "323": 0
+            },
+            "reference_id": "13477",
+            "reference_name": "SHL",
+            "last_metrics_full_process_time": "2025-07-25T06:40:10.981Z"
+        }
+    ]
+}

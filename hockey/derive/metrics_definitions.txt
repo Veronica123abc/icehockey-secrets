@@ -1,0 +1,49 @@
+
+
+In table 'event' the relevant columns are: name, outcome, type, shorthand, playsection, flags
+The location from where a shot is taken from one of: outside, slot, inner slot
+The result of a shot is one of: 'blocked', 'missed', 'successful', 'failed'
+The number of failed shots is always the number of blocked shots + the number of missed shots
+A shot attempt (failed or successful) has 'name'='shot'
+A shot from slot has 'name'='shot' and 'type'='slot'
+A shot from inner slot has 'name'='shot', type='slot', 'playsection'='innerSlot'
+A deflected shot attempt has 'deflected' in the list of strings in column 'flags'
+A 1-timer shot attempt has '1timer' in the list of strings in column 'flags'
+
+From these definitions, the following metrics can be derived:
+
+ 'Total Successful Shot From Slot Attempts',
+ 'Failed Shot From Slot Attempts - Blocked',
+ 'Failed Shot From Slot Attempts - Missed',
+ 'Total Shot From Slot Attempts',
+ '1 Timers Shot from Slot',
+ 'Total Regular Goals From Slot',
+ 'Total Successful Deflected Shot Attempts',
+ 'Failed Deflected Shot Attempts - Blocked',
+ 'Failed Deflected Shot Attempts - Missed',
+ 'Total Deflected Shot Attempts',
+ 'Total Regular Goals From Deflected Shots',
+ 'Total Successful Shots Taken From Inner Slot',
+ '1 Timers Shot from Inner Slot',
+ 'Total Regular Goals From Inner Slot',
+ 'Total Successful Outside Shot Attempts',
+ 'Failed Outside Shot Attempts - Blocked',
+ 'Failed Outside Shot Attempts - Missed',
+ 'Total Outside Shot Attempts',
+ '1 Timers Shot from Outside Slot',
+ 'Total Regular Goals From Outside Slot',
+ 'Total Shots Taken',
+ 'Total Successful Shots Taken',
+ 'Failed Shots Taken - Blocked',
+ 'Failed Shots Taken - Missed',
+ '1 Timers Shot',
+ 'Total Regular Goals',
+ 'Shots From Slot Success Rate',
+ '1 Timers Shot% from Slot',
+ 'Deflected Shots Success Rate',
+ '1 Timers Shot% from Inner Slot',
+ 'Outside Shots Success Rate',
+ '1 Timers Shot% from Outside Slot',
+ 'Shots From Slot Percentage',
+ 'Total Shots Success Rate',
+ '1 Timers Shot% Total'

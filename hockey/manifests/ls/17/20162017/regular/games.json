@@ -1,0 +1,43 @@
+{
+    "season": "20162017",
+    "stage": "regular",
+    "competition_id": "17",
+    "games": [
+        {
+            "id": "36763",
+            "date": "2017-03-08",
+            "scheduled_time": "2017-03-08T12:00:00+00:00",
+            "scheduled_venue_time": "2017-03-08T07:00:00",
+            "stage": "regular",
+            "away_team_id": "549",
+            "home_team_id": "1054",
+            "venue_id": "905",
+            "event_status": "over",
+            "score": {
+                "549": 8,
+                "1054": 4
+            },
+            "reference_id": null,
+            "reference_name": null,
+            "last_metrics_full_process_time": "2025-05-10T06:41:03.042Z"
+        },
+        {
+            "id": "36762",
+            "date": "2017-03-06",
+            "scheduled_time": "2017-03-06T12:00:00+00:00",
+            "scheduled_venue_time": "2017-03-06T07:00:00",
+            "stage": "regular",
+            "away_team_id": "91",
+            "home_team_id": "549",
+            "venue_id": "285",
+            "event_status": "over",
+            "score": {
+                "91": 4,
+                "549": 3
+            },
+            "reference_id": null,
+            "reference_name": null,
+            "last_metrics_full_process_time": "2025-02-10T07:40:18.587Z"
+        }
+    ]
+}

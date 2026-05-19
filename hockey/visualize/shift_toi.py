@@ -17,12 +17,27 @@ from hockey.normalize.build_competition import build_competition
 from hockey.model.game import Game
 from pathlib import Path
 from hockey.derive.current_shift_series import find_intervals, find_intervals, current_shift_toi_series
-settings = Settings.from_env(project_root=Path(__file__).resolve().parent)
+
+PLOT_VERSION = 4  # bump to invalidate _plotly_cache after visualization changes
+
+_TEAM_COLORS: dict[str, str] | None = None
+
+def _team_color(team_id: int, default: str) -> str:
+    global _TEAM_COLORS
+    if _TEAM_COLORS is None:
+        try:
+            import json
+            from pathlib import Path
+            path = Path(__file__).resolve().parent.parent / "config" / "team_colors.json"
+            _TEAM_COLORS = {k: v for k, v in json.loads(path.read_text()).items() if not k.startswith("_")}
+        except Exception:
+            _TEAM_COLORS = {}
+    return _TEAM_COLORS.get(str(team_id), default)
+
+
 def _game_end_time_seconds(game: Game, default: int = 3600) -> int:
-    # Prefer max event time if available; fall back to 3600.
     if game.events:
         return int(np.ceil(max(e.t for e in game.events)))
-    # If no events, try TOI:
     if game.toi:
         end_candidates = [x.end_t for x in game.toi if x.end_t is not None]
         if end_candidates:
@@ -31,14 +46,12 @@ def _game_end_time_seconds(game: Game, default: int = 3600) -> int:
 
 
 def _whistle_times(game: Game) -> list[float]:
-    # Using your current normalized event convention: whistle is an event with type == "whistle"
     ts = [e.t for e in game.events if getattr(e, "type", None) == "whistle"]
     ts.sort()
     return ts
 
 
 def _last_whistle_at_or_before(whistles: list[float], t: float) -> Optional[float]:
-    # whistles sorted ascending
     last = None
     for w in whistles:
         if w <= t:
@@ -75,7 +88,6 @@ def mean_shift_time_series(
     home_mean = np.zeros_like(times)
     away_mean = np.zeros_like(times)
 
-    # Split TOI intervals by team for cheaper filtering
     by_team: dict[int, list[ToIInterval]] = {home_id: [], away_id: []}
     for x in game.toi:
         if x.team_id in by_team:
@@ -99,7 +111,7 @@ def mean_shift_time_series(
             if target == "home":
                 home_mean[idx] = m
             else:
-                away_mean[idx] = -m  # away below axis
+                away_mean[idx] = -m
 
     return times, home_mean, away_mean
 
@@ -107,7 +119,7 @@ def mean_shift_time_series(
 def plot_shift_toi_with_grades(
     *,
     game: Game,
-    filename: str = "shift_toi.html",
+    filename: Optional[str] = "shift_toi.html",
     include_goalies: bool = False,
     reset_on_whistle: bool = True,
 ) -> go.Figure:
@@ -117,11 +129,12 @@ def plot_shift_toi_with_grades(
 
     marker_y_spacing = 25
     marker_min_x_spacing = 25
-    chance_colors = {"A": "green",
-                     "B": "orange",
-                     "C": "red"}
+    chance_colors = {"A": "#4ade80", "B": "#fb923c", "C": "#f87171"}
 
     end_time = _game_end_time_seconds(game, default=3600)
+    num_periods = max(3, (end_time + 1199) // 1200)
+    tick_vals = list(range(0, end_time + 1, 300))
+    tick_text = [str((t % 1200) // 60) for t in tick_vals]
     times = list(range(end_time))
     line_toi = game.shift_toi_series(range(end_time))
     home_mean = [t[game.info.home_team.id]['average_team_shift_toi'] for t in line_toi]
@@ -131,6 +144,9 @@ def plot_shift_toi_with_grades(
 
     home_name = game.info.home_team.display_name
     away_name = game.info.away_team.display_name
+    home_color = _team_color(game.info.home_team.id, "#60a5fa")
+    away_color = _team_color(game.info.away_team.id, "#f87171")
+
     fig.add_trace(
         go.Scatter(
             x=times,
@@ -138,7 +154,7 @@ def plot_shift_toi_with_grades(
             mode="lines",
             name=f"{home_name} mean shift TOI",
             hovertemplate="%{y:.0f} s<extra></extra>",
-            line=dict(color="royalblue", width=2),
+            line=dict(color=home_color, width=2),
         )
     )
 
@@ -148,9 +164,9 @@ def plot_shift_toi_with_grades(
             y=[-t for t in away_mean],
             mode="lines",
             name=f"{away_name} mean shift TOI",
-            hovertext = [f"{y:.0f}" for y in away_mean],
+            hovertext=[f"{y:.0f}" for y in away_mean],
             hovertemplate="%{hovertext} s<extra></extra>",
-            line=dict(color="firebrick", width=2),
+            line=dict(color=away_color, width=2),
         )
     )
     fig.add_trace(
@@ -160,29 +176,44 @@ def plot_shift_toi_with_grades(
             mode="lines",
             name=f"Difference ({home_name} - {away_name})",
             hovertemplate="%{y:.0f} s<extra></extra>",
-            line=dict(color="black", width=3),
+            line=dict(color="#cbd5e1", width=2),
         )
     )
 
-    # Grade markers (A/B/C) + vertical line at event time
     home_id = game.info.home_team.id
     away_id = game.info.away_team.id
 
     graded = [
         e for e in game.events
         if getattr(e, "grade", None) in {"A", "B", "C"} and
-           e.raw['team_skaters_on_ice'] == 5 and e.raw['opposing_team_skaters_on_ice'] == 5
+           e.get_raw('team_skaters_on_ice', 5) == 5 and
+           e.get_raw('opposing_team_skaters_on_ice', 5) == 5
     ]
 
-    # Put grade labels above/below plot with a bit of padding
     y_top = float(np.max(home_mean)) if len(home_mean) else 0.0
     y_bottom = -float(np.max(away_mean)) if len(away_mean) else 0.0
-    pad = 0 #max(5.0, 0.1 * max(y_top, abs(y_bottom), 1.0))
+    pad = 0
 
     shapes = []
+    for p in range(num_periods):
+        if p % 2 == 1:
+            shapes.append(dict(
+                type="rect", xref="x", yref="paper",
+                x0=p * 1200, x1=min((p + 1) * 1200, end_time),
+                y0=0, y1=1,
+                fillcolor="rgba(255,255,255,0.04)",
+                line_width=0, layer="below",
+            ))
+    for p in range(1, num_periods):
+        shapes.append(dict(
+            type="line", xref="x", yref="paper",
+            x0=p * 1200, x1=p * 1200,
+            y0=0, y1=1,
+            line=dict(color="#334155", width=1, dash="dot"),
+        ))
+
     home_x, home_y, home_text, home_marker_color, home_hoover_text = [], [], [], [], []
     away_x, away_y, away_text, away_marker_color, away_hoover_text = [], [], [], [], []
-
 
     for e in graded:
         x = float(e.t)
@@ -212,11 +243,6 @@ def plot_shift_toi_with_grades(
             seconds = (current_time - period * 1200) % 60
             time_str = f"{minutes}.{seconds:02d}"
             away_hoover_text.append(f"P{period+1} {time_str}")
-        else:
-            # If team is unknown/None, skip labeling (still keeps vertical line)
-            pass
-
-
 
     y_offset = 0
     for i in range(1, len(home_x)):
@@ -258,7 +284,6 @@ def plot_shift_toi_with_grades(
             )
         )
 
-
     if home_x:
         fig.add_trace(
             go.Scatter(
@@ -270,12 +295,11 @@ def plot_shift_toi_with_grades(
                 textposition="middle center",
                 hovertext=home_hoover_text,
                 hovertemplate="%{hovertext}<extra></extra>",
-                marker=dict(size=marker_size, color="black", line=dict(width=marker_line_width, color = home_marker_color)),#="firebrick")),
+                marker=dict(size=marker_size, color="#0f172a", line=dict(width=marker_line_width, color=home_marker_color)),
                 name=f"Grades ({home_name})",
                 showlegend=True,
             )
         )
-
 
     if away_x:
         fig.add_trace(
@@ -288,30 +312,70 @@ def plot_shift_toi_with_grades(
                 textposition="middle center",
                 hovertext=away_hoover_text,
                 hovertemplate="%{hovertext}<extra></extra>",
-                marker=dict(size=marker_size, color="black", line=dict(width=marker_line_width, color=away_marker_color)),
+                marker=dict(size=marker_size, color="#0f172a", line=dict(width=marker_line_width, color=away_marker_color)),
                 name=f"Grades ({away_name})",
                 showlegend=True,
             )
         )
 
+    period_annotations = [
+        dict(
+            x=(p + 0.5) * 1200, y=1.0, yref="paper",
+            text=f"P{p + 1}" if p < 3 else "OT",
+            showarrow=False,
+            font=dict(color="#475569", size=14),
+            xanchor="center", yanchor="bottom",
+        )
+        for p in range(num_periods)
+    ]
+
     fig.update_layout(
-        title="Mean current shift time on ice (skaters) + graded events",
-        xaxis=dict(title="Game time (s)", range=[0, end_time]),
-        yaxis=dict(title="Mean current shift TOI (s)", zeroline=True, zerolinewidth=1, zerolinecolor="gray"),
+        title=dict(
+            text=f"{home_name} vs {away_name} — Shift TOI & Scoring Chances",
+            font=dict(color="#e2e8f0", size=16),
+        ),
+        paper_bgcolor="#0f172a",
+        plot_bgcolor="#0f172a",
+        font=dict(color="#94a3b8", size=14),
+        xaxis=dict(
+            title=None,
+            range=[0, end_time],
+            tickvals=tick_vals,
+            ticktext=tick_text,
+            tickfont=dict(color="#64748b", size=14),
+            gridcolor="#1e293b",
+            zerolinecolor="#334155",
+            showline=False,
+        ),
+        yaxis=dict(
+            title="Shift TOI (s)",
+            titlefont=dict(color="#64748b", size=14),
+            tickfont=dict(color="#64748b", size=14),
+            zeroline=True, zerolinewidth=1, zerolinecolor="#475569",
+            gridcolor="#1e293b",
+            showline=False,
+        ),
+        legend=dict(
+            orientation="h",
+            yanchor="bottom", y=1.02,
+            xanchor="left", x=0,
+            font=dict(color="#94a3b8", size=14),
+            bgcolor="rgba(0,0,0,0)",
+        ),
         shapes=shapes,
-        height=800,
+        annotations=period_annotations,
+        height=750,
         hovermode="x unified",
+        margin=dict(t=80, b=40, l=60, r=20),
     )
 
-    fig.write_html(filename, auto_open=False)
+    if filename is not None:
+        fig.write_html(filename, auto_open=False)
     return fig
 
 
 if __name__ == "__main__":
+    settings = Settings.from_env(project_root=Path(__file__).resolve().parent)
     raw = RawGame(game_id=202401, root_dir=settings.data_root_dir)
     game = build_game(raw)
-    #intervals = [(shift.start_t, shift.end_t) for shift in game.toi]
-    #queries = list(set([shift.start_t for shift in game.toi]))
-    #queries = range(3600)
-    #toi = game.shift_toi_series(queries)
     plot_shift_toi_with_grades(game=game, filename="shift_toi.html")

@@ -1,0 +1,577 @@
+{
+    "season": "20212022",
+    "stage": "all",
+    "competition_id": "390",
+    "players": [
+        {
+            "id": "16721",
+            "first_name": "Rebecca",
+            "last_name": "Johnston",
+            "current_team_id": "2640",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-02-08T15:53:19.307Z"
+        },
+        {
+            "id": "16722",
+            "first_name": "Laura",
+            "last_name": "Stacey",
+            "current_team_id": "2640",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2023-12-06T20:30:53.004Z"
+        },
+        {
+            "id": "16723",
+            "first_name": "Sarah",
+            "last_name": "Fillier",
+            "current_team_id": "2640",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2024-12-07T16:27:11.814Z"
+        },
+        {
+            "id": "16724",
+            "first_name": "Jill",
+            "last_name": "Saulnier",
+            "current_team_id": "2640",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2023-12-06T20:35:03.168Z"
+        },
+        {
+            "id": "16725",
+            "first_name": "M\u00e9lodie",
+            "last_name": "Daoust",
+            "current_team_id": "2640",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2024-03-02T22:42:54.229Z"
+        },
+        {
+            "id": "16726",
+            "first_name": "Brianne",
+            "last_name": "Jenner",
+            "current_team_id": "2640",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2023-12-06T21:09:30.913Z"
+        },
+        {
+            "id": "16727",
+            "first_name": "Sarah",
+            "last_name": "Nurse",
+            "current_team_id": "2640",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2023-12-06T20:44:59.541Z"
+        },
+        {
+            "id": "16728",
+            "first_name": "Natalie",
+            "last_name": "Spooner",
+            "current_team_id": "2640",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2024-01-01T16:48:26.182Z"
+        },
+        {
+            "id": "16729",
+            "first_name": "Marie-Philip",
+            "last_name": "Poulin",
+            "current_team_id": "2640",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2023-12-06T20:29:18.818Z"
+        },
+        {
+            "id": "16731",
+            "first_name": "Blayre",
+            "last_name": "Turnbull",
+            "current_team_id": "2640",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2023-12-06T20:45:06.428Z"
+        },
+        {
+            "id": "16732",
+            "first_name": "Kristin",
+            "last_name": "O\u2019Neill",
+            "current_team_id": "2640",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2023-12-06T22:47:46.164Z"
+        },
+        {
+            "id": "16733",
+            "first_name": "Jamie Lee",
+            "last_name": "Rattray",
+            "current_team_id": "2640",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2024-01-04T01:44:10.560Z"
+        },
+        {
+            "id": "16734",
+            "first_name": "Victoria",
+            "last_name": "Bach",
+            "current_team_id": "2640",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2023-12-06T20:43:35.687Z"
+        },
+        {
+            "id": "16735",
+            "first_name": "Jocelyne",
+            "last_name": "Larocque",
+            "current_team_id": "2640",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2023-12-06T20:44:52.746Z"
+        },
+        {
+            "id": "16737",
+            "first_name": "Renata",
+            "last_name": "Fast",
+            "current_team_id": "2640",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2023-12-06T20:44:04.302Z"
+        },
+        {
+            "id": "16739",
+            "first_name": "Jaime",
+            "last_name": "Bourbonnais",
+            "current_team_id": "2640",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2023-12-06T20:31:06.576Z"
+        },
+        {
+            "id": "16740",
+            "first_name": "Micah",
+            "last_name": "Zandee-Hart",
+            "current_team_id": "2640",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2024-01-20T18:15:17.731Z"
+        },
+        {
+            "id": "16744",
+            "first_name": "Emerance",
+            "last_name": "Maschmeyer",
+            "current_team_id": "2640",
+            "position": "G",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2023-12-06T21:09:35.006Z"
+        },
+        {
+            "id": "16768",
+            "first_name": "Hannah",
+            "last_name": "Brandt",
+            "current_team_id": "2641",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2023-12-06T20:57:28.733Z"
+        },
+        {
+            "id": "16770",
+            "first_name": "Dani",
+            "last_name": "Cameranesi",
+            "current_team_id": "2641",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-03-06T21:46:22.884Z"
+        },
+        {
+            "id": "16771",
+            "first_name": "Kendall",
+            "last_name": "Coyne Schofield",
+            "current_team_id": "2641",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2024-01-04T01:42:45.259Z"
+        },
+        {
+            "id": "16772",
+            "first_name": "Brianna",
+            "last_name": "Decker",
+            "current_team_id": "2641",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-03-06T21:50:08.604Z"
+        },
+        {
+            "id": "16773",
+            "first_name": "Amanda",
+            "last_name": "Kessel",
+            "current_team_id": "2641",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-03-06T21:52:19.201Z"
+        },
+        {
+            "id": "16774",
+            "first_name": "Hilary",
+            "last_name": "Knight",
+            "current_team_id": "2641",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2023-12-06T21:01:27.878Z"
+        },
+        {
+            "id": "16778",
+            "first_name": "Kelly",
+            "last_name": "Pannek",
+            "current_team_id": "2641",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2023-12-06T20:42:55.009Z"
+        },
+        {
+            "id": "16780",
+            "first_name": "Cayla",
+            "last_name": "Barnes",
+            "current_team_id": "2641",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2024-11-30T22:24:04.658Z"
+        },
+        {
+            "id": "16782",
+            "first_name": "Megan",
+            "last_name": "Bozek",
+            "current_team_id": "2641",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-02-08T15:53:19.307Z"
+        },
+        {
+            "id": "16783",
+            "first_name": "Kali",
+            "last_name": "Flanagan",
+            "current_team_id": "2641",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2023-12-06T20:43:56.925Z"
+        },
+        {
+            "id": "16785",
+            "first_name": "Megan",
+            "last_name": "Keller",
+            "current_team_id": "2641",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2023-12-06T21:01:23.597Z"
+        },
+        {
+            "id": "16790",
+            "first_name": "Maddie",
+            "last_name": "Rooney",
+            "current_team_id": "2641",
+            "position": "G",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2024-01-01T21:56:48.118Z"
+        },
+        {
+            "id": "18385",
+            "first_name": "Alex",
+            "last_name": "Carpenter",
+            "current_team_id": "2641",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2023-12-06T20:31:12.683Z"
+        },
+        {
+            "id": "18387",
+            "first_name": "Savannah",
+            "last_name": "Harmon",
+            "current_team_id": "2641",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2023-12-06T21:08:59.313Z"
+        },
+        {
+            "id": "18391",
+            "first_name": "Hayley",
+            "last_name": "Scamurra",
+            "current_team_id": "2641",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2023-12-06T21:10:09.429Z"
+        },
+        {
+            "id": "18393",
+            "first_name": "Lee",
+            "last_name": "Stecklein",
+            "current_team_id": "2641",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2023-12-06T20:42:39.780Z"
+        },
+        {
+            "id": "18400",
+            "first_name": "Erin",
+            "last_name": "Ambrose",
+            "current_team_id": "2640",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2024-01-02T23:44:56.994Z"
+        },
+        {
+            "id": "19000",
+            "first_name": "Emily",
+            "last_name": "Clark",
+            "current_team_id": "2640",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2023-12-06T21:08:04.309Z"
+        },
+        {
+            "id": "19040",
+            "first_name": "Jesse",
+            "last_name": "Compher",
+            "current_team_id": "2641",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2023-12-06T20:43:53.217Z"
+        },
+        {
+            "id": "20608",
+            "first_name": "Lacey",
+            "last_name": "Eden",
+            "current_team_id": "2641",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2025-04-14T20:53:36.265Z"
+        },
+        {
+            "id": "20610",
+            "first_name": "Abbey",
+            "last_name": "Murphy",
+            "current_team_id": "2641",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2024-10-25T19:26:40.701Z"
+        },
+        {
+            "id": "20619",
+            "first_name": "Caroline",
+            "last_name": "Harvey",
+            "current_team_id": "2641",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2024-11-07T04:25:56.145Z"
+        },
+        {
+            "id": "20629",
+            "first_name": "Julia",
+            "last_name": "Gosling",
+            "current_team_id": "2640",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2024-11-20T19:16:46.894Z"
+        },
+        {
+            "id": "20631",
+            "first_name": "Emma",
+            "last_name": "Maltais",
+            "current_team_id": "2640",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2023-12-06T20:44:55.896Z"
+        },
+        {
+            "id": "20637",
+            "first_name": "Ashton",
+            "last_name": "Bell",
+            "current_team_id": "2640",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2023-12-06T21:07:34.664Z"
+        },
+        {
+            "id": "20641",
+            "first_name": "Ella",
+            "last_name": "Shelton",
+            "current_team_id": "2640",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2023-12-06T20:35:07.551Z"
+        },
+        {
+            "id": "20642",
+            "first_name": "Claire",
+            "last_name": "Thompson",
+            "current_team_id": "2640",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2024-11-21T19:42:15.890Z"
+        },
+        {
+            "id": "20650",
+            "first_name": "Natalie",
+            "last_name": "Buchbinder",
+            "current_team_id": "2641",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2024-01-01T21:57:16.477Z"
+        },
+        {
+            "id": "20651",
+            "first_name": "Britta",
+            "last_name": "Curl",
+            "current_team_id": "2641",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2024-11-20T19:18:41.814Z"
+        },
+        {
+            "id": "20667",
+            "first_name": "Grace",
+            "last_name": "Zumwinkle",
+            "current_team_id": "2641",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2023-12-06T20:42:30.057Z"
+        },
+        {
+            "id": "21820",
+            "first_name": "Meaghan",
+            "last_name": "Mikkelson",
+            "current_team_id": "2640",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-02-08T15:53:06.450Z"
+        },
+        {
+            "id": "21832",
+            "first_name": "Jessie",
+            "last_name": "Eldridge",
+            "current_team_id": "2640",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2023-12-06T20:32:01.900Z"
+        },
+        {
+            "id": "22472",
+            "first_name": "Nicole",
+            "last_name": "Hensley",
+            "current_team_id": "2641",
+            "position": "G",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2024-01-04T01:42:38.163Z"
+        },
+        {
+            "id": "22547",
+            "first_name": "Ann-Ren\u00e9e",
+            "last_name": "Desbiens",
+            "current_team_id": "2640",
+            "position": "G",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2024-01-01T22:03:18.790Z"
+        },
+        {
+            "id": "23182",
+            "first_name": "Alex",
+            "last_name": "Cavallini",
+            "current_team_id": "2641",
+            "position": "G",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2021-08-21T01:44:14.061Z"
+        },
+        {
+            "id": "23183",
+            "first_name": "Abby",
+            "last_name": "Roque",
+            "current_team_id": "2641",
+            "position": "F",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2023-12-06T20:34:58.464Z"
+        },
+        {
+            "id": "27865",
+            "first_name": "Jincy",
+            "last_name": "Roese",
+            "current_team_id": "2641",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2024-01-16T16:13:32.158Z"
+        },
+        {
+            "id": "28615",
+            "first_name": "Kristen",
+            "last_name": "Campbell",
+            "current_team_id": "2640",
+            "position": "G",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2024-01-01T21:47:09.616Z"
+        },
+        {
+            "id": "30435",
+            "first_name": "Anna",
+            "last_name": "Wilgren",
+            "current_team_id": "2641",
+            "position": "D",
+            "role": null,
+            "status": "Active",
+            "updated_on": "2024-11-20T19:11:49.750Z"
+        }
+    ]
+}

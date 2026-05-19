@@ -1,11 +1,8 @@
 import struct
 from azure.identity import InteractiveBrowserCredential
-import pyodbc
-import json
 from typing import List, Dict
-import database
+from hockey.db import database
 from hockey.config.settings import Settings
-import pathlib
 from pathlib import Path
 settings = Settings.from_env(project_root=Path(__file__).resolve().parent)
 from tqdm import tqdm
@@ -30,13 +27,15 @@ def ingest_players(players: List[Dict]):
         tenant_id: Azure tenant ID (optional)
     """
 
-    db = database.open_database()
+    #db = database.open_database()
+    db = database.open_database_azure()
     cursor = db.cursor()
     ctr=0
 
     for record in tqdm(players):
         try:
-            sql = "INSERT INTO player (sl_id, first_name, last_name) VALUES (%s, %s, %s)"
+            sql = ("INSERT INTO player (sl_id, first_name, last_name) VALUES (%s, %s, %s) "
+                   "ON DUPLICATE KEY UPDATE first_name=VALUES(first_name), last_name=VALUES(last_name)")
             cursor.execute(sql, (int(record['id']), record['first_name'], record['last_name']))
         except Exception as e:
             print(f"Error inserting league records: {e}")
@@ -48,8 +47,10 @@ def ingest_players(players: List[Dict]):
 
 
 if __name__ == "__main__":
-    # TODO: Replace with your Azure tenant ID
+    from hockey.catalog import DataCatalog
 
-    #leagues = json.load(open("/home/veronica/hockeystats/ver3/leagues/leagues.json", "r"))
-    players = json.load(open(settings.data_root_dir / 'leagues' / '13' / '20252026' / 'players.json' ))
-    ingest_players(players['players'])
+    LEAGUE_ID = 213
+    SEASON = "20242025"
+
+    catalog = DataCatalog(settings.data_root_dir)
+    ingest_players(catalog.season_players(LEAGUE_ID, SEASON))

@@ -1,0 +1,43 @@
+{
+    "season": "20172018",
+    "stage": "preseason",
+    "competition_id": "13",
+    "games": [
+        {
+            "id": "7514",
+            "date": "2017-09-10",
+            "scheduled_time": "2017-09-10T16:00:00+00:00",
+            "scheduled_venue_time": "2017-09-10T12:00:00",
+            "stage": "preseason",
+            "away_team_id": "309",
+            "home_team_id": "129",
+            "venue_id": "233",
+            "event_status": "over",
+            "score": {
+                "129": 3,
+                "309": 4
+            },
+            "reference_id": "required",
+            "reference_name": "SHL",
+            "last_metrics_full_process_time": "2025-02-10T07:45:26.278Z"
+        },
+        {
+            "id": "7337",
+            "date": "2017-08-10",
+            "scheduled_time": "2017-08-10T16:00:00+00:00",
+            "scheduled_venue_time": "2017-08-10T12:00:00",
+            "stage": "preseason",
+            "away_team_id": "200",
+            "home_team_id": "309",
+            "venue_id": "237",
+            "event_status": "over",
+            "score": {
+                "200": 3,
+                "309": 2
+            },
+            "reference_id": null,
+            "reference_name": null,
+            "last_metrics_full_process_time": "2025-01-16T07:33:43.563Z"
+        }
+    ]
+}
