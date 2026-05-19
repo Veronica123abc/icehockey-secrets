@@ -10,10 +10,11 @@
       1. Downloads the application code from GitHub
       2. Installs Python 3.11 (if not already installed)
       3. Creates a Python virtual environment and installs packages
-      4. Installs MySQL 8.0 (if not already installed)
-      5. Creates the database and schema
-      6. Prompts for your SportLogIQ and database credentials
-      7. Creates a double-clickable start.bat to launch the app
+      4. Installs Visual C++ 2019 Redistributable (required by MySQL)
+      5. Installs MySQL 8.0 (if not already installed)
+      6. Creates the database and schema
+      7. Prompts for your SportLogIQ and database credentials
+      8. Creates a double-clickable start.bat to launch the app
 #>
 
 #Requires -Version 5.1
@@ -22,8 +23,14 @@
 $REPO_ZIP_URL   = "https://github.com/Veronica123abc/icehockey-secrets/archive/refs/heads/master.zip"
 $REPO_SUBDIR    = "icehockey-secrets-master"   # folder name inside the extracted ZIP
 $PYTHON_URL     = "https://www.python.org/ftp/python/3.11.9/python-3.11.9-amd64.exe"
-$MYSQL_URL      = "https://dev.mysql.com/get/Downloads/MySQL-8.0/mysql-8.0.39-winx64.zip"
-$MYSQL_SUBDIR   = "mysql-8.0.39-winx64"        # folder name inside the MySQL ZIP
+$MYSQL_VERSION  = "8.0.46"   # final MySQL 8.0 release; update here if needed
+# Tried in order -- first URL that succeeds is used
+$MYSQL_URLS = @(
+    "https://cdn.mysql.com/Downloads/MySQL-8.0/mysql-$MYSQL_VERSION-winx64.zip",
+    "https://dev.mysql.com/get/Downloads/MySQL-8.0/mysql-$MYSQL_VERSION-winx64.zip",
+    "https://ftp.osuosl.org/pub/mysql/Downloads/MySQL-8.0/mysql-$MYSQL_VERSION-winx64.zip",
+    "https://mirrors.dotsrc.org/mysql/Downloads/MySQL-8.0/mysql-$MYSQL_VERSION-winx64.zip"
+)
 # -----------------------------------------------------------------------------
 
 $ErrorActionPreference = "Stop"
@@ -50,8 +57,13 @@ function Refresh-Path {
 }
 
 function Download-File($url, $dest) {
-    Write-Info "Downloading $([System.IO.Path]::GetFileName($dest)) ..."
+    if (-not $url) {
+        Write-Err "BUG: Download-File called with empty URL (dest=$dest). Check that all config variables are set."
+        Read-Host; exit 1
+    }
+    Write-Info "Downloading: $url"
     $wc = New-Object System.Net.WebClient
+    $wc.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36")
     $wc.DownloadFile($url, $dest)
 }
 
@@ -106,20 +118,45 @@ Set-Location $appDir
 # --- Step 2: Python 3.11 -----------------------------------------------------
 Write-Step 2 "Python 3.11"
 
-# $pyCmd holds the command array used for all subsequent Python invocations
-$pyCmd = $null
-try {
-    $v = & py -3.11 --version 2>&1
-    if ("$v" -match "3\.11") { $pyCmd = @("py", "-3.11"); Write-OK "Found: $v" }
-} catch {}
-if (-not $pyCmd) {
+function Find-Python311 {
+    # Ask the py launcher for the actual executable path
+    try {
+        $exe = (& py -3.11 -c "import sys; print(sys.executable)" 2>&1).Trim()
+        if ((Test-Path $exe) -and ("$(& `"$exe`" --version 2>&1)" -match "3\.11")) {
+            return $exe
+        }
+    } catch {}
+
+    # Check if the python in PATH is 3.11
     try {
         $v = & python --version 2>&1
-        if ("$v" -match "3\.11") { $pyCmd = @("python"); Write-OK "Found: $v" }
+        if ("$v" -match "3\.11") {
+            $src = (Get-Command python -ErrorAction SilentlyContinue).Source
+            if ($src) { return $src }
+        }
     } catch {}
+
+    # Check known install locations (AllUsers install and per-user install)
+    $candidates = @(
+        "C:\Program Files\Python311\python.exe",
+        "C:\Python311\python.exe",
+        "$env:LOCALAPPDATA\Programs\Python\Python311\python.exe"
+    )
+    foreach ($c in $candidates) {
+        if (Test-Path $c) {
+            $v = & "$c" --version 2>&1
+            if ("$v" -match "3\.11") { return $c }
+        }
+    }
+    return $null
 }
 
-if (-not $pyCmd) {
+$python311 = Find-Python311
+if ($python311) {
+    $v = & "$python311" --version 2>&1
+    Write-OK "Found: $v"
+    Write-Info "Path: $python311"
+} else {
     Write-Info "Python 3.11 not found. Downloading installer (~27 MB)..."
     $pyInst = "$env:TEMP\python311_setup.exe"
     Download-File $PYTHON_URL $pyInst
@@ -132,8 +169,13 @@ if (-not $pyCmd) {
         Read-Host; exit 1
     }
     Refresh-Path
-    $pyCmd = @("py", "-3.11")
+    $python311 = Find-Python311
+    if (-not $python311) {
+        # MSI installs to this path with InstallAllUsers=1
+        $python311 = "C:\Program Files\Python311\python.exe"
+    }
     Write-OK "Python 3.11 installed"
+    Write-Info "Path: $python311"
 }
 
 # --- Step 3: Virtual environment and packages --------------------------------
@@ -142,163 +184,269 @@ Write-Step 3 "Python virtual environment and packages"
 $venvPython = "$appDir\venv\Scripts\python.exe"
 $venvPip    = "$appDir\venv\Scripts\pip.exe"
 
+# Clean up a broken venv (e.g. from a previous interrupted run)
+if ((Test-Path "$appDir\venv") -and (-not (Test-Path $venvPython))) {
+    Write-Info "Incomplete virtual environment detected -- recreating..."
+    Remove-Item "$appDir\venv" -Recurse -Force
+}
+
 if (-not (Test-Path $venvPython)) {
-    Write-Info "Creating virtual environment..."
-    $pyExtra = if ($pyCmd.Count -gt 1) { $pyCmd[1..($pyCmd.Count - 1)] } else { @() }
-    & $pyCmd[0] @pyExtra -m venv "$appDir\venv"
+    Write-Info "Creating virtual environment with $python311 ..."
+    & "$python311" -m venv "$appDir\venv"
+    if ($LASTEXITCODE -ne 0 -or -not (Test-Path $venvPython)) {
+        Write-Err "Virtual environment creation failed."
+        Read-Host; exit 1
+    }
     Write-OK "Virtual environment created"
 } else {
     Write-Info "Virtual environment already exists -- skipping."
 }
 
 Write-Info "Installing Python packages (this takes a few minutes)..."
-& $venvPip install --upgrade pip --quiet 2>&1 | Out-Null
-& $venvPip install -r "$appDir\requirements.txt"
+& $venvPython -m pip install --upgrade pip --quiet 2>&1 | Out-Null
+& $venvPython -m pip install -r "$appDir\requirements.txt"
 if ($LASTEXITCODE -ne 0) {
     Write-Err "Package installation failed. Check your internet connection and try again."
     Read-Host; exit 1
 }
 Write-OK "Packages installed"
 
-# --- Step 4: MySQL 8.0 -------------------------------------------------------
-Write-Step 4 "MySQL 8.0"
+# --- Step 4: Visual C++ 2019 Redistributable (required by MySQL) -------------
+Write-Step 4 "Visual C++ 2019 Redistributable"
 
-$mysqlDir    = "$installDir\mysql"
-$mysqlData   = "$installDir\mysql-data"
-$mysqldExe   = "$mysqlDir\bin\mysqld.exe"
-$mysqlExe    = "$mysqlDir\bin\mysql.exe"
-$myIni       = "$installDir\my.ini"
-$usingExternalMySQL = $false
-$rootPwdArgs = @()
+Write-Info "Downloading Visual C++ 2019 Redistributable (~25 MB)..."
+$vcInst = "$env:TEMP\vc_redist.x64.exe"
+Download-File "https://aka.ms/vs/17/release/vc_redist.x64.exe" $vcInst
+Write-Info "Installing (safe to run even if already installed)..."
+$p = Start-Process -FilePath $vcInst -Wait -PassThru -ArgumentList "/install /quiet /norestart"
+Remove-Item $vcInst -ErrorAction SilentlyContinue
+# 0 = success, 1638 = newer version already installed, 3010 = success + reboot suggested
+if ($p.ExitCode -notin @(0, 1638, 3010)) {
+    Write-Err "Visual C++ installer failed (exit $($p.ExitCode))."
+    Read-Host; exit 1
+}
+Write-OK "Visual C++ 2019 Redistributable ready"
 
-# Check for an existing MySQL/MariaDB installation
-$existingSvc = Get-Service -Name "MySQL*", "MariaDB*" -ErrorAction SilentlyContinue |
+# --- Step 5: MySQL 8.0 -------------------------------------------------------
+Write-Step 5 "MySQL 8.0"
+
+$mysqlDir  = "$installDir\mysql"
+$mysqlData = "$installDir\mysql-data"
+$mysqldExe = "$mysqlDir\bin\mysqld.exe"
+$mysqlExe  = "$mysqlDir\bin\mysql.exe"
+$myIni     = "$installDir\my.ini"
+
+function Find-MysqlExe {
+    $candidates = @(
+        "$mysqlDir\bin\mysql.exe",
+        "C:\Program Files\MySQL\MySQL Server 8.0\bin\mysql.exe",
+        "C:\Program Files\MySQL\MySQL Server 8.4\bin\mysql.exe",
+        "C:\xampp\mysql\bin\mysql.exe"
+    )
+    foreach ($c in $candidates) { if (Test-Path $c) { return $c } }
+    $found = Get-Command mysql -ErrorAction SilentlyContinue
+    if ($found) { return $found.Source }
+    return $null
+}
+
+# If a HockeyMySQL service exists but either binary is missing, the previous install
+# was incomplete. Remove the service and the partial mysql directory so we start clean.
+$staleHockey = Get-Service -Name "HockeyMySQL" -ErrorAction SilentlyContinue
+if ($staleHockey -and -not ((Test-Path $mysqldExe) -and (Test-Path $mysqlExe))) {
+    Write-Info "Removing incomplete/stale HockeyMySQL service (left by a previous install attempt)..."
+    if ($staleHockey.Status -eq "Running") { Stop-Service HockeyMySQL -Force -ErrorAction SilentlyContinue }
+    & sc.exe delete HockeyMySQL | Out-Null
+    Start-Sleep 2
+    if (Test-Path $mysqlDir) { Remove-Item $mysqlDir -Recurse -Force -ErrorAction SilentlyContinue }
+    Write-OK "Stale service and partial files removed"
+}
+
+# Check for any already-running MySQL service with both binaries present
+$existingSvc = Get-Service -Name "MySQL*", "HockeyMySQL" -ErrorAction SilentlyContinue |
     Where-Object { $_.Status -eq "Running" } |
     Select-Object -First 1
+$ourMysqlReady = $existingSvc -and (Test-Path $mysqldExe) -and (Test-Path $mysqlExe)
 
-if ($existingSvc) {
-    Write-Info "Found existing MySQL/MariaDB service: $($existingSvc.Name)"
-    $systemMysql = Get-Command mysql -ErrorAction SilentlyContinue
-    if ($systemMysql) {
-        $mysqlExe = $systemMysql.Source
-        Write-OK "Using existing MySQL at $mysqlExe"
-    } else {
-        Write-Info "mysql.exe not in PATH -- checking common install locations..."
-        $candidates = @(
-            "C:\Program Files\MySQL\MySQL Server 8.0\bin\mysql.exe",
-            "C:\Program Files\MySQL\MySQL Server 5.7\bin\mysql.exe",
-            "C:\xampp\mysql\bin\mysql.exe"
-        )
-        foreach ($c in $candidates) {
-            if (Test-Path $c) { $mysqlExe = $c; break }
-        }
-    }
-    $usingExternalMySQL = $true
-    Write-Info "Will use existing MySQL installation."
+if ($ourMysqlReady) {
+    Write-Info "MySQL already installed and running ($($existingSvc.Name))."
+    Write-OK "Using MySQL at $mysqlExe"
 } else {
-    # Install MySQL from ZIP -- no GUI, fully automated
-    if (Test-Path $mysqldExe) {
-        Write-Info "MySQL already extracted to $mysqlDir"
-    } else {
+    # Install MySQL from the CDN ZIP (no GUI, fully automated)
+    if (-not (Test-Path $mysqldExe)) {
         $mysqlZip = "$env:TEMP\mysql_server.zip"
-        Write-Info "Downloading MySQL 8.0 (~200 MB -- this is the longest step)..."
-        Download-File $MYSQL_URL $mysqlZip
-        Write-Info "Extracting MySQL..."
+        Write-Info "Downloading MySQL $MYSQL_VERSION (~250 MB -- the longest step)..."
+        $downloaded = $false
+        foreach ($url in $MYSQL_URLS) {
+            Write-Info "Trying $url ..."
+            try {
+                Download-File $url $mysqlZip
+                $downloaded = $true
+                break
+            } catch {
+                Write-Info "Failed: $($_.Exception.Message)"
+            }
+        }
+        if (-not $downloaded) {
+            Write-Err "Could not download MySQL from any mirror. Check your internet connection and try again."
+            Read-Host; exit 1
+        }
+        Write-Info "Extracting..."
         $tmpExtract = "$env:TEMP\mysql_extract"
         Expand-Archive -LiteralPath $mysqlZip -DestinationPath $tmpExtract -Force
         if (Test-Path $mysqlDir) { Remove-Item $mysqlDir -Recurse -Force }
-        Move-Item "$tmpExtract\$MYSQL_SUBDIR" $mysqlDir
+        Move-Item "$tmpExtract\mysql-$MYSQL_VERSION-winx64" $mysqlDir
         Remove-Item $tmpExtract, $mysqlZip -Recurse -ErrorAction SilentlyContinue
         Write-OK "MySQL extracted to $mysqlDir"
+    } else {
+        Write-Info "MySQL already extracted -- skipping download."
     }
 
-    # Write my.ini using forward slashes (mysqld prefers them on Windows)
+    # Write my.ini (mysqld prefers forward slashes on Windows)
     $fwdMysqlDir  = $mysqlDir.Replace("\", "/")
     $fwdMysqlData = $mysqlData.Replace("\", "/")
-    $myIniContent = "[mysqld]`nbasedir=$fwdMysqlDir`ndatadir=$fwdMysqlData`nport=3306`ndefault_authentication_plugin=mysql_native_password`n`n[mysql]`ndefault-character-set=utf8mb4`n"
-    Set-Content -Path $myIni -Value $myIniContent -Encoding ASCII
+    $myIniContent = "[mysqld]`r`nbasedir=$fwdMysqlDir`r`ndatadir=$fwdMysqlData`r`nport=3306`r`ndefault_authentication_plugin=mysql_native_password`r`n`r`n[mysql]`r`ndefault-character-set=utf8mb4`r`n"
+    [System.IO.File]::WriteAllText($myIni, $myIniContent, [System.Text.Encoding]::ASCII)
 
-    # Initialize data directory if not done yet
+    # Initialise data directory (only on first run)
     if (-not (Test-Path "$mysqlData\mysql")) {
-        Write-Info "Initializing MySQL data directory..."
+        Write-Info "Initialising MySQL data directory..."
         New-Item -ItemType Directory -Path $mysqlData -Force | Out-Null
         $proc = Start-Process -FilePath $mysqldExe -Wait -PassThru -WindowStyle Hidden `
             -ArgumentList "--defaults-file=`"$myIni`"", "--initialize-insecure", "--datadir=`"$mysqlData`""
         if ($proc.ExitCode -ne 0) {
-            Write-Err "MySQL initialization failed (exit $($proc.ExitCode))."
+            Write-Err "MySQL initialisation failed (exit $($proc.ExitCode))."
             Read-Host; exit 1
         }
-        Write-OK "MySQL data directory initialized"
+        Write-OK "Data directory initialised"
     }
 
-    # Register as Windows service if not already registered
-    $hockeySvc = Get-Service -Name "HockeyMySQL" -ErrorAction SilentlyContinue
-    if (-not $hockeySvc) {
-        Write-Info "Registering MySQL as a Windows service..."
-        & $mysqldExe --install HockeyMySQL "--defaults-file=$myIni" | Out-Null
-        Write-OK "MySQL service registered"
+    # Verify the extraction actually produced mysql.exe before going further
+    if (-not (Test-Path $mysqlExe)) {
+        Write-Err "mysql.exe not found at $mysqlExe after extraction."
+        Write-Info "The ZIP may have extracted to a different folder name."
+        Write-Info "Check $($installDir) and look for a mysql-*/bin/mysql.exe."
+        Read-Host; exit 1
     }
 
-    # Start the service
-    $hockeySvc = Get-Service -Name "HockeyMySQL" -ErrorAction SilentlyContinue
-    if ($hockeySvc.Status -ne "Running") {
-        Write-Info "Starting MySQL service..."
-        Start-Service HockeyMySQL
-        Write-Info "Waiting for MySQL to come up..."
+    # Always (re-)register the service so it points to the current my.ini.
+    # A stale registration from a previous run is the most common cause of start failure.
+    $svc = Get-Service -Name "HockeyMySQL" -ErrorAction SilentlyContinue
+    if ($svc) {
+        if ($svc.Status -eq "Running") { Stop-Service HockeyMySQL -Force -ErrorAction SilentlyContinue }
+        & sc.exe delete HockeyMySQL | Out-Null
+        Start-Sleep 3
+    }
+    Write-Info "Registering MySQL as a Windows service..."
+    & $mysqldExe --install HockeyMySQL "--defaults-file=$myIni"
+    Write-OK "Service registered"
+
+    Write-Info "Starting MySQL service..."
+    try {
+        Start-Service HockeyMySQL -ErrorAction Stop
         Start-Sleep 8
+    } catch {
+        Write-Err "MySQL service failed to start: $($_.Exception.Message)"
+        $errLog = Get-ChildItem $mysqlData -Filter "*.err" -ErrorAction SilentlyContinue |
+                  Select-Object -First 1
+        if ($errLog) {
+            Write-Host "  MySQL error log ($($errLog.FullName)) -- last 30 lines:" -ForegroundColor Yellow
+            Get-Content $errLog.FullName -Tail 30 | ForEach-Object { Write-Host "    $_" }
+        } else {
+            Write-Info "No MySQL error log found in $mysqlData -- check Windows Event Viewer."
+        }
+        Read-Host; exit 1
     }
     Write-OK "MySQL service is running"
 }
 
-# --- Step 5: Database credentials and schema ---------------------------------
-Write-Step 5 "Database setup"
+# --- Step 6: Database credentials and schema ---------------------------------
+Write-Step 6 "Database setup"
 
-if ($usingExternalMySQL) {
-    Write-Host "  MySQL root password (press ENTER if none): " -NoNewline
-    $rootSs  = Read-Host -AsSecureString
-    $rootPwd = SecureToPlain $rootSs
-    if ($rootPwd) { $rootPwdArgs = @("-p$rootPwd") }
-}
-
-$defaultDbUser = "hockeyuser"
-$dbUser = (Read-Host "  Database username for the app (press ENTER for '$defaultDbUser')").Trim()
-if (-not $dbUser) { $dbUser = $defaultDbUser }
-
+Write-Host ""
+Write-Host "  Choose a username and password for the app's MySQL account."
+Write-Host "  (These will be created automatically -- you can pick anything you like.)"
+Write-Host ""
+$dbUser = (Read-Host "  Database username (press ENTER for 'hockeyuser')").Trim()
+if (-not $dbUser) { $dbUser = "hockeyuser" }
 $dbPwd = ""
 while (-not $dbPwd) {
-    Write-Host "  Password for database user '$dbUser': " -NoNewline
+    Write-Host "  Database password: " -NoNewline
     $dbPwd = SecureToPlain (Read-Host -AsSecureString)
     if (-not $dbPwd) { Write-Info "Password cannot be empty. Please try again." }
 }
 
-# Create database and user
+function Invoke-Mysql($argList, $sqlFile) {
+    $errFile = "$env:TEMP\mysql_stderr.txt"
+    $proc = Start-Process -FilePath $mysqlExe `
+        -ArgumentList $argList `
+        -RedirectStandardInput $sqlFile `
+        -RedirectStandardError $errFile `
+        -Wait -PassThru -WindowStyle Hidden
+    $raw     = if (Test-Path $errFile) { Get-Content $errFile -Raw } else { $null }
+    $errText = if ($raw) { $raw.Trim() } else { "" }
+    Remove-Item $errFile -ErrorAction SilentlyContinue
+    return @{ Code = $proc.ExitCode; Err = $errText }
+}
+
+function Write-SqlFile($path, $lines) {
+    # Use ASCII to avoid the UTF-8 BOM that PS 5.1 adds, which MySQL misreads.
+    [System.IO.File]::WriteAllText($path, ($lines -join "`r`n"), [System.Text.Encoding]::ASCII)
+}
+
+# Try connecting as root with no password first; if that fails ask for it.
+$rootArgList = @("-u", "root")
+$pingFile    = "$env:TEMP\hockey_ping.sql"
+Write-SqlFile $pingFile @("SELECT 1;")
+
+Write-Info "Testing connection to MySQL..."
+$ping = Invoke-Mysql $rootArgList $pingFile
+if ($ping.Code -ne 0) {
+    Write-Host ""
+    Write-Host "  MySQL root password (press ENTER if none was set during install): " -NoNewline
+    $rootPwd = SecureToPlain (Read-Host -AsSecureString)
+    if ($rootPwd) { $rootArgList += "-p$rootPwd" }
+
+    $ping = Invoke-Mysql $rootArgList $pingFile
+    if ($ping.Code -ne 0) {
+        Write-Err "Cannot connect to MySQL as root."
+        if ($ping.Err) { Write-Host "      MySQL says: $($ping.Err)" -ForegroundColor Red }
+        Write-Host "  Tip: re-run setup.bat -- the service sometimes needs an extra minute." -ForegroundColor Yellow
+        Remove-Item $pingFile -ErrorAction SilentlyContinue
+        Read-Host; exit 1
+    }
+}
+Remove-Item $pingFile -ErrorAction SilentlyContinue
+Write-OK "Connected to MySQL"
+
 Write-Info "Creating database and user..."
-$setupSql = "CREATE DATABASE IF NOT EXISTS sportlogiq CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci; " +
-            "CREATE USER IF NOT EXISTS '${dbUser}'@'localhost' IDENTIFIED WITH mysql_native_password BY '${dbPwd}'; " +
-            "GRANT ALL PRIVILEGES ON sportlogiq.* TO '${dbUser}'@'localhost'; " +
-            "FLUSH PRIVILEGES;"
-& $mysqlExe -u root @rootPwdArgs -e $setupSql
-if ($LASTEXITCODE -ne 0) {
-    Write-Err "Could not create the database or user. Check the MySQL root password."
+$setupFile = "$env:TEMP\hockey_setup.sql"
+Write-SqlFile $setupFile @(
+    "CREATE DATABASE IF NOT EXISTS sportlogiq CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;",
+    "CREATE USER IF NOT EXISTS '${dbUser}'@'localhost' IDENTIFIED WITH mysql_native_password BY '${dbPwd}';",
+    "GRANT ALL PRIVILEGES ON sportlogiq.* TO '${dbUser}'@'localhost';",
+    "FLUSH PRIVILEGES;"
+)
+$result = Invoke-Mysql $rootArgList $setupFile
+Remove-Item $setupFile -ErrorAction SilentlyContinue
+if ($result.Code -ne 0) {
+    Write-Err "Could not create database or user."
+    if ($result.Err) { Write-Host "      MySQL says: $($result.Err)" -ForegroundColor Red }
     Read-Host; exit 1
 }
 
-# Load schema via a temporary batch file to avoid PowerShell redirect quoting issues
 Write-Info "Loading database schema..."
 $schemaPath = "$appDir\hockey\db\schema\schema.sql"
-$rootFlag   = if ($rootPwdArgs) { $rootPwdArgs[0] } else { "" }
-$tmpBat     = "$env:TEMP\load_schema.bat"
-Set-Content -Path $tmpBat -Encoding ASCII -Value "@echo off`r`n`"$mysqlExe`" -u root $rootFlag sportlogiq < `"$schemaPath`"`r`n"
-& cmd /c $tmpBat
-Remove-Item $tmpBat -ErrorAction SilentlyContinue
-if ($LASTEXITCODE -ne 0) {
-    Write-Err "Schema load failed. Check that MySQL is running and the root password is correct."
+$schemaArgs = $rootArgList + @("sportlogiq")
+$result = Invoke-Mysql $schemaArgs $schemaPath
+if ($result.Code -ne 0) {
+    Write-Err "Schema load failed."
+    if ($result.Err) { Write-Host "      MySQL says: $($result.Err)" -ForegroundColor Red }
     Read-Host; exit 1
 }
 Write-OK "Database schema loaded"
 
-# --- Step 6: SportLogIQ credentials ------------------------------------------
-Write-Step 6 "SportLogIQ credentials"
+# --- Step 7: SportLogIQ credentials ------------------------------------------
+Write-Step 7 "SportLogIQ credentials"
 Write-Host ""
 Write-Host "  Enter the username and password for your SportLogIQ account."
 Write-Host "  These are used to download game data on demand."
@@ -311,16 +459,16 @@ while (-not $slPwd) {
     if (-not $slPwd) { Write-Info "Password cannot be empty. Please try again." }
 }
 
-# --- Step 7: Game data directory ---------------------------------------------
-Write-Step 7 "Game data directory"
+# --- Step 8: Game data directory ---------------------------------------------
+Write-Step 8 "Game data directory"
 $defaultData = "$installDir\data"
 $dataDir = (Read-Host "  Where should game files be stored? (press ENTER for $defaultData)").Trim()
 if (-not $dataDir) { $dataDir = $defaultData }
 New-Item -ItemType Directory -Path $dataDir -Force | Out-Null
 Write-OK "Game data directory: $dataDir"
 
-# --- Step 8: Write .env ------------------------------------------------------
-Write-Step 8 "Writing configuration"
+# --- Step 9: Write .env ------------------------------------------------------
+Write-Step 9 "Writing configuration"
 
 $envLines = @(
     "DATA_ROOT_DIR=$dataDir",
