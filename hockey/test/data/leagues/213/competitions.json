@@ -1,0 +1,91 @@
+{
+    "id": "213",
+    "name": "IIHF World Championship",
+    "seasons": [
+        {
+            "name": "20252026",
+            "stages": [
+                {
+                    "name": "regular",
+                    "start_date": "2026-05-15",
+                    "end_date": "2026-05-15"
+                }
+            ]
+        },
+        {
+            "name": "20242025",
+            "stages": [
+                {
+                    "name": "regular",
+                    "start_date": "2025-05-09",
+                    "end_date": "2025-05-25"
+                }
+            ]
+        },
+        {
+            "name": "20232024",
+            "stages": [
+                {
+                    "name": "regular",
+                    "start_date": "2024-05-10",
+                    "end_date": "2024-05-26"
+                }
+            ]
+        },
+        {
+            "name": "20222023",
+            "stages": [
+                {
+                    "name": "regular",
+                    "start_date": "2023-05-12",
+                    "end_date": "2023-05-28"
+                }
+            ]
+        },
+        {
+            "name": "20212022",
+            "stages": [
+                {
+                    "name": "regular",
+                    "start_date": "2022-05-13",
+                    "end_date": "2022-05-29"
+                }
+            ]
+        },
+        {
+            "name": "20202021",
+            "stages": [
+                {
+                    "name": "regular",
+                    "start_date": "2021-05-21",
+                    "end_date": "2021-06-06"
+                }
+            ]
+        },
+        {
+            "name": "20182019",
+            "stages": [
+                {
+                    "name": "playoffs",
+                    "start_date": "2019-05-23",
+                    "end_date": "2019-05-26"
+                },
+                {
+                    "name": "regular",
+                    "start_date": "2019-05-10",
+                    "end_date": "2019-05-26"
+                }
+            ]
+        },
+        {
+            "name": "20172018",
+            "stages": [
+                {
+                    "name": "regular",
+                    "start_date": "2018-05-08",
+                    "end_date": "2018-05-20"
+                }
+            ]
+        }
+    ]
+}
