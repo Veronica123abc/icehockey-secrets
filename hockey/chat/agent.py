@@ -109,12 +109,8 @@ def chat(question: str, session_id: str) -> dict:
 
     messages = result["messages"]
 
-    answer = ""
-    for msg in reversed(messages):
-        if isinstance(msg, AIMessage) and not msg.tool_calls:
-            content = msg.content
-            answer = content if isinstance(content, str) else str(content)
-            break
+    last = messages[-1]
+    answer = last.content if isinstance(last.content, str) else str(last.content)
 
     sql = None
     for msg in reversed(messages):

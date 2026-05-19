@@ -30,7 +30,7 @@ def download_missing_games(
 
 
 if __name__ == "__main__":
-    LEAGUE_ID = 13
+    LEAGUE_ID = 39
     SEASON = "20252026"
 
     catalog = DataCatalog(settings.data_root_dir)
