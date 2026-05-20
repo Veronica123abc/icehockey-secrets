@@ -66,16 +66,10 @@ class Settings:
                 data_root_path = (project_root / data_root_path).resolve()
             if not output_path.is_absolute():
                 output_path = (project_root / output_path).resolve()
-            project_root = Path(data_root_path)
 
         return cls(
             data_root_dir=data_root_path,
             output_dir=output_path,
-        )
-
-        return cls(
-            data_root_dir=Path(data_root).expanduser(),
-            output_dir=Path(output_dir).expanduser(),
         )
 
     def data_path(self, *parts: str | Path) -> Path:
