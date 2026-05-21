@@ -5,6 +5,7 @@ Provides: /api/leagues, /api/leagues/<id>/seasons,
           /api/leagues/<id>/seasons/<s>/stages,
           /api/leagues/<id>/seasons/<s>/stages/<st>/games,
           /api/leagues/<id>/games/recent
+          POST /admin/refresh-manifests  (requires X-Admin-Secret header)
 """
 from __future__ import annotations
 
@@ -19,9 +20,8 @@ filter_bp = Blueprint("filter", __name__)
 _teams_cache: dict[str, str] | None = None
 _leagues_cache: list[dict] | None = None
 _competition_cache: dict[str, dict] = {}
+_games_cache: dict[str, list] = {}  # keyed by "league_id/season"
 _STAGE_ORDER = {"preseason": 0, "regular": 1, "playoffs": 2}
-
-_MANIFEST_DIR = Path(__file__).resolve().parent / "hockey" / "manifests"
 
 
 def _data_root() -> Path | None:
@@ -32,6 +32,30 @@ def _data_root() -> Path | None:
     if p.exists() and p.is_dir():
         return p
     return None
+
+
+_REPO_MANIFEST_DIR = Path(__file__).resolve().parent / "hockey" / "manifests"
+
+
+def _manifest_dir() -> Path:
+    """Per-league trees (competitions, games). Lives under DATA_ROOT_DIR/leagues/."""
+    root = _data_root()
+    if root:
+        return root / "leagues"
+    return _REPO_MANIFEST_DIR
+
+
+def _global_manifest_file(filename: str) -> Path:
+    """Global lookups (teams.json, leagues.json). Lives at DATA_ROOT_DIR root."""
+    root = _data_root()
+    if root:
+        p = root / filename
+        if p.exists():
+            return p
+    return _REPO_MANIFEST_DIR / filename
+
+
+_MANIFEST_DIR = _manifest_dir()
 
 
 def _is_safe_segment(s: str) -> bool:
@@ -61,7 +85,7 @@ def _load_teams() -> dict[str, str]:
     if _teams_cache is not None:
         return _teams_cache
     try:
-        with (_MANIFEST_DIR / "teams.json").open("r", encoding="utf-8") as f:
+        with _global_manifest_file("teams.json").open("r", encoding="utf-8") as f:
             data = json.load(f)
         teams_list = _extract_list(data)
         _teams_cache = {
@@ -91,11 +115,47 @@ def _load_leagues() -> list[dict]:
     if _leagues_cache is not None:
         return _leagues_cache
     try:
-        with (_MANIFEST_DIR / "leagues.json").open("r", encoding="utf-8") as f:
+        with _global_manifest_file("leagues.json").open("r", encoding="utf-8") as f:
             _leagues_cache = json.load(f)
     except Exception:
         _leagues_cache = []
     return _leagues_cache
+
+
+def _get_games(league_id: str, season: str) -> list:
+    key = f"{league_id}/{season}"
+    if key not in _games_cache:
+        games_path = _MANIFEST_DIR / league_id / season / "games.json"
+        try:
+            with games_path.open("r", encoding="utf-8") as f:
+                _games_cache[key] = _extract_list(json.load(f))
+        except Exception:
+            _games_cache[key] = []
+    return _games_cache[key]
+
+
+def _clear_caches() -> None:
+    global _teams_cache, _leagues_cache, _competition_cache, _games_cache
+    _teams_cache = None
+    _leagues_cache = None
+    _competition_cache = {}
+    _games_cache = {}
+
+
+def _warm_caches() -> None:
+    """Eagerly load all manifests into memory at startup."""
+    _load_teams()
+    _load_leagues()
+    manifest_dir = _manifest_dir()
+    if not manifest_dir.exists():
+        return
+    for league_dir in sorted(manifest_dir.iterdir()):
+        if not league_dir.is_dir() or not league_dir.name.isdigit():
+            continue
+        comp = _load_competition(league_dir.name)
+        if comp:
+            for season in comp.get("seasons", []):
+                _get_games(league_dir.name, season["name"])
 
 
 def _format_games(game_list: list, teams: dict) -> list[dict]:
@@ -156,14 +216,9 @@ def api_stages(league_id: str, season: str):
 def api_stage_games(league_id: str, season: str, stage: str):
     if not all(_is_safe_segment(s) for s in (league_id, season, stage)):
         return jsonify({"games": []})
-    season_path = _MANIFEST_DIR / league_id / season / "games.json"
-    try:
-        with season_path.open("r", encoding="utf-8") as f:
-            game_list = [g for g in _extract_list(json.load(f)) if g.get("stage", "").lower() == stage.lower()]
-    except Exception:
-        return jsonify({"games": []})
-    teams = _load_teams()
-    return jsonify({"games": _format_games(game_list, teams)})
+    all_games = _get_games(league_id, season)
+    game_list = [g for g in all_games if g.get("stage", "").lower() == stage.lower()]
+    return jsonify({"games": _format_games(game_list, _load_teams())})
 
 
 @filter_bp.route("/api/leagues/<league_id>/seasons/<season>/games")
@@ -191,20 +246,16 @@ def api_season_games(league_id: str, season: str):
         key=lambda s: stage_priority.index(s.lower()) if s.lower() in stage_priority else 99,
     )
 
+    all_games = _get_games(league_id, season)
     teams = _load_teams()
     result = []
-    season_path = _MANIFEST_DIR / league_id / season / "games.json"
-
-    try:
-        with season_path.open("r", encoding="utf-8") as f:
-            all_games = _extract_list(json.load(f))
-    except Exception:
-        return jsonify({"games": []})
-
     for stage in ordered_stages:
-        game_list = [g for g in all_games if g.get("stage", "").lower() == stage.lower()]
-        game_list_sorted = sorted(game_list, key=lambda g: g.get("date", ""), reverse=True)
-        result.extend(_format_games(game_list_sorted, teams))
+        game_list = sorted(
+            [g for g in all_games if g.get("stage", "").lower() == stage.lower()],
+            key=lambda g: g.get("date", ""),
+            reverse=True,
+        )
+        result.extend(_format_games(game_list, teams))
 
     if limit is not None:
         result = result[:limit]
@@ -223,21 +274,28 @@ def api_recent_games(league_id: str):
     if not comp or not comp.get("seasons"):
         return jsonify({"games": []})
     most_recent_season = comp["seasons"][0]["name"]
-    games_path = _MANIFEST_DIR / league_id / most_recent_season / "games.json"
-    try:
-        with games_path.open("r", encoding="utf-8") as f:
-            raw_data = json.load(f)
-    except Exception:
-        return jsonify({"games": []})
-    game_list = _extract_list(raw_data)
-    game_list_sorted = sorted(game_list, key=lambda g: g.get("date", ""), reverse=True)
-    teams = _load_teams()
+    game_list = sorted(
+        _get_games(league_id, most_recent_season),
+        key=lambda g: g.get("date", ""),
+        reverse=True,
+    )
     return jsonify({
-        "games": _format_games(game_list_sorted[:limit], teams),
+        "games": _format_games(game_list[:limit], _load_teams()),
         "season": most_recent_season,
     })
 
 
-# Warm up caches at import time so the first request is fast
-_load_teams()
-_load_leagues()
+@filter_bp.route("/admin/refresh-manifests", methods=["POST"])
+def refresh_manifests():
+    secret = os.getenv("ADMIN_SECRET", "")
+    if not secret or request.headers.get("X-Admin-Secret") != secret:
+        return jsonify({"error": "unauthorized"}), 401
+    _clear_caches()
+    _warm_caches()
+    return jsonify({"ok": True})
+
+
+# Load all manifests into memory at startup so requests are served from cache.
+# On Azure, DATA_ROOT_DIR points to a network share — reading happens once here,
+# never on individual requests.
+_warm_caches()
