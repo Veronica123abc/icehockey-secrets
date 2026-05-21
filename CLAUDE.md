@@ -151,6 +151,10 @@ gunicorn --bind=0.0.0.0:8000 --timeout 120 --workers 2 app:app
 
 Game data lives in `/home/data` on Azure (persistent across restarts and redeployments).
 
+## Personal Dev Notes
+
+`.dev-notes/` is a gitignored directory for personal, repo-specific notes (connection strings, curl commands, scratchpad docs). It lives inside the repo for discoverability but is never committed. Add new notes there instead of committing them to `hockey/docs/` or similar.
+
 ## Other Modules
 
 - `hockey/db/` — seed scripts for ingesting data into an Azure MySQL database; `build_game_from_db` in `hockey/normalize/build_game_db.py` is the DB-backed game loader used by the Flask app

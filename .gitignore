@@ -101,3 +101,15 @@ temp/
 
 # If you want to keep some plots committed, remove the patterns above
 # and instead ignore only specific folders like output/ generated/ tmp/
+
+# Local notes / lessons learned (not for version control)
+lessons-learned/
+
+# Personal dev notes — co-located with the repo but never committed.
+# See CLAUDE.md for the convention.
+.dev-notes/
+
+# Runtime SQLite session DB (chat feature)
+chat_sessions.db
+chat_sessions.db-shm
+chat_sessions.db-wal
