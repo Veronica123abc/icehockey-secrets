@@ -1,0 +1,1 @@
+api_string="v1/hockey/players/1999/metrics/15?season=20252026&stage=regular&competition_id=1&aggregation=sum"

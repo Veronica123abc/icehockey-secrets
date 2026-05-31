@@ -2,7 +2,6 @@ from __future__ import annotations
 from pathlib import Path
 import json
 
-from cv2 import data
 from tqdm import tqdm
 from hockey.config.settings import Settings
 import numpy as np
@@ -25,6 +24,7 @@ def current_shift_chances(data: dict,
     values = np.concatenate(values)
     baseline = [np.asarray([v for v in data[str(team_id)]["baseline"]], dtype=float) for team_id in teams]
     baseline = np.concatenate(baseline)
+    #print(np.mean(baseline))
     vmin, vmax = -40, 40
     w= 5.0
     left = -np.ceil(abs(vmin) / w) * w - w / 2
@@ -34,7 +34,7 @@ def current_shift_chances(data: dict,
 
     if mode == "baseline":
         values_normalized = baseline_histogram[0] / len(teams)
-        x_label = "DIFFERENCE IN AVERAGE TIME ON ICE DURING CURRENT SHIFT (5 vs 5, SHIFT RESET ON WHISTLE)"
+        x_label = "DIFFERENCE IN AVERAGE TIME ON ICE DURING CURRENT SHIFT (5 vs 5 during regulation)"
         y_label = "SECONDS"
         y_min = 0
         y_max = max(values_normalized) + 1000 #120000
@@ -42,8 +42,8 @@ def current_shift_chances(data: dict,
         values_histogram = np.histogram(values, bins=edges)
         values_normalized = 1200 * values_histogram[0].astype(np.float32) / baseline_histogram[0].astype(np.float32) # Normalize to events per 20 minutes
         values_normalized = np.array(values_normalized)
-        x_label ="DIFFERENCE IN AVERAGE TIME ON ICE DURING CURRENT SHIFT (5 vs 5, SHIFT RESET ON WHISTLE)"
-        y_label = f"NUMBER OF {filter_type.upper()} {mode.upper()}"
+        x_label ="DIFFERENCE IN AVERAGE TIME ON ICE DURING CURRENT SHIFT (5 vs 5 during regulation)"
+        y_label = f"NUMBER OF {filter_type.upper()} {mode.upper()} PER 20 min"
         y_min = 0
         y_max = 5 if filter_type=="goals" else 30
     fig, (ax1) = plt.subplots(1, 1, figsize=(12, 6), sharex=True)
@@ -59,18 +59,19 @@ def current_shift_chances(data: dict,
 
 
 def generate_graphs_per_team():
-    filepath = settings.data_path("computed_stats/linhack26/shiftlength_team_performance/1",
-                                  "filter_goal_5v5_1_20242025_regular.png")
-    filepath = settings.output_path("filter_abc_5v5_13_20242025_regular_test.png")
+    data_path = settings.data_path("computed_stats/current_shift_team_differential/1/20252026/regular/goals/data/5v5_regular_time.json")
+    output_path = settings.data_path("computed_stats/current_shift_team_differential/1/20252026/regular/goals/artifacts")
+    filter_type = "goals"
     team_info = settings.data_path("teams.json")
     team_data= json.load(open(team_info.with_suffix('.json'), 'r'))
-    data = json.load(open(filepath.with_suffix('.json'), 'r'))
+    data = json.load(open(data_path.with_suffix('.json'), 'r'))
     for team_id in tqdm(data.keys()):
         team_id_data = [d for d in team_data['teams'] if d["id"] == team_id][0]
         team_name = team_id_data['location'] + " " + team_id_data['name']
+        #print(team_name)
         for mode in ["baseline", "for", "against"]:
-            fig, axes = current_shift_chances(data, [team_id], mode=mode, label=team_name, filter_type="abc")
-            outfile = filepath.with_name(f"{filepath.stem}_{team_name}_{mode}.png")
+            fig, axes = current_shift_chances(data, [team_id], mode=mode, label=team_name, filter_type=filter_type)
+            outfile = output_path / f"{data_path.stem}_{team_name}_{mode}.png"
             fig.savefig(outfile)
             plt.close()
 

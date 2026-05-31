@@ -134,16 +134,16 @@ def event_histograms(games: int,
     return toi_events #res
 
 if __name__ == "__main__":
-    league_id = "13"
-    season = "20242025"
+    league_id = "1"
+    season = "20252026"
     stage = "regular"
 
     catalog = DataCatalog(settings.data_root_dir)
     games = catalog.scheduled_game_ids(int(league_id), season, stages=[stage])
 
     #outfile = settings.output_path(f"abc_chances_5v5_{league_id}_{season}_{stage}.json")
-    filter_func = partial(filter_abc_5v5, grades={"A", "B", "C"})
-    #filter_func = partial(filter_goal_5v5) #, grades={"A", "B", "C"})
+    #filter_func = partial(filter_abc_5v5, grades={"A", "B", "C"})
+    filter_func = partial(filter_goal_5v5) #, grades={"A", "B", "C"})
     stats = event_histograms(games[:], filter_func)
     outfile = settings.output_path(f"{filter_func.func.__name__}_{league_id}_{season}_{stage}_test.json")
     outpath = settings.output_path(outfile)
