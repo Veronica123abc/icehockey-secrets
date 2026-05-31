@@ -76,6 +76,7 @@ def _db_conn():
             password=os.environ["DATABASE_PWD_AZURE"],
             database=os.getenv("DATABASE_NAME_AZURE", "sportlogiq"),
             auth_plugin="mysql_native_password",
+            connect_timeout=5,
         )
     except Exception:
         return None
@@ -226,6 +227,11 @@ def _build_xg_html(game) -> str:
 # ---------------------------------------------------------------------------
 # Routes
 # ---------------------------------------------------------------------------
+
+@app.route("/health")
+def health():
+    return jsonify({"ok": True})
+
 
 @app.route("/")
 def index():
