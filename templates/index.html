@@ -122,6 +122,16 @@
         background: #1e3a5f;
     }
 
+    .game-card.upcoming {
+        cursor: default;
+        opacity: 0.5;
+    }
+
+    .game-card.upcoming:hover {
+        border-color: #334155;
+        background: #1e293b;
+    }
+
     .game-card .matchup {
         font-size: 1.05rem;
         font-weight: 600;
@@ -432,22 +442,28 @@
             gameCount.textContent = countText;
             gameCount.style.display = 'block';
             games.forEach(function(g) {
-                var card = document.createElement('a');
-                card.href = '/game/' + g.id;
-                card.className = 'game-card';
-                card.addEventListener('click', function() {
-                    sessionStorage.setItem('homeUrl', window.location.href);
-                });
+                var isUpcoming = (g.status === 'upcoming');
+                var card = document.createElement(isUpcoming ? 'div' : 'a');
+                if (!isUpcoming) {
+                    card.href = '/game/' + g.id;
+                    card.addEventListener('click', function() {
+                        sessionStorage.setItem('homeUrl', window.location.href);
+                    });
+                }
+                card.className = 'game-card' + (isUpcoming ? ' upcoming' : '');
                 var scoreHtml = '';
                 if (g.home_score != null && g.away_score != null) {
                     scoreHtml = '<span class="score">' + esc(String(g.home_score)) + ' &ndash; ' + esc(String(g.away_score)) + '</span>';
                 }
                 var stageHtml = g.stage ? '<div class="stage-badge">' + esc(cap(g.stage)) + '</div>' : '';
+                var actionHtml = isUpcoming
+                    ? '<span class="view-link" style="color:#64748b;">Upcoming</span>'
+                    : '<span class="view-link">View analysis &rarr;</span>';
                 card.innerHTML =
                     '<div class="matchup">' + esc(g.home_team_name) + ' vs ' + esc(g.away_team_name) + '</div>' +
                     '<div class="meta"><span>' + esc(fmtDate(g.date)) + '</span>' + scoreHtml + '</div>' +
                     stageHtml +
-                    '<span class="view-link">View analysis &rarr;</span>';
+                    actionHtml;
                 gameGrid.appendChild(card);
             });
             if (games.length < total) {

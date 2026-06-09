@@ -74,8 +74,15 @@ def _fetch_events_with_retry(conn: SportlogiqApi, game_id: int) -> dict:
         if response.status_code == 429:
             retry_after = int(response.headers.get("Retry-After", 1))
             time.sleep(retry_after)
+        elif response.status_code != 200:
+            raise ValueError(f"playsequence returned HTTP {response.status_code}")
         else:
             return response.json()
+
+
+def _check_response(response, label: str) -> None:
+    if response.status_code != 200:
+        raise ValueError(f"{label} returned HTTP {response.status_code}")
 
 
 def download_complete_game(
@@ -91,11 +98,14 @@ def download_complete_game(
     update: bool = False,
     verbose: bool = False,
 ) -> int:
+    import shutil
+
     if root_dir is None:
         root_dir = os.getenv("DATA_ROOT_DIR", "")
     filepath = Path(root_dir) / str(game_id)
 
-    if filepath.is_dir() and not update:
+    dir_existed = filepath.is_dir()
+    if dir_existed and not update:
         if verbose:
             print(f"Game {game_id} already exists")
         return game_id
@@ -105,47 +115,58 @@ def download_complete_game(
     if conn is None:
         conn = SportlogiqApi()
 
-    if game_info:
-        if verbose:
-            print(f"Fetching game info for {game_id}")
-        data = conn.get_game_info(game_id)
-        with open(filepath / "game-info.json", "w") as f:
-            json.dump(data.json(), f, indent=4)
+    try:
+        if game_info:
+            if verbose:
+                print(f"Fetching game info for {game_id}")
+            data = conn.get_game_info(game_id)
+            _check_response(data, "game-info")
+            with open(filepath / "game-info.json", "w") as f:
+                json.dump(data.json(), f, indent=4)
 
-    if roster:
-        if verbose:
-            print(f"Fetching roster for {game_id}")
-        data = conn.get_roster(game_id)
-        with open(filepath / "roster.json", "w") as f:
-            json.dump(data.json(), f, indent=4)
+        if roster:
+            if verbose:
+                print(f"Fetching roster for {game_id}")
+            data = conn.get_roster(game_id)
+            _check_response(data, "roster")
+            with open(filepath / "roster.json", "w") as f:
+                json.dump(data.json(), f, indent=4)
 
-    if playsequence:
-        if verbose:
-            print(f"Fetching events for {game_id}")
-        events = _fetch_events_with_retry(conn, game_id)
-        with open(filepath / "playsequence.json", "w") as f:
-            json.dump(events, f, indent=4)
+        if playsequence:
+            if verbose:
+                print(f"Fetching events for {game_id}")
+            events = _fetch_events_with_retry(conn, game_id)
+            with open(filepath / "playsequence.json", "w") as f:
+                json.dump(events, f, indent=4)
 
-    if playsequence_compiled:
-        if verbose:
-            print(f"Fetching compiled events for {game_id}")
-        data = conn.get_compiled_events(game_id)
-        with open(filepath / "playsequence_compiled.json", "w") as f:
-            json.dump(data.json(), f, indent=4)
+        if playsequence_compiled:
+            if verbose:
+                print(f"Fetching compiled events for {game_id}")
+            data = conn.get_compiled_events(game_id)
+            _check_response(data, "playsequence_compiled")
+            with open(filepath / "playsequence_compiled.json", "w") as f:
+                json.dump(data.json(), f, indent=4)
 
-    if shifts:
-        if verbose:
-            print(f"Fetching shifts for {game_id}")
-        data = conn.get_shifts(game_id)
-        with open(filepath / "shifts.json", "w") as f:
-            json.dump(data.json(), f, indent=4)
+        if shifts:
+            if verbose:
+                print(f"Fetching shifts for {game_id}")
+            data = conn.get_shifts(game_id)
+            _check_response(data, "shifts")
+            with open(filepath / "shifts.json", "w") as f:
+                json.dump(data.json(), f, indent=4)
 
-    if player_toi:
-        if verbose:
-            print(f"Fetching playerTOI for {game_id}")
-        data = conn.get_player_toi(game_id)
-        with open(filepath / "playerTOI.json", "w") as f:
-            json.dump(data.json(), f, indent=4)
+        if player_toi:
+            if verbose:
+                print(f"Fetching playerTOI for {game_id}")
+            data = conn.get_player_toi(game_id)
+            _check_response(data, "playerTOI")
+            with open(filepath / "playerTOI.json", "w") as f:
+                json.dump(data.json(), f, indent=4)
+
+    except Exception:
+        if not dir_existed:
+            shutil.rmtree(filepath, ignore_errors=True)
+        raise
 
     return game_id
 
@@ -238,8 +259,8 @@ def download_complete_games(
 if __name__ == "__main__":
     conn = SportlogiqApi()
     #games = json.load(open('games.json'))
-    metrics = conn.get_metrics(143062, 'team', 2)
-    print(metrics.json())
-    #download_complete_game(203911,conn=conn, verbose=True)
+    #metrics = conn.get_metrics(143062, 'team', 2)
+    #print(metrics.json())
+    download_complete_game(204538,conn=conn, verbose=True)
     #games = conn.get_schedule(1,'20252026')
     #print(games)
