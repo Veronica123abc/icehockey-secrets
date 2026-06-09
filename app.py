@@ -230,7 +230,23 @@ def _build_xg_html(game) -> str:
 
 @app.route("/health")
 def health():
-    return jsonify({"ok": True})
+    db_status = "disabled"
+    if os.getenv("DATABASE_HOST_AZURE"):
+        conn = _db_conn()
+        if conn is not None:
+            try:
+                cursor = conn.cursor()
+                cursor.execute("SELECT 1")
+                cursor.fetchone()
+                cursor.close()
+                db_status = "ok"
+            except Exception as e:
+                db_status = f"error: {e}"
+            finally:
+                conn.close()
+        else:
+            db_status = "unreachable"
+    return jsonify({"ok": True, "db": db_status})
 
 
 @app.route("/")
