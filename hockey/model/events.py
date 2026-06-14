@@ -17,6 +17,8 @@ class Event:
     team_defencemen_on_ice_refs: Optional[list[int]]
     grade: Optional[str]
     raw: dict                     # keep raw payload for now; you can drop later
+    event_id: Optional[int] = None
+    base_event_id: Optional[int] = None
 
     def get_raw(self, key: str, default: T = None) -> Any | T:
         """

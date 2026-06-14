@@ -39,3 +39,15 @@ def build_game(raw: RawGame) -> Game:
         toi=toi,
         roster=roster,
     )
+
+if __name__ == "__main__":
+    import os
+    from pathlib import Path
+    from hockey.io.raw_game import RawGame
+
+
+    GAME_ID = 204628
+    root_dir = Path(os.getenv("DATA_ROOT_DIR", "/home/veronica/hockeystats/ver3"))
+    raw_game = RawGame(GAME_ID, root_dir, playsequence_source="playsequence_compiled")
+    game = build_game(raw_game)
+    print(game)

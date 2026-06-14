@@ -11,62 +11,92 @@ import requests
 from hockey.config.settings import Settings
 
 settings = Settings.from_env(project_root=Path(__file__).resolve().parent)
+
+
 class SportlogiqApi:
-    BASE_URL = "https://api.sportlogiq.com"
+    BASE_URL = "https://app.sportlogiq.com/"
 
     def __init__(self):
         username = os.getenv("SPORTLOGIQ_USERNAME")
         password = os.getenv("SPORTLOGIQ_PWD")
-        self.apiurl = 'https://api.sportlogiq.com'
+        self.apiurl = "https://app.sportlogiq.com"
 
         if not username or not password:
             raise EnvironmentError(
                 "SPORTLOGIQ_USERNAME and SPORTLOGIQ_PWD must be set in the environment."
             )
+        login_payload = {'username': username, 'password': password}
         self.req = requests.Session()
-        self.req.post(self.BASE_URL + "/v1/hockey/login", json={"username": username, "password": password})
+        res = self.req.post(self.apiurl + '/api/v3/user/login', json=login_payload)
+        #print(res)
+        #print(res.content)
 
-    def get_schedule(self, league_id, season, stage=None):
-        if stage:
-            url = f"/v1/hockey/games?competition_id={league_id}&season={season}&stage={stage}"
-        else:
-            url = f"/v1/hockey/games?competition_id={league_id}&season={season}"
+
+    def get_schedule(self):#, league_id, season, stage=None):
+        # if stage:
+        #     url = f"/api/v3/games?competition_id={league_id}&season={season}&stage={stage}"
+        # else:
+        #     url = f"/api/v3/games?competition_id={league_id}&season={season}"
+        url = f"/api/v3/games"
         return self.req.get(
             self.BASE_URL + url
-            #self.BASE_URL + f"/v1/hockey/games?season={season}&stage={stage}&competition_id={league_id}&include_upcoming=1"
+            # self.BASE_URL + f"/api/v3/games?season={season}&stage={stage}&competition_id={league_id}&include_upcoming=1"
         )
 
+    def get_players(self):
+        url = f"/api/v3/players"
+        league_id=1
+        team_id=322
+        season_id=10
+        stage='regular'
+
+        params = {'teamid[]':1, 'seasonid[]':12, 'seasonstage[]':'playoffs'}
+        url_players=self.BASE_URL + f"/api/v3/players"
+        url_games=self.BASE_URL + f"/api/v3/games"
+        # res = self.req.get(
+        #     url_games
+        # )
+        # print(res)
+        res = self.req.get(
+            url_players, params=params, timeout=60
+        )
+        print(res)
+        return res
+
     def get_finished_games(self, league_id, season, stage):
+        league_id='1'
+        params = {'leagueid[]': league_id}
         return self.req.get(
-            self.BASE_URL + f"/v1/hockey/games?season={season}&stage={stage}&competition_id={league_id}&include_upcoming=0"
+            self.BASE_URL + f"/api/v3/games", params=params #?season={season}&stage={stage}&competition_id={league_id}&include_upcoming=0"
         )
 
     def get_game_info(self, game_id):
-        return self.req.get(self.BASE_URL + f"/v1/hockey/games/{game_id}")
+        return self.req.get(self.BASE_URL + f"/api/v3/games/{game_id}")
 
     def get_roster(self, game_id):
-        return self.req.get(self.BASE_URL + f"/v1/hockey/games/{game_id}/roster")
+        return self.req.get(self.BASE_URL + f"/api/v3/games/{game_id}/roster")
 
     def get_events(self, game_id):
-        return self.req.get(self.BASE_URL + f"/v1/hockey/games/{game_id}/events/full")
+        return self.req.get(self.BASE_URL + f"/api/v3/games/{game_id}/events/full")
 
     def get_compiled_events(self, game_id):
-        return self.req.get(self.BASE_URL + f"/v1/hockey/games/{game_id}/events/compiled")
+        return self.req.get(self.BASE_URL + f"/api/v3/games/{game_id}/events/compiled")
 
     def get_shifts(self, game_id):
-        return self.req.get(self.BASE_URL + f"/v1/hockey/games/{game_id}/events/shifts")
+        return self.req.get(self.BASE_URL + f"/api/v3/games/{game_id}/events/shifts")
 
     def get_player_toi(self, game_id):
-        return self.req.get(self.BASE_URL + f"/v1/hockey/games/{game_id}/playerTOI")
+        return self.req.get(self.BASE_URL + f"/api/v3/games/{game_id}/playerTOI")
 
     def get_leagues(self):
-        return self.req.get(self.BASE_URL + "/v1/hockey/competitions")
+        return self.req.get(self.BASE_URL + "/api/v3/competitions")
 
     def get_competitions(self, league_id):
-        return self.req.get(self.BASE_URL + f"/v1/hockey/competitions/{league_id}")
+        return self.req.get(self.BASE_URL + f"/api/v3/competitions/{league_id}")
 
-    def get_metrics(self, game_id:int, scope:str, topic_id:int):
-        return self.req.get(self.BASE_URL + f"/v1/hockey/games/{game_id}/metrics/{topic_id}?aggregation=sum&breakdown=team")
+    def get_metrics(self, game_id: int, scope: str, topic_id: int):
+        return self.req.get(
+            self.BASE_URL + f"/api/v3/games/{game_id}/metrics/{topic_id}?aggregation=sum&breakdown=team")
 
 
 def _fetch_events_with_retry(conn: SportlogiqApi, game_id: int) -> dict:
@@ -87,17 +117,17 @@ def _check_response(response, label: str) -> None:
 
 
 def download_complete_game(
-    game_id: int,
-    conn: SportlogiqApi | None = None,
-    root_dir: str | Path | None = None,
-    game_info: bool = True,
-    roster: bool = True,
-    playsequence: bool = True,
-    playsequence_compiled: bool = True,
-    shifts: bool = True,
-    player_toi: bool = True,
-    update: bool = False,
-    verbose: bool = False,
+        game_id: int,
+        conn: SportlogiqApi | None = None,
+        root_dir: str | Path | None = None,
+        game_info: bool = True,
+        roster: bool = True,
+        playsequence: bool = True,
+        playsequence_compiled: bool = True,
+        shifts: bool = True,
+        player_toi: bool = True,
+        update: bool = False,
+        verbose: bool = False,
 ) -> int:
     import shutil
 
@@ -206,18 +236,18 @@ def prompt_and_download_game(game_id: int, root_dir: str | Path) -> bool:
 
 
 def download_complete_games(
-    game_index_file: str | None = None,
-    game_ids: list[int] | None = None,
-    root_dir: str | Path | None = None,
-    update: bool = True,
-    max_workers: int = 4,
-    verbose: bool = True,
-    game_info: bool = True,
-    roster: bool = True,
-    playsequence: bool = True,
-    playsequence_compiled: bool = True,
-    shifts: bool = True,
-    player_toi: bool = True,
+        game_index_file: str | None = None,
+        game_ids: list[int] | None = None,
+        root_dir: str | Path | None = None,
+        update: bool = True,
+        max_workers: int = 4,
+        verbose: bool = True,
+        game_info: bool = True,
+        roster: bool = True,
+        playsequence: bool = True,
+        playsequence_compiled: bool = True,
+        shifts: bool = True,
+        player_toi: bool = True,
 ) -> list[int]:
     if game_index_file:
         with open(game_index_file) as f:
@@ -256,12 +286,12 @@ def download_complete_games(
                 print(f"Error: {e}")
 
 
-
 if __name__ == "__main__":
     conn = SportlogiqApi()
-    #games = json.load(open('games.json'))
-    #metrics = conn.get_metrics(143062, 'team', 2)
-    #print(metrics.json())
-    download_complete_game(204628,conn=conn, verbose=True)
-    #games = conn.get_schedule(1,'20252026')
-    #print(games)
+    # games = json.load(open('games.json'))
+    # metrics = conn.get_metrics(143062, 'team', 2)
+    # print(metrics.json())
+    # download_complete_game(204628, conn=conn, verbose=True)
+    games = conn.get_players()
+    print(games)
+    print(games.json())

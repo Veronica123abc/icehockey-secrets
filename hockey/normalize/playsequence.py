@@ -25,6 +25,29 @@ def _int_list(xs):
     return out
 
 
+def _resolve_team_id(e: dict, key_name: str, key_id: str, teams: TeamResolver) -> Optional[int]:
+    """
+    Resolve a team ID from an event dict, handling both playsequence formats.
+    Regular format: key_name holds a display name resolved via TeamResolver.
+    Compiled format: key_id holds a numeric string used directly (or key_name is absent).
+    """
+    # If key_name and key_id differ, regular format supplies the display name under key_name.
+    if key_name != key_id:
+        name_val = e.get(key_name)
+        if name_val is not None:
+            return teams.team_id_from_string(name_val)
+        id_val = e.get(key_id)
+        return _maybe_int(id_val)
+    # Same key (team_in_possession): try numeric parse first; fall back to display-name resolver.
+    val = e.get(key_name)
+    if val is None:
+        return None
+    as_int = _maybe_int(val)
+    if as_int is not None:
+        return as_int
+    return teams.team_id_from_string(val)
+
+
 def normalize_playsequence(
     *,
     game_id: int,
@@ -36,11 +59,16 @@ def normalize_playsequence(
         t = float(e["game_time"])
         type = str(e.get("type", "")).strip()
         name = str(e.get("name", "")).strip()
-        team_in_possession_id = teams.team_id_from_string(e.get("team_in_possession"))
-        team_id = teams.team_id_from_string(e.get("team"))
-        player_id = _maybe_int(e.get("player_reference_id"))
+        # regular format uses "team_in_possession" (display name); compiled uses same key but with numeric ID
+        team_in_possession_id = _resolve_team_id(e, "team_in_possession", "team_in_possession", teams)
+        # regular format uses "team" (display name); compiled uses "team_id" (numeric)
+        team_id = _resolve_team_id(e, "team", "team_id", teams)
+        # regular format uses "player_reference_id"; compiled uses "player_id"
+        player_id = _maybe_int(e.get("player_reference_id") or e.get("player_id"))
         grade = e.get("expected_goals_all_shots_grade")
         team_defencemen_on_ice_refs = _int_list(e.get("team_defencemen_on_ice_refs"))
+        event_id = _maybe_int(e.get("event_id"))
+        base_event_id = _maybe_int(e.get("base_event_id"))
         events.append(
             Event(
                 game_id=game_id,
@@ -53,6 +81,8 @@ def normalize_playsequence(
                 team_defencemen_on_ice_refs=team_defencemen_on_ice_refs,
                 grade=grade,
                 raw=e,
+                event_id=event_id,
+                base_event_id=base_event_id,
             )
         )
     return events
