@@ -65,6 +65,8 @@ class SportlogiqApi:
     def get_competitions(self, league_id):
         return self.req.get(self.BASE_URL + f"/v1/hockey/competitions/{league_id}")
 
+    def get_teams(self, league_id, season, stage):
+        return self.req.get(self.BASE_URL + f"/v1/hockey/teams/records?season={season}&stage={stage}&competition_id={league_id}")
     def get_metrics(self, game_id:int, scope:str, topic_id:int):
         return self.req.get(self.BASE_URL + f"/v1/hockey/games/{game_id}/metrics/{topic_id}?aggregation=sum&breakdown=team")
 
@@ -262,6 +264,8 @@ if __name__ == "__main__":
     #games = json.load(open('games.json'))
     #metrics = conn.get_metrics(143062, 'team', 2)
     #print(metrics.json())
-    download_complete_game(204628,conn=conn, verbose=True)
+    #download_complete_game(204628,conn=conn, verbose=True)
     #games = conn.get_schedule(1,'20252026')
+    teams = conn.get_teams(13, '20252026', 'regular')
+    print(teams)
     #print(games)

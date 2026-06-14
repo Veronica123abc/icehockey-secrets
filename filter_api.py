@@ -18,6 +18,7 @@ from flask import Blueprint, jsonify, request
 filter_bp = Blueprint("filter", __name__)
 
 _teams_cache: dict[str, str] | None = None
+_teams_full_cache: list[dict] | None = None
 _leagues_cache: list[dict] | None = None
 _competition_cache: dict[str, dict] = {}
 _games_cache: dict[str, list] = {}  # keyed by "league_id/season"
@@ -80,20 +81,27 @@ def _extract_list(data) -> list:
     return []
 
 
+def _load_teams_full() -> list[dict]:
+    global _teams_full_cache
+    if _teams_full_cache is not None:
+        return _teams_full_cache
+    try:
+        with _global_manifest_file("teams.json").open("r", encoding="utf-8") as f:
+            data = json.load(f)
+        _teams_full_cache = _extract_list(data)
+    except Exception:
+        _teams_full_cache = []
+    return _teams_full_cache
+
+
 def _load_teams() -> dict[str, str]:
     global _teams_cache
     if _teams_cache is not None:
         return _teams_cache
-    try:
-        with _global_manifest_file("teams.json").open("r", encoding="utf-8") as f:
-            data = json.load(f)
-        teams_list = _extract_list(data)
-        _teams_cache = {
-            str(t["id"]): t.get("displayName", t.get("name", str(t["id"])))
-            for t in teams_list
-        }
-    except Exception:
-        _teams_cache = {}
+    _teams_cache = {
+        str(t["id"]): t.get("displayName", t.get("name", str(t["id"])))
+        for t in _load_teams_full()
+    }
     return _teams_cache
 
 
@@ -135,8 +143,9 @@ def _get_games(league_id: str, season: str) -> list:
 
 
 def _clear_caches() -> None:
-    global _teams_cache, _leagues_cache, _competition_cache, _games_cache
+    global _teams_cache, _teams_full_cache, _leagues_cache, _competition_cache, _games_cache
     _teams_cache = None
+    _teams_full_cache = None
     _leagues_cache = None
     _competition_cache = {}
     _games_cache = {}
@@ -144,6 +153,7 @@ def _clear_caches() -> None:
 
 def _warm_caches() -> None:
     """Eagerly load all manifests into memory at startup."""
+    _load_teams_full()
     _load_teams()
     _load_leagues()
     manifest_dir = _manifest_dir()
@@ -282,6 +292,68 @@ def api_recent_games(league_id: str):
     return jsonify({
         "games": _format_games(game_list[:limit], _load_teams()),
         "season": most_recent_season,
+    })
+
+
+@filter_bp.route("/api/leagues/<league_id>/teams")
+def api_league_teams(league_id: str):
+    if not _is_safe_segment(league_id):
+        return jsonify({"teams": []})
+
+    comp = _load_competition(league_id)
+    if not comp:
+        return jsonify({"teams": [], "season": None})
+
+    # Walk seasons newest-first; stop at the first with >= 20 finished games.
+    chosen_season = None
+    chosen_games = []
+    for season in comp.get("seasons", []):
+        games = _get_games(league_id, season["name"])
+        finished = [g for g in games if g.get("event_status") == "over"]
+        if len(finished) >= 20:
+            chosen_season = season["name"]
+            chosen_games = games
+            break
+
+    if chosen_season is None:
+        return jsonify({"teams": [], "season": None})
+
+    team_ids = {
+        str(g["home_team_id"]) for g in chosen_games if "home_team_id" in g
+    } | {
+        str(g["away_team_id"]) for g in chosen_games if "away_team_id" in g
+    }
+
+    teams_by_id = {str(t["id"]): t for t in _load_teams_full()}
+    teams = sorted(
+        [
+            {
+                "id": t["id"],
+                "name": t.get("displayName", t.get("name", "")),
+                "shorthand": t.get("shorthand", ""),
+                "location": t.get("location", ""),
+            }
+            for tid in team_ids
+            if (t := teams_by_id.get(tid)) is not None
+        ],
+        key=lambda t: t["name"],
+    )
+    return jsonify({"teams": teams, "season": chosen_season})
+
+
+@filter_bp.route("/api/teams/<team_id>")
+def api_team(team_id: str):
+    if not _is_safe_segment(team_id):
+        return jsonify({"error": "invalid"}), 400
+    team = next((t for t in _load_teams_full() if str(t.get("id", "")) == team_id), None)
+    if team is None:
+        return jsonify({"error": "not found"}), 404
+    return jsonify({
+        "id": team["id"],
+        "name": team.get("displayName", team.get("name", "")),
+        "shorthand": team.get("shorthand", ""),
+        "location": team.get("location", ""),
+        "leagueId": team.get("leagueId", ""),
     })
 
 

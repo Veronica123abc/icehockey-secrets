@@ -326,6 +326,16 @@ def api_game(game_id: int):
     })
 
 
+@app.route("/teams")
+def teams_page():
+    return render_template("teams.html")
+
+
+@app.route("/teams/<int:team_id>")
+def team_detail(team_id: int):
+    return render_template("team.html", team_id=team_id)
+
+
 @app.route("/chat")
 def chat_page():
     return render_template("chat.html")

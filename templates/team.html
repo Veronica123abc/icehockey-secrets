@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block title %}Team — Ice Hockey Analytics{% endblock %}
+
+{% block extra_style %}
+    .team-header {
+        margin-bottom: 2rem;
+    }
+
+    .team-header .back-link {
+        font-size: 0.85rem;
+        color: #64748b;
+        text-decoration: none;
+        display: inline-block;
+        margin-bottom: 1rem;
+    }
+
+    .team-header .back-link:hover { color: #94a3b8; }
+
+    .team-header .shorthand {
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: #60a5fa;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        margin-bottom: 0.4rem;
+    }
+
+    .team-header h2 {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #f8fafc;
+        margin-bottom: 0.25rem;
+    }
+
+    .team-header .location {
+        font-size: 1rem;
+        color: #64748b;
+    }
+
+    .placeholder-card {
+        background: #1e293b;
+        border: 1px dashed #334155;
+        border-radius: 0.5rem;
+        padding: 3rem 2rem;
+        text-align: center;
+        color: #475569;
+        font-size: 0.95rem;
+    }
+{% endblock %}
+
+{% block content %}
+    <div class="team-header" id="team-header">
+        <a class="back-link" id="back-link" href="/teams">&#8592; Teams</a>
+        <div class="shorthand" id="team-shorthand"></div>
+        <h2 id="team-name">Loading...</h2>
+        <div class="location" id="team-location"></div>
+    </div>
+
+    <div class="placeholder-card">
+        Stats coming soon.
+    </div>
+
+    <script>
+    (function() {
+        var teamId = {{ team_id | tojson }};
+        var leagueId = new URLSearchParams(window.location.search).get('league') || '1';
+
+        document.getElementById('back-link').href = '/teams?league=' + encodeURIComponent(leagueId);
+
+        fetch('/api/teams/' + teamId)
+            .then(function(r) { return r.json(); })
+            .then(function(t) {
+                document.title = t.name + ' — Ice Hockey Analytics';
+                document.getElementById('team-name').textContent = t.name;
+                if (t.shorthand) {
+                    document.getElementById('team-shorthand').textContent = t.shorthand;
+                }
+                if (t.location) {
+                    document.getElementById('team-location').textContent = t.location;
+                }
+            })
+            .catch(function() {
+                document.getElementById('team-name').textContent = 'Team ' + teamId;
+            });
+    })();
+    </script>
+{% endblock %}
