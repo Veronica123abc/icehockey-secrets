@@ -4,60 +4,37 @@ Filter API endpoints for cascading game selection.
 Provides: /api/leagues, /api/leagues/<id>/seasons,
           /api/leagues/<id>/seasons/<s>/stages,
           /api/leagues/<id>/seasons/<s>/stages/<st>/games,
-          /api/leagues/<id>/games/recent
+          /api/leagues/<id>/games/recent,
+          /api/leagues/<id>/teams,
+          /api/teams/<team_id>
           POST /admin/refresh-manifests  (requires X-Admin-Secret header)
+
+Backend is selected at startup:
+  - FILTER_BACKEND=db       → DbProvider (fail hard if DB unavailable)
+  - FILTER_BACKEND=manifest → ManifestProvider
+  - (unset)                 → DbProvider if DATABASE_HOST_AZURE is set, else ManifestProvider
 """
 from __future__ import annotations
 
 import json
+import logging
 import os
+from abc import ABC, abstractmethod
+from collections import defaultdict
 from pathlib import Path
 
 from flask import Blueprint, jsonify, request
 
 filter_bp = Blueprint("filter", __name__)
+_log = logging.getLogger(__name__)
 
-_teams_cache: dict[str, str] | None = None
-_teams_full_cache: list[dict] | None = None
-_leagues_cache: list[dict] | None = None
-_competition_cache: dict[str, dict] = {}
-_games_cache: dict[str, list] = {}  # keyed by "league_id/season"
 _STAGE_ORDER = {"preseason": 0, "regular": 1, "playoffs": 2}
-
-
-def _data_root() -> Path | None:
-    d = os.getenv("DATA_ROOT_DIR", "")
-    if not d:
-        return None
-    p = Path(d).expanduser()
-    if p.exists() and p.is_dir():
-        return p
-    return None
-
-
 _REPO_MANIFEST_DIR = Path(__file__).resolve().parent / "hockey" / "manifests"
 
 
-def _manifest_dir() -> Path:
-    """Per-league trees (competitions, games). Lives under DATA_ROOT_DIR/leagues/."""
-    root = _data_root()
-    if root:
-        return root / "leagues"
-    return _REPO_MANIFEST_DIR
-
-
-def _global_manifest_file(filename: str) -> Path:
-    """Global lookups (teams.json, leagues.json). Lives at DATA_ROOT_DIR root."""
-    root = _data_root()
-    if root:
-        p = root / filename
-        if p.exists():
-            return p
-    return _REPO_MANIFEST_DIR / filename
-
-
-_MANIFEST_DIR = _manifest_dir()
-
+# ---------------------------------------------------------------------------
+# Shared helpers
+# ---------------------------------------------------------------------------
 
 def _is_safe_segment(s: str) -> bool:
     return bool(s) and ".." not in s and "/" not in s and "\\" not in s
@@ -81,94 +58,7 @@ def _extract_list(data) -> list:
     return []
 
 
-def _load_teams_full() -> list[dict]:
-    global _teams_full_cache
-    if _teams_full_cache is not None:
-        return _teams_full_cache
-    try:
-        with _global_manifest_file("teams.json").open("r", encoding="utf-8") as f:
-            data = json.load(f)
-        _teams_full_cache = _extract_list(data)
-    except Exception:
-        _teams_full_cache = []
-    return _teams_full_cache
-
-
-def _load_teams() -> dict[str, str]:
-    global _teams_cache
-    if _teams_cache is not None:
-        return _teams_cache
-    _teams_cache = {
-        str(t["id"]): t.get("displayName", t.get("name", str(t["id"])))
-        for t in _load_teams_full()
-    }
-    return _teams_cache
-
-
-def _load_competition(league_id: str) -> dict | None:
-    if league_id in _competition_cache:
-        return _competition_cache[league_id]
-    path = _MANIFEST_DIR / league_id / "competitions.json"
-    try:
-        with path.open("r", encoding="utf-8") as f:
-            data = json.load(f)
-        _competition_cache[league_id] = data
-        return data
-    except Exception:
-        return None
-
-
-def _load_leagues() -> list[dict]:
-    global _leagues_cache
-    if _leagues_cache is not None:
-        return _leagues_cache
-    try:
-        with _global_manifest_file("leagues.json").open("r", encoding="utf-8") as f:
-            _leagues_cache = json.load(f)
-    except Exception:
-        _leagues_cache = []
-    return _leagues_cache
-
-
-def _get_games(league_id: str, season: str) -> list:
-    key = f"{league_id}/{season}"
-    if key not in _games_cache:
-        games_path = _MANIFEST_DIR / league_id / season / "games.json"
-        try:
-            with games_path.open("r", encoding="utf-8") as f:
-                _games_cache[key] = _extract_list(json.load(f))
-        except Exception:
-            _games_cache[key] = []
-    return _games_cache[key]
-
-
-def _clear_caches() -> None:
-    global _teams_cache, _teams_full_cache, _leagues_cache, _competition_cache, _games_cache
-    _teams_cache = None
-    _teams_full_cache = None
-    _leagues_cache = None
-    _competition_cache = {}
-    _games_cache = {}
-
-
-def _warm_caches() -> None:
-    """Eagerly load all manifests into memory at startup."""
-    _load_teams_full()
-    _load_teams()
-    _load_leagues()
-    manifest_dir = _manifest_dir()
-    if not manifest_dir.exists():
-        return
-    for league_dir in sorted(manifest_dir.iterdir()):
-        if not league_dir.is_dir() or not league_dir.name.isdigit():
-            continue
-        comp = _load_competition(league_dir.name)
-        if comp:
-            for season in comp.get("seasons", []):
-                _get_games(league_dir.name, season["name"])
-
-
-def _format_games(game_list: list, teams: dict) -> list[dict]:
+def _format_games(game_list: list, teams: dict[str, str]) -> list[dict]:
     result = []
     for g in game_list:
         home_id = str(_get(g, "home_team_id", "homeTeamId"))
@@ -189,27 +79,299 @@ def _format_games(game_list: list, teams: dict) -> list[dict]:
     return result
 
 
+# ---------------------------------------------------------------------------
+# Provider interface
+# ---------------------------------------------------------------------------
+
+class FilterProvider(ABC):
+    """Common interface for manifest- and DB-backed filter data."""
+
+    @abstractmethod
+    def load_leagues(self) -> list[dict]: ...
+
+    @abstractmethod
+    def load_teams_full(self) -> list[dict]: ...
+
+    @abstractmethod
+    def load_competition(self, league_id: str) -> dict | None: ...
+
+    @abstractmethod
+    def get_games(self, league_id: str, season: str) -> list: ...
+
+    def load_teams(self) -> dict[str, str]:
+        return {
+            str(t["id"]): t.get("displayName", t.get("name", str(t["id"])))
+            for t in self.load_teams_full()
+        }
+
+    def warm(self) -> None:
+        pass
+
+    def clear(self) -> None:
+        pass
+
+
+# ---------------------------------------------------------------------------
+# Manifest provider
+# ---------------------------------------------------------------------------
+
+class ManifestProvider(FilterProvider):
+
+    def __init__(self) -> None:
+        self._leagues_cache: list[dict] | None = None
+        self._teams_full_cache: list[dict] | None = None
+        self._competition_cache: dict[str, dict] = {}
+        self._games_cache: dict[str, list] = {}
+
+    def _data_root(self) -> Path | None:
+        d = os.getenv("DATA_ROOT_DIR", "")
+        if not d:
+            return None
+        p = Path(d).expanduser()
+        return p if p.exists() and p.is_dir() else None
+
+    def _manifest_dir(self) -> Path:
+        root = self._data_root()
+        return (root / "leagues") if root else _REPO_MANIFEST_DIR
+
+    def _global_manifest_file(self, filename: str) -> Path:
+        root = self._data_root()
+        if root:
+            p = root / filename
+            if p.exists():
+                return p
+        return _REPO_MANIFEST_DIR / filename
+
+    def load_leagues(self) -> list[dict]:
+        if self._leagues_cache is None:
+            try:
+                with self._global_manifest_file("leagues.json").open("r", encoding="utf-8") as f:
+                    self._leagues_cache = json.load(f)
+            except Exception:
+                self._leagues_cache = []
+        return self._leagues_cache
+
+    def load_teams_full(self) -> list[dict]:
+        if self._teams_full_cache is None:
+            try:
+                with self._global_manifest_file("teams.json").open("r", encoding="utf-8") as f:
+                    data = json.load(f)
+                self._teams_full_cache = _extract_list(data)
+            except Exception:
+                self._teams_full_cache = []
+        return self._teams_full_cache
+
+    def load_competition(self, league_id: str) -> dict | None:
+        if league_id not in self._competition_cache:
+            path = self._manifest_dir() / league_id / "competitions.json"
+            try:
+                with path.open("r", encoding="utf-8") as f:
+                    self._competition_cache[league_id] = json.load(f)
+            except Exception:
+                return None
+        return self._competition_cache.get(league_id)
+
+    def get_games(self, league_id: str, season: str) -> list:
+        key = f"{league_id}/{season}"
+        if key not in self._games_cache:
+            path = self._manifest_dir() / league_id / season / "games.json"
+            try:
+                with path.open("r", encoding="utf-8") as f:
+                    self._games_cache[key] = _extract_list(json.load(f))
+            except Exception:
+                self._games_cache[key] = []
+        return self._games_cache[key]
+
+    def warm(self) -> None:
+        self.load_teams_full()
+        self.load_leagues()
+        mdir = self._manifest_dir()
+        if not mdir.exists():
+            return
+        for league_dir in sorted(mdir.iterdir()):
+            if not league_dir.is_dir() or not league_dir.name.isdigit():
+                continue
+            comp = self.load_competition(league_dir.name)
+            if comp:
+                for season in comp.get("seasons", []):
+                    self.get_games(league_dir.name, season["name"])
+
+    def clear(self) -> None:
+        self._leagues_cache = None
+        self._teams_full_cache = None
+        self._competition_cache = {}
+        self._games_cache = {}
+
+
+# ---------------------------------------------------------------------------
+# DB provider
+# ---------------------------------------------------------------------------
+
+class DbProvider(FilterProvider):
+
+    def __init__(self) -> None:
+        self._leagues_cache: list[dict] | None = None
+        self._teams_full_cache: list[dict] | None = None
+        self._competition_cache: dict[str, dict] = {}
+        self._games_cache: dict[str, list] = {}
+
+    def _db_conn(self):
+        import mysql.connector
+        return mysql.connector.connect(
+            host=os.environ["DATABASE_HOST_AZURE"],
+            user=os.environ["DATABASE_USERNAME_AZURE"],
+            password=os.environ["DATABASE_PWD_AZURE"],
+            database=os.getenv("DATABASE_NAME_AZURE", "sportlogiq"),
+            auth_plugin="mysql_native_password",
+            connect_timeout=10,
+        )
+
+    def load_leagues(self) -> list[dict]:
+        return self._leagues_cache or []
+
+    def load_teams_full(self) -> list[dict]:
+        return self._teams_full_cache or []
+
+    def load_competition(self, league_id: str) -> dict | None:
+        return self._competition_cache.get(league_id)
+
+    def get_games(self, league_id: str, season: str) -> list:
+        return self._games_cache.get(f"{league_id}/{season}", [])
+
+    def warm(self) -> None:
+        conn = self._db_conn()
+        cursor = conn.cursor()
+        try:
+            cursor.execute("SELECT id, name FROM league ORDER BY name")
+            self._leagues_cache = [
+                {"id": str(r[0]), "name": r[1]} for r in cursor.fetchall()
+            ]
+
+            cursor.execute(
+                "SELECT id, name, display_name, location, shorthand, league_id FROM team"
+            )
+            self._teams_full_cache = [
+                {
+                    "id": str(r[0]),
+                    "name": r[1] or "",
+                    "displayName": r[2] or r[1] or "",
+                    "location": r[3] or "",
+                    "shorthand": r[4] or "",
+                    "leagueId": str(r[5]) if r[5] is not None else "",
+                }
+                for r in cursor.fetchall()
+            ]
+
+            # game.sl_id is kept as the game identifier (links to /game/<sl_id>).
+            # Everything else uses internal DB ids — no joins needed.
+            cursor.execute(
+                """
+                SELECT league_id, season, stage, sl_id,
+                       DATE(scheduled_time), event_status,
+                       home_team_goals, away_team_goals,
+                       home_team_id, away_team_id
+                FROM game
+                """
+            )
+            games_by_key: dict[str, list] = defaultdict(list)
+            comp_data: dict[str, dict[str, set]] = defaultdict(lambda: defaultdict(set))
+
+            for l_id, season, stage, g_sl, date, status, hg, ag, h_id, a_id in cursor.fetchall():
+                l_key = str(l_id)
+                score: dict = {}
+                if hg is not None and h_id is not None:
+                    score[str(h_id)] = hg
+                if ag is not None and a_id is not None:
+                    score[str(a_id)] = ag
+                games_by_key[f"{l_key}/{season}"].append({
+                    "id": str(g_sl) if g_sl is not None else "",
+                    "date": str(date) if date else "",
+                    "stage": stage or "",
+                    "event_status": status or "",
+                    "home_team_id": h_id,
+                    "away_team_id": a_id,
+                    "score": score,
+                })
+                if stage:
+                    comp_data[l_key][season].add(stage)
+
+            self._games_cache = dict(games_by_key)
+            self._competition_cache = {
+                l_key: {
+                    "seasons": [
+                        {
+                            "name": s,
+                            "stages": sorted(
+                                [{"name": st} for st in stages],
+                                key=lambda x: _STAGE_ORDER.get(x["name"].lower(), 99),
+                            ),
+                        }
+                        for s, stages in sorted(seasons.items(), reverse=True)
+                    ]
+                }
+                for l_key, seasons in comp_data.items()
+            }
+        finally:
+            cursor.close()
+            conn.close()
+
+    def clear(self) -> None:
+        self._leagues_cache = None
+        self._teams_full_cache = None
+        self._competition_cache = {}
+        self._games_cache = {}
+
+
+# ---------------------------------------------------------------------------
+# Provider selection
+# ---------------------------------------------------------------------------
+
+def _make_provider() -> FilterProvider:
+    backend = os.getenv("FILTER_BACKEND", "").lower()
+    use_db = backend == "db" or (not backend and bool(os.getenv("DATABASE_HOST_AZURE")))
+    if use_db:
+        try:
+            p = DbProvider()
+            p.warm()
+            _log.info("filter_api: using DbProvider")
+            return p
+        except Exception as exc:
+            if backend == "db":
+                raise RuntimeError("FILTER_BACKEND=db but DB warm failed") from exc
+            _log.warning("filter_api: DbProvider failed (%s), falling back to ManifestProvider", exc)
+    p = ManifestProvider()
+    p.warm()
+    _log.info("filter_api: using ManifestProvider")
+    return p
+
+
+_provider: FilterProvider = _make_provider()
+
+
+# ---------------------------------------------------------------------------
+# Endpoints
+# ---------------------------------------------------------------------------
+
 @filter_bp.route("/api/leagues")
 def api_leagues():
-    return jsonify({"leagues": _load_leagues()})
+    return jsonify({"leagues": _provider.load_leagues()})
 
 
 @filter_bp.route("/api/leagues/<league_id>/seasons")
 def api_seasons(league_id: str):
     if not _is_safe_segment(league_id):
         return jsonify({"seasons": []})
-    comp = _load_competition(league_id)
+    comp = _provider.load_competition(league_id)
     if not comp:
         return jsonify({"seasons": []})
-    seasons = [s["name"] for s in comp.get("seasons", [])]
-    return jsonify({"seasons": seasons})
+    return jsonify({"seasons": [s["name"] for s in comp.get("seasons", [])]})
 
 
 @filter_bp.route("/api/leagues/<league_id>/seasons/<season>/stages")
 def api_stages(league_id: str, season: str):
     if not (_is_safe_segment(league_id) and _is_safe_segment(season)):
         return jsonify({"stages": []})
-    comp = _load_competition(league_id)
+    comp = _provider.load_competition(league_id)
     if not comp:
         return jsonify({"stages": []})
     season_data = next((s for s in comp.get("seasons", []) if s["name"] == season), None)
@@ -226,14 +388,13 @@ def api_stages(league_id: str, season: str):
 def api_stage_games(league_id: str, season: str, stage: str):
     if not all(_is_safe_segment(s) for s in (league_id, season, stage)):
         return jsonify({"games": []})
-    all_games = _get_games(league_id, season)
+    all_games = _provider.get_games(league_id, season)
     game_list = [g for g in all_games if g.get("stage", "").lower() == stage.lower()]
-    return jsonify({"games": _format_games(game_list, _load_teams())})
+    return jsonify({"games": _format_games(game_list, _provider.load_teams())})
 
 
 @filter_bp.route("/api/leagues/<league_id>/seasons/<season>/games")
 def api_season_games(league_id: str, season: str):
-    """Games for a season, filling from playoffs → regular → preseason."""
     if not (_is_safe_segment(league_id) and _is_safe_segment(season)):
         return jsonify({"games": []})
     limit_param = request.args.get("limit")
@@ -242,7 +403,7 @@ def api_season_games(league_id: str, season: str):
     except (ValueError, TypeError):
         limit = None
 
-    comp = _load_competition(league_id)
+    comp = _provider.load_competition(league_id)
     if not comp:
         return jsonify({"games": []})
     season_data = next((s for s in comp.get("seasons", []) if s["name"] == season), None)
@@ -250,14 +411,12 @@ def api_season_games(league_id: str, season: str):
         return jsonify({"games": []})
 
     stage_priority = ["playoffs", "regular", "preseason"]
-    all_stage_names = [st["name"] for st in season_data.get("stages", [])]
     ordered_stages = sorted(
-        all_stage_names,
+        [st["name"] for st in season_data.get("stages", [])],
         key=lambda s: stage_priority.index(s.lower()) if s.lower() in stage_priority else 99,
     )
-
-    all_games = _get_games(league_id, season)
-    teams = _load_teams()
+    all_games = _provider.get_games(league_id, season)
+    teams = _provider.load_teams()
     result = []
     for stage in ordered_stages:
         game_list = sorted(
@@ -280,17 +439,17 @@ def api_recent_games(league_id: str):
         limit = min(int(request.args.get("limit", 30)), 100)
     except (ValueError, TypeError):
         limit = 30
-    comp = _load_competition(league_id)
+    comp = _provider.load_competition(league_id)
     if not comp or not comp.get("seasons"):
         return jsonify({"games": []})
     most_recent_season = comp["seasons"][0]["name"]
     game_list = sorted(
-        _get_games(league_id, most_recent_season),
+        _provider.get_games(league_id, most_recent_season),
         key=lambda g: g.get("date", ""),
         reverse=True,
     )
     return jsonify({
-        "games": _format_games(game_list[:limit], _load_teams()),
+        "games": _format_games(game_list[:limit], _provider.load_teams()),
         "season": most_recent_season,
     })
 
@@ -298,22 +457,25 @@ def api_recent_games(league_id: str):
 @filter_bp.route("/api/leagues/<league_id>/teams")
 def api_league_teams(league_id: str):
     if not _is_safe_segment(league_id):
-        return jsonify({"teams": []})
+        return jsonify({"teams": [], "season": None})
 
-    comp = _load_competition(league_id)
+    comp = _provider.load_competition(league_id)
     if not comp:
         return jsonify({"teams": [], "season": None})
 
-    # Walk seasons newest-first; stop at the first with >= 20 finished games.
-    chosen_season = None
-    chosen_games = []
-    for season in comp.get("seasons", []):
-        games = _get_games(league_id, season["name"])
-        finished = [g for g in games if g.get("event_status") == "over"]
-        if len(finished) >= 20:
-            chosen_season = season["name"]
-            chosen_games = games
-            break
+    season_param = request.args.get("season", "").strip()
+    if season_param and _is_safe_segment(season_param):
+        chosen_season = season_param
+        chosen_games = _provider.get_games(league_id, chosen_season)
+    else:
+        chosen_season = None
+        chosen_games = []
+        for season in comp.get("seasons", []):
+            games = _provider.get_games(league_id, season["name"])
+            if sum(1 for g in games if g.get("event_status") == "over") >= 20:
+                chosen_season = season["name"]
+                chosen_games = games
+                break
 
     if chosen_season is None:
         return jsonify({"teams": [], "season": None})
@@ -323,8 +485,7 @@ def api_league_teams(league_id: str):
     } | {
         str(g["away_team_id"]) for g in chosen_games if "away_team_id" in g
     }
-
-    teams_by_id = {str(t["id"]): t for t in _load_teams_full()}
+    teams_by_id = {str(t["id"]): t for t in _provider.load_teams_full()}
     teams = sorted(
         [
             {
@@ -345,7 +506,9 @@ def api_league_teams(league_id: str):
 def api_team(team_id: str):
     if not _is_safe_segment(team_id):
         return jsonify({"error": "invalid"}), 400
-    team = next((t for t in _load_teams_full() if str(t.get("id", "")) == team_id), None)
+    team = next(
+        (t for t in _provider.load_teams_full() if str(t.get("id", "")) == team_id), None
+    )
     if team is None:
         return jsonify({"error": "not found"}), 404
     return jsonify({
@@ -362,12 +525,6 @@ def refresh_manifests():
     secret = os.getenv("ADMIN_SECRET", "")
     if not secret or request.headers.get("X-Admin-Secret") != secret:
         return jsonify({"error": "unauthorized"}), 401
-    _clear_caches()
-    _warm_caches()
-    return jsonify({"ok": True})
-
-
-# Load all manifests into memory at startup so requests are served from cache.
-# On Azure, DATA_ROOT_DIR points to a network share — reading happens once here,
-# never on individual requests.
-_warm_caches()
+    _provider.clear()
+    _provider.warm()
+    return jsonify({"ok": True, "backend": type(_provider).__name__})

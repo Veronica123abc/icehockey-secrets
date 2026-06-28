@@ -167,6 +167,11 @@ class DataCatalog:
         with path.open("w", encoding="utf-8") as f:
             json.dump(data, f, indent=4)
 
+    def save_players_detailed(self, data: dict, filename) -> None:
+        path = self._root / 'players' / filename
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with path.open("w", encoding="utf-8") as f:
+            json.dump(data, f, indent=4)
     def save_all_competitions(self, data: dict) -> None:
         path = self._root / "all_competitions.json"
         with path.open("w", encoding="utf-8") as f:

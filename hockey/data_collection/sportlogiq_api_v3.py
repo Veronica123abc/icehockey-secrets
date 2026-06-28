@@ -50,7 +50,7 @@ class SportlogiqApi:
         season_id=10
         stage='regular'
 
-        params = {'teamid[]':1, 'seasonid[]':12, 'seasonstage[]':'playoffs'}
+        params = {'teamid[]':1, 'seasonid[]':12, 'seasonstage[]':'regular'}
         url_players=self.BASE_URL + f"/api/v3/players"
         url_games=self.BASE_URL + f"/api/v3/games"
         # res = self.req.get(
@@ -293,5 +293,6 @@ if __name__ == "__main__":
     # print(metrics.json())
     # download_complete_game(204628, conn=conn, verbose=True)
     games = conn.get_players()
+    games.json()
     print(games)
     print(games.json())

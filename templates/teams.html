@@ -125,6 +125,12 @@
                 <option value="">Loading...</option>
             </select>
         </div>
+        <div class="filter-group">
+            <label for="season-select">Season</label>
+            <select id="season-select" disabled>
+                <option value="">Loading...</option>
+            </select>
+        </div>
     </div>
 
     <div id="team-count" class="team-count" style="display: none;"></div>
@@ -133,10 +139,11 @@
 
     <script>
     (function() {
-        var leagueSel  = document.getElementById('league-select');
-        var teamGrid   = document.getElementById('team-grid');
-        var teamCount  = document.getElementById('team-count');
-        var loading    = document.getElementById('loading');
+        var leagueSel = document.getElementById('league-select');
+        var seasonSel = document.getElementById('season-select');
+        var teamGrid  = document.getElementById('team-grid');
+        var teamCount = document.getElementById('team-count');
+        var loading   = document.getElementById('loading');
         var DEFAULT_LEAGUE = '1';
 
         function esc(s) {
@@ -145,13 +152,30 @@
             return d.innerHTML;
         }
 
+        function fmtSeason(s) {
+            if (s && s.length === 8 && /^\d+$/.test(s)) return s.slice(0, 4) + '/' + s.slice(4);
+            return s || '';
+        }
+
+        function getParams() {
+            var p = new URLSearchParams(window.location.search);
+            return { league: p.get('league') || DEFAULT_LEAGUE, season: p.get('season') || '' };
+        }
+
+        function updateUrl(league, season) {
+            var p = new URLSearchParams();
+            if (league) p.set('league', league);
+            if (season) p.set('season', season);
+            history.replaceState(null, '', '?' + p.toString());
+        }
+
         function showLoading() { loading.style.display = 'block'; }
         function hideLoading() { loading.style.display = 'none'; }
 
         function renderTeams(teams) {
             teamGrid.innerHTML = '';
             if (!teams || teams.length === 0) {
-                teamGrid.innerHTML = '<div class="info-box">No teams found for this league.</div>';
+                teamGrid.innerHTML = '<div class="info-box">No teams found for this season.</div>';
                 teamCount.style.display = 'none';
                 return;
             }
@@ -175,11 +199,13 @@
             });
         }
 
-        function loadTeams(leagueId) {
+        function loadTeamsForSeason(leagueId, season) {
             showLoading();
             teamGrid.innerHTML = '';
             teamCount.style.display = 'none';
-            fetch('/api/leagues/' + leagueId + '/teams')
+            var url = '/api/leagues/' + leagueId + '/teams'
+                + (season ? '?season=' + encodeURIComponent(season) : '');
+            fetch(url)
                 .then(function(r) { return r.json(); })
                 .then(function(data) {
                     hideLoading();
@@ -188,7 +214,44 @@
                 .catch(function() { hideLoading(); });
         }
 
-        var savedLeague = (new URLSearchParams(window.location.search)).get('league') || DEFAULT_LEAGUE;
+        // Load seasons and auto-selected teams in parallel, then sync the dropdown.
+        function loadForLeague(leagueId, preferSeason) {
+            showLoading();
+            teamGrid.innerHTML = '';
+            teamCount.style.display = 'none';
+            seasonSel.disabled = true;
+            seasonSel.innerHTML = '<option value="">Loading...</option>';
+
+            var teamsUrl = '/api/leagues/' + leagueId + '/teams'
+                + (preferSeason ? '?season=' + encodeURIComponent(preferSeason) : '');
+
+            Promise.all([
+                fetch('/api/leagues/' + leagueId + '/seasons').then(function(r) { return r.json(); }),
+                fetch(teamsUrl).then(function(r) { return r.json(); }),
+            ]).then(function(results) {
+                var seasonsData = results[0];
+                var teamsData   = results[1];
+                var seasons     = seasonsData.seasons || [];
+                var activeSeason = teamsData.season || preferSeason || '';
+
+                seasonSel.innerHTML = '';
+                seasons.forEach(function(s) {
+                    var o = document.createElement('option');
+                    o.value = s;
+                    o.textContent = fmtSeason(s);
+                    if (s === activeSeason) o.selected = true;
+                    seasonSel.appendChild(o);
+                });
+                seasonSel.disabled = seasons.length === 0;
+
+                updateUrl(leagueId, activeSeason);
+                hideLoading();
+                renderTeams(teamsData.teams || []);
+            }).catch(function() { hideLoading(); });
+        }
+
+        // Bootstrap from URL params
+        var init = getParams();
 
         fetch('/api/leagues')
             .then(function(r) { return r.json(); })
@@ -198,17 +261,23 @@
                     var o = document.createElement('option');
                     o.value = lg.id;
                     o.textContent = lg.name;
-                    if (lg.id === savedLeague) o.selected = true;
+                    if (lg.id === init.league) o.selected = true;
                     leagueSel.appendChild(o);
                 });
-                loadTeams(leagueSel.value);
+                loadForLeague(leagueSel.value, init.season);
             });
 
         leagueSel.addEventListener('change', function() {
             var id = leagueSel.value;
             if (!id) return;
-            history.replaceState(null, '', '?league=' + encodeURIComponent(id));
-            loadTeams(id);
+            loadForLeague(id, '');
+        });
+
+        seasonSel.addEventListener('change', function() {
+            var season = seasonSel.value;
+            var leagueId = leagueSel.value;
+            updateUrl(leagueId, season);
+            loadTeamsForSeason(leagueId, season);
         });
     })();
     </script>
