@@ -6,6 +6,12 @@ from hockey.model.game import Game
 
 
 @dataclass
+class ManpowerSituation:
+    team_skaters: int | None
+    opposing_team_skaters: int | None
+
+
+@dataclass
 class ShotAfterEntry:
     time_since_entry: float  # seconds from zone entry to shot
 
@@ -17,6 +23,10 @@ class ZoneEntry:
     entry_time: float        # game time in seconds
     shots: list[ShotAfterEntry] = field(default_factory=list)
     recovered: bool | None = None  # True/False for dumpins; None for pass/carry
+    goal: float = -1.0  # seconds from entry to goal; -1 if no goal
+    manpower_situation: ManpowerSituation | None = None
+    team_shift_toi: float | None = None
+    opposing_team_shift_toi: float | None = None
 
     @property
     def shot_count(self) -> int:
@@ -61,10 +71,12 @@ def zone_entries(game: Game) -> dict[int, list[ZoneEntry]]:
     Returns a dict keyed by team_id with the two teams in the game.
     """
     events = sorted(game.events, key=lambda e: e.t)
+    home_team_id = game.info.home_team.id
+    away_team_id = game.info.away_team.id
 
     result: dict[int, list[ZoneEntry]] = {
-        game.info.home_team.id: [],
-        game.info.away_team.id: [],
+        home_team_id: [],
+        away_team_id: [],
     }
 
     current_entry: ZoneEntry | None = None
@@ -76,11 +88,23 @@ def zone_entries(game: Game) -> dict[int, list[ZoneEntry]]:
         if entry_type is not None:
             team = event.team_id_in_possession or event.team_id
             if team is not None and team in result:
+                team_sk = event.get_raw("team_skaters_on_ice")
+                opp_sk = event.get_raw("opposing_team_skaters_on_ice")
+                #if team == home_team_id:
+                #    mps = ManpowerSituation(team_skaters=team_sk, away_team_skaters=opp_sk)
+                #else:
+                #    mps = ManpowerSituation(opposing_team_skaters=opp_sk, away_team_skaters=team_sk)
+                mps = ManpowerSituation(team_skaters=team_sk, opposing_team_skaters=opp_sk)
+                shift_data = game.current_shift_toi(event.t)
+                opposing_id = away_team_id if team == home_team_id else home_team_id
                 current_entry = ZoneEntry(
                     team_id=team,
                     entry_type=entry_type,
                     entry_time=event.t,
                     recovered=False if entry_type == "dumpin" else None,
+                    manpower_situation=mps,
+                    team_shift_toi=shift_data.get(team, {}).get("total_team_shift_toi"),
+                    opposing_team_shift_toi=shift_data.get(opposing_id, {}).get("total_team_shift_toi"),
                 )
                 result[team].append(current_entry)
                 checking_recovery = entry_type == "dumpin"
@@ -107,6 +131,8 @@ def zone_entries(game: Game) -> dict[int, list[ZoneEntry]]:
             current_entry.shots.append(
                 ShotAfterEntry(time_since_entry=event.t - current_entry.entry_time)
             )
+            if event.name == "goal":
+                current_entry.goal = event.t - current_entry.entry_time
 
     return result
 
