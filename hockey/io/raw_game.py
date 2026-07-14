@@ -75,6 +75,11 @@ class RawGame:
         return self._cache[cache_key]
 
     def full_event_field(self, game_time: float, name: str, field: str, default: Any = None) -> Any:
-        """Return a field from the full playsequence event at (game_time, name)."""
+        """
+        Return a field from the full playsequence event at (game_time, name).
+        The field 'playsection' is not used in playsequence_compiled. To fetch this, the matching event in the
+        raw playsequence need to be fetched. This is a temporary hack. game_time is a float, non-unique variable which
+        is not suitable to query.
+        """
         e = self._full_events_by_key().get((game_time, name))
         return e.get(field, default) if e is not None else default
