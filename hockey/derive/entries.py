@@ -27,6 +27,8 @@ class ZoneEntry:
     manpower_situation: ManpowerSituation | None = None
     team_shift_toi: float | None = None
     opposing_team_shift_toi: float | None = None
+    team_skaters_on_ice: int | None = None
+    opposing_team_skaters_on_ice: int | None = None
 
     @property
     def shot_count(self) -> int:
@@ -103,8 +105,8 @@ def zone_entries(game: Game) -> dict[int, list[ZoneEntry]]:
                     entry_time=event.t,
                     recovered=False if entry_type == "dumpin" else None,
                     manpower_situation=mps,
-                    team_shift_toi=shift_data.get(team, {}).get("total_team_shift_toi"),
-                    opposing_team_shift_toi=shift_data.get(opposing_id, {}).get("total_team_shift_toi"),
+                    team_shift_toi=shift_data.get(team, {}).get("total_team_shift_toi") / len(shift_data.get(team, {})['players']),
+                    opposing_team_shift_toi=shift_data.get(opposing_id, {}).get("total_team_shift_toi") / len(shift_data.get(opposing_id, {})['players']),
                 )
                 result[team].append(current_entry)
                 checking_recovery = entry_type == "dumpin"

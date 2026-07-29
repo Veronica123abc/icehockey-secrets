@@ -30,13 +30,15 @@ if __name__ == "__main__":
         root = Path(os.getenv("DATA_ROOT_DIR", "/home/veronica/hockeystats/ver3"))
         raw = RawGame(game_id=GAME_ID, root_dir=root, playsequence_source="playsequence_compiled")
         game = build_game(raw)
-        entries = zone_entries(game)
-        ht = [k.team_shift_toi - k.opposing_team_shift_toi for k in entries[game.info.home_team.id] if k.goal > 0]
-        at = [k.team_shift_toi - k.opposing_team_shift_toi for k in entries[game.info.away_team.id] if k.goal > 0]
-        both_teams = ht + at
-        print(sum(both_teams))
-        total_sum += sum(both_teams)
-        total += len(both_teams)
-        print(total_sum / total)
+        goal_events = [e for e in game.events if e.name == "goal"]
+        for e in goal_events:
 
-        goals = [e for e in game.events if e.name == "goal"]
+            print("Team: ", e.team_id)
+        # ht = [k.team_shift_toi - k.opposing_team_shift_toi for k in entries[game.info.home_team.id] if k.goal > 0]
+        # at = [k.team_shift_toi - k.opposing_team_shift_toi for k in entries[game.info.away_team.id] if k.goal > 0]
+        # both_teams = ht + at
+        # print(sum(both_teams))
+        # total_sum += sum(both_teams)
+        # total += len(both_teams)
+        # print(total_sum / total)
+        print("end")
