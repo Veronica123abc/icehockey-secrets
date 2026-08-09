@@ -32,6 +32,30 @@ def _last_whistle_time(game: Game, game_time: float) -> Optional[float]:
             last = e.t
     return last
 
+def find_intervals(intervals, queries):
+    starts = sorted((s, i) for i, (s, e) in enumerate(intervals))
+    ends   = sorted((e, i) for i, (s, e) in enumerate(intervals))
+    q_sorted = sorted((q, j) for j, q in enumerate(queries))
+    active = []
+    result = [[] for _ in queries]
+    i = j = 0
+    for t, q_idx in q_sorted:
+
+        # START: inkludera t_s <= t
+        while i < len(starts) and starts[i][0] <= t:
+            active.append(starts[i][1])
+            i += 1
+
+        # END: exkludera t_e <= t
+        while j < len(ends) and ends[j][0] <= t:
+            active.remove(ends[j][1])
+            j += 1
+
+        # QUERY snapshot
+        result[q_idx] = (t, active.copy())
+
+    return result
+
 
 def current_shift_toi(
     game: Game,
@@ -77,40 +101,42 @@ def current_shift_toi(
     #     by_team[team_id].append({"total": total})
 
     return by_team
-    out: dict[int, dict[str, Any]] = {}
 
-    for team_id in team_ids:
-        players_payload = []
-        total = 0.0
 
-        def _toi_now(interval: ToIInterval) -> float:
-            effective_start = interval.start_t
-            # if whistle_t is not None and whistle_t > effective_start:
-            #     effective_start = whistle_t
-            return float(game_time - effective_start)
+def current_shift_toi_series(game: Game, query_times:list[float], include_goalies=False):
+    pos_by_player = {pid: p.position for pid, p in game.roster.players.items()}
+    game_toi = [toi for toi in game.toi if pos_by_player[toi.player_id] != 'G'] if not include_goalies else game.toi
+    player_intervals = [(s.start_t, s.end_t) for s in game_toi] #game.toi]
+    intervals = find_intervals(player_intervals, query_times)
+    snapshots = []
+        # stable ordering (optional)
 
-        # sort for stable output (by longer shift first, then player id)
-        intervals = sorted(
-            by_team[team_id],
-            key=lambda x: (-_toi_now(x), x.player_id),
-        )
+    for interval in intervals:
+        query_time = interval[0]
+        shifts = [game_toi[k] for k in interval[1]]
+        out: dict[int, dict[str, Any]] = {}
+        for team_id in [game.info.home_team.id, game.info.away_team.id]:
+            team_shifts = [shift for shift in shifts if shift.team_id == team_id]
 
-        for x in intervals:
-            toi_now = _toi_now(x)
-            total += toi_now
-            players_payload.append(
-                {
-                    "player_id": x.player_id,
-                    "player_position": _player_position(game, x.player_id),
-                    "current_shift_toi": toi_now,
-                }
-            )
+            players_payload = []
+            total = 0.0
+            for shift in team_shifts:
+                players_payload.append(
+                    {
+                        "player_id": shift.player_id,
+                        "current_shift_toi": query_time - shift.start_t,
+                    }
+                )
+                total += query_time - shift.start_t
+            out[team_id] = {
+                "team_id": team_id,
+                "players": players_payload,
+                "total_team_shift_toi": total,
+                "average_team_shift_toi": total / len(team_shifts) if len(team_shifts) else 0.0,
+            }
+        snapshots.append(out)
+    return snapshots
 
-        out[team_id] = {
-            "team_id": team_id,
-            "players": players_payload,
-            "total_team_shift_toi": total,
-        }
 
-    return out
+#def _current_shift_toi_2(toi_intervals: list[ToIInterval], game: Game) -> CurrentShiftTOI:
 

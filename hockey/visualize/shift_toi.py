@@ -16,7 +16,7 @@ from hockey.normalize.build_game import  build_game
 from hockey.normalize.build_competition import build_competition
 from hockey.model.game import Game
 from pathlib import Path
-from hockey.derive.current_shift_series import find_intervals, find_intervals, current_shift_toi_series
+# from hockey.derive.current_shift_series import find_intervals, find_intervals, current_shift_toi_series
 
 PLOT_VERSION = 4  # bump to invalidate _plotly_cache after visualization changes
 
@@ -65,55 +65,55 @@ def _is_goalie(game: Game, player_id: int) -> bool:
     p = game.roster.players.get(player_id)
     return (p is not None) and (p.position == "G")
 
-
-def mean_shift_time_series(
-    *,
-    game: Game,
-    end_time: int,
-    include_goalies: bool = False,
-    reset_on_whistle: bool = True,
-) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
-    """
-    Returns:
-      times: seconds [0..end_time]
-      home_mean: mean shift time for home skaters (positive)
-      away_mean: mean shift time for away skaters (negative)
-    """
-    home_id = game.info.home_team.id
-    away_id = game.info.away_team.id
-
-    whistles = _whistle_times(game) if reset_on_whistle else []
-
-    times = np.arange(0, end_time + 1, dtype=float)
-    home_mean = np.zeros_like(times)
-    away_mean = np.zeros_like(times)
-
-    by_team: dict[int, list[ToIInterval]] = {home_id: [], away_id: []}
-    for x in game.toi:
-        if x.team_id in by_team:
-            if (not include_goalies) and _is_goalie(game, x.player_id):
-                continue
-            by_team[x.team_id].append(x)
-
-    for idx, t in enumerate(times):
-        w = _last_whistle_at_or_before(whistles, t) if reset_on_whistle else None
-
-        for team_id, target in ((home_id, "home"), (away_id, "away")):
-            vals: list[float] = []
-            for x in by_team[team_id]:
-                if x.start_t <= t and (x.end_t is None or t < x.end_t):
-                    effective_start = x.start_t
-                    if w is not None and w > effective_start:
-                        effective_start = w
-                    vals.append(float(t - effective_start))
-
-            m = float(np.mean(vals)) if vals else 0.0
-            if target == "home":
-                home_mean[idx] = m
-            else:
-                away_mean[idx] = -m
-
-    return times, home_mean, away_mean
+#
+# def mean_shift_time_series(
+#     *,
+#     game: Game,
+#     end_time: int,
+#     include_goalies: bool = False,
+#     reset_on_whistle: bool = True,
+# ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+#     """
+#     Returns:
+#       times: seconds [0..end_time]
+#       home_mean: mean shift time for home skaters (positive)
+#       away_mean: mean shift time for away skaters (negative)
+#     """
+#     home_id = game.info.home_team.id
+#     away_id = game.info.away_team.id
+#
+#     whistles = _whistle_times(game) if reset_on_whistle else []
+#
+#     times = np.arange(0, end_time + 1, dtype=float)
+#     home_mean = np.zeros_like(times)
+#     away_mean = np.zeros_like(times)
+#
+#     by_team: dict[int, list[ToIInterval]] = {home_id: [], away_id: []}
+#     for x in game.toi:
+#         if x.team_id in by_team:
+#             if (not include_goalies) and _is_goalie(game, x.player_id):
+#                 continue
+#             by_team[x.team_id].append(x)
+#
+#     for idx, t in enumerate(times):
+#         w = _last_whistle_at_or_before(whistles, t) if reset_on_whistle else None
+#
+#         for team_id, target in ((home_id, "home"), (away_id, "away")):
+#             vals: list[float] = []
+#             for x in by_team[team_id]:
+#                 if x.start_t <= t and (x.end_t is None or t < x.end_t):
+#                     effective_start = x.start_t
+#                     if w is not None and w > effective_start:
+#                         effective_start = w
+#                     vals.append(float(t - effective_start))
+#
+#             m = float(np.mean(vals)) if vals else 0.0
+#             if target == "home":
+#                 home_mean[idx] = m
+#             else:
+#                 away_mean[idx] = -m
+#
+#     return times, home_mean, away_mean
 
 
 def plot_shift_toi_with_grades(

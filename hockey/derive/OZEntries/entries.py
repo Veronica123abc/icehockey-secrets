@@ -2,8 +2,10 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-from hockey.model.game import Game
+from sqlalchemy import true
 
+from hockey.model.game import Game
+from hockey.model.events import Event
 
 @dataclass
 class ManpowerSituation:
@@ -27,13 +29,14 @@ class ZoneEntry:
     manpower_situation: ManpowerSituation | None = None
     team_shift_toi: float | None = None
     opposing_team_shift_toi: float | None = None
+    event: Event | None = None
 
     @property
     def shot_count(self) -> int:
         return len(self.shots)
 
 
-def _classify_entry(event) -> str | None:
+def _classify_entry(event, faceoff_as_entry: bool=False) -> str | None:
     """
     Classify an offensive-zone entry from a compiled playsequence event.
 
@@ -41,28 +44,28 @@ def _classify_entry(event) -> str | None:
       - carry:  name == "controlledentry", type "carry..."
       - pass:   name == "controlledentry", type "pass..."
       - dumpin: name == "dumpinentry"
+      - faceoff: name == "faceoff", zone=oz
+   """
 
-    The compiled `type` on controlledentry carries trailing flags
-    (e.g. "carrywithplaywithshotonnet", "passwithplay"), so we match on the
-    leading token rather than an exact string.
-    """
-    name = event.name
-    if name == "controlledentry":
-        etype = event.type
-        if etype.startswith("carry"):
-            return "carry"
-        if etype.startswith("pass"):
-            return "pass"
-        return None
-    if name == "dumpinentry":
-        return "dumpin"
+
+
+    if event.name in ["controlledentry", "dumpinentry"]:
+        return event.name
+    if event.name == "faceoff" and faceoff_as_entry and event.get_raw('zone') == "oz":
+        return event.name
+
     return None
 
+def _classify_exit(event):
+    if event.name == "controlledentry":
+        return event.name
+    if event.name == "zoneexit"  and event.get_raw('outcome') == "successful":
+        return event.name
 
 # Events that end the current OZ possession (a DZ exit by the defending team).
 # Per hockey/derive/OZEntries/CLAUDE.md: name "dumpout" or "controlledexit".
 # (The CLAUDE.md spells it "dumout"; the actual compiled event name is "dumpout".)
-_ZONE_EXIT_NAMES = frozenset({"dumpout", "controlledexit"})
+_ZONE_EXIT_NAMES = frozenset({"zoneexit", "controlledexit"})
 
 
 def _is_shot_on_net(name: str, type_: str) -> bool:
@@ -71,7 +74,11 @@ def _is_shot_on_net(name: str, type_: str) -> bool:
     return name == "shot" and not type_.endswith("blocked")
 
 
-def zone_entries(game: Game) -> dict[int, list[ZoneEntry]]:
+def zone_entry_events(game: Game) -> list[Event]:
+    events = [e for e in game.events if _classify_entry(e)]
+    return events
+
+def zone_entries(game: Game, faceoff_as_entry:bool=False) -> dict[int, list[ZoneEntry]]:
     """
     Return all offensive zone entries per team for a game, computed from the
     compiled playsequence (build the Game with
@@ -97,11 +104,12 @@ def zone_entries(game: Game) -> dict[int, list[ZoneEntry]]:
     }
 
     current_entry: ZoneEntry | None = None
-    checking_recovery: bool = False  # True while we still need to resolve a dumpin recovery
+    #checking_recovery: bool = False  # True while we still need to resolve a dumpin recovery
 
     for event in events:
-        entry_type = _classify_entry(event)
-
+        entry_type = _classify_entry(event, faceoff_as_entry)
+        if event.get_raw('team_skater_on_ice') != 5 and event.get_raw('opposing_team_skaters_on_ice') != 5:
+            continue
         if entry_type is not None:
             team = event.team_id_in_possession or event.team_id
             if team is not None and team in result:
@@ -118,9 +126,10 @@ def zone_entries(game: Game) -> dict[int, list[ZoneEntry]]:
                     manpower_situation=mps,
                     team_shift_toi=shift_data.get(team, {}).get("total_team_shift_toi"),
                     opposing_team_shift_toi=shift_data.get(opposing_id, {}).get("total_team_shift_toi"),
+                    event=event
                 )
                 result[team].append(current_entry)
-                checking_recovery = entry_type == "dumpin"
+                #checking_recovery = entry_type == "dumpin"
             else:
                 current_entry = None
                 checking_recovery = False
@@ -129,17 +138,11 @@ def zone_entries(game: Game) -> dict[int, list[ZoneEntry]]:
         if current_entry is None:
             continue
 
-        # Resolve dumpin recovery: first non-mirror event with a known possession
-        if checking_recovery and event.name != "dumpinagainst":
-            if event.team_id_in_possession is not None:
-                current_entry.recovered = (event.team_id_in_possession == current_entry.team_id)
-                checking_recovery = False
 
-        if event.name in _ZONE_EXIT_NAMES:
-            checking_recovery = False
+        if _classify_exit(event):
             current_entry = None
             continue
-
+        #print(event.name)
         if _is_shot_on_net(event.name, event.type) and event.team_id == current_entry.team_id:
             current_entry.shots.append(
                 ShotAfterEntry(time_since_entry=event.t - current_entry.entry_time)

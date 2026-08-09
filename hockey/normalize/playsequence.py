@@ -4,6 +4,7 @@ from typing import Optional
 
 from hockey.model.events import Event
 from hockey.normalize.team_resolution import TeamResolver
+from hockey.derive.current_shift import current_shift_toi
 
 
 def _maybe_int(x) -> Optional[int]:
@@ -83,6 +84,8 @@ def normalize_playsequence(
                 raw=e,
                 event_id=event_id,
                 base_event_id=base_event_id,
+
             )
         )
+
     return events

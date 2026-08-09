@@ -48,7 +48,7 @@ hockey/normalize/build_game.py             # Transforms raw JSON → domain mode
     ↓
 hockey/model/                              # Game, Event, ToIInterval, Roster dataclasses
     ↓
-hockey/derive/current_shift_series.py      # Computes per-second shift TOI series
+hockey/derive/current_shift.py             # Computes per-second shift TOI series
     ↓
 hockey/visualize/shift_toi.py              # Generates Plotly figure
     ↓
@@ -57,7 +57,7 @@ app.py + templates/                        # Flask routes + Jinja2 HTML
 
 ### The `derive/` Layer
 
-This is the computational core between model and visualization. `current_shift_toi_series()` in `hockey/derive/current_shift_series.py` takes a list of query times and efficiently returns per-team snapshots of which players are on ice and their current shift duration. It uses a sweep-line algorithm (`find_intervals`) rather than per-second brute force.
+This is the computational core between model and visualization. `current_shift_toi_series()` in `hockey/derive/current_shift.py` takes a list of query times and efficiently returns per-team snapshots of which players are on ice and their current shift duration. It uses a sweep-line algorithm (`find_intervals`) rather than per-second brute force.
 
 `Game.shift_toi_series(queries)` delegates directly to this function. The visualization calls it once for the full game (`range(end_time)`) to build all three line traces.
 
@@ -100,7 +100,7 @@ Grades A/B/C map to colors green/orange/red. Home chances appear above the x-axi
 | `hockey/io/raw_game.py` | Lazy JSON loader; `RawGame` dataclass |
 | `hockey/normalize/build_game.py` | Orchestrates normalization into `Game` |
 | `hockey/model/game.py` | `Game` dataclass; DataFrame exports; shift series methods |
-| `hockey/derive/current_shift_series.py` | `find_intervals` sweep-line + `current_shift_toi_series` |
+| `hockey/derive/current_shift.py` | `find_intervals` sweep-line + `current_shift_toi_series` + single-time `current_shift_toi` |
 | `hockey/visualize/shift_toi.py` | Main visualization: 3 line traces + chance markers |
 | `hockey/data_collection/sportlogiq_api.py` | `SportlogiqApi` client + `download_complete_game` |
 | `hockey/config/settings.py` | `Settings.from_env()` — reads `DATA_ROOT_DIR`, `OUTPUT_DIR` |

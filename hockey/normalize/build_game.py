@@ -33,6 +33,7 @@ def build_game(raw: RawGame) -> Game:
     )
     roster = normalize_roster(game_id=raw.game_id, raw_roster=raw.roster)
 
+
     return Game(
         info=info,
         events=events,
