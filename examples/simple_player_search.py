@@ -17,7 +17,9 @@ from hockey.data_collection.sportlogiq import SportlogiqV3
 
 api = SportlogiqV3()
 
-result = api.players.search(teamid=1, seasonid=12, seasonstage="regular")
+result = api.players.search(leagueid=1, seasonid=12, seasonstage="regular",withseasonsummaries=True)
 
 for player in result["players"]:
-    print(player["id"], player["firstName"], player["lastName"])
+    #print(player["id"], player["firstName"], player["lastName"])
+    for k in list(player.keys()):
+        print(f"{k}: {player[k]}")

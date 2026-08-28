@@ -51,6 +51,16 @@ class RawGame:
         return self._load(self.playsequence_source)
 
     @property
+    def playsequence_raw(self) -> dict:
+        return self._load("playsequence")
+
+    @property
+    def playsequence_compiled(self) -> dict:
+        return self._load("playsequence_compiled")
+
+
+
+    @property
     def roster(self) -> dict:
         return self._load("roster")
 
@@ -58,28 +68,84 @@ class RawGame:
     def player_toi(self) -> dict:
         return self._load("playerTOI")
 
-    def _full_events_by_key(self) -> dict[tuple[float, str], dict]:
+    # def _full_events_by_key(self) -> dict[tuple[float, int, str], dict]:
+    #
+    #     """
+    #     Lazy index of playsequence.json keyed by (current_possession, current_play_in_possession).
+    #     Always loads the full (non-compiled) playsequence regardless of playsequence_source.
+    #     Built once and cached; the first event at each key wins if timestamps collide.
+    #     """
+    #     cache_key = "_full_events_by_key"
+    #     if cache_key not in self._cache:
+    #         data = self._load("playsequence")
+    #         idx: dict[tuple[int, int, str], dict] = {}
+    #         events = data.get("events", [])
+    #         events = [e for e in events if e["name"] == "shot"]
+    #         for e in events:
+    #             k = (int(e["current_possession"]), int(e["current_play_in_possession"]), str(e.get("name", "")))
+    #             idx.setdefault(k, e)
+    #         self._cache[cache_key] = idx
+    #     return self._cache[cache_key]
+    def _full_events_by_key(self) -> dict[tuple[float, int], dict]:
         """
-        Lazy index of playsequence.json keyed by (game_time, name).
+        Lazy index of playsequence.json keyed by (current_possession, current_play_in_possession).
         Always loads the full (non-compiled) playsequence regardless of playsequence_source.
         Built once and cached; the first event at each key wins if timestamps collide.
         """
         cache_key = "_full_events_by_key"
         if cache_key not in self._cache:
             data = self._load("playsequence")
-            idx: dict[tuple[float, str], dict] = {}
-            for e in data.get("events", []):
-                k = (float(e["game_time"]), str(e.get("name", "")))
+            idx: dict[tuple[int, int], dict] = {}
+            events = data.get("events", [])
+            events = [e for e in events if e["team_in_possession"] not in  ['None', 'none', None]]
+            for e in events:
+                k = (int(e["current_possession"]), int(e["current_play_in_possession"]))
                 idx.setdefault(k, e)
             self._cache[cache_key] = idx
         return self._cache[cache_key]
 
-    def full_event_field(self, game_time: float, name: str, field: str, default: Any = None) -> Any:
+    def full_event_field(self, current_possession: int, current_play_in_possession: int, name: str, field: str, default: Any = None) -> Any:
         """
         Return a field from the full playsequence event at (game_time, name).
         The field 'playsection' is not used in playsequence_compiled. To fetch this, the matching event in the
         raw playsequence need to be fetched. This is a temporary hack. game_time is a float, non-unique variable which
         is not suitable to query.
         """
-        e = self._full_events_by_key().get((game_time, name))
+        e = self._full_events_by_key().get((current_possession, current_play_in_possession)) #, name))
         return e.get(field, default) if e is not None else default
+
+    def full_event_field_2(self, current_possession: int, current_play_in_possession: int, default: Any = None) -> Any:
+        """
+        Return a field from the full playsequence event at (game_time, name).
+        The field 'playsection' is not used in playsequence_compiled. To fetch this, the matching event in the
+        raw playsequence need to be fetched. This is a temporary hack. game_time is a float, non-unique variable which
+        is not suitable to query.
+        """
+        e = self._full_events_by_key().get((current_possession, current_play_in_possession))
+        return e
+
+    # def _full_events_by_key(self) -> dict[tuple[float, str], dict]:
+    #     """
+    #     Lazy index of playsequence.json keyed by (game_time, name).
+    #     Always loads the full (non-compiled) playsequence regardless of playsequence_source.
+    #     Built once and cached; the first event at each key wins if timestamps collide.
+    #     """
+    #     cache_key = "_full_events_by_key"
+    #     if cache_key not in self._cache:
+    #         data = self._load("playsequence")
+    #         idx: dict[tuple[float, str], dict] = {}
+    #         for e in data.get("events", []):
+    #             k = (float(e["game_time"]), str(e.get("name", "")))
+    #             idx.setdefault(k, e)
+    #         self._cache[cache_key] = idx
+    #     return self._cache[cache_key]
+    #
+    # def full_event_field(self, game_time: float, name: str, field: str, default: Any = None) -> Any:
+    #     """
+    #     Return a field from the full playsequence event at (game_time, name).
+    #     The field 'playsection' is not used in playsequence_compiled. To fetch this, the matching event in the
+    #     raw playsequence need to be fetched. This is a temporary hack. game_time is a float, non-unique variable which
+    #     is not suitable to query.
+    #     """
+    #     e = self._full_events_by_key().get((game_time, name))
+    #     return e.get(field, default) if e is not None else default

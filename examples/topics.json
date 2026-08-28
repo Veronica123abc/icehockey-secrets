@@ -1,0 +1,457 @@
+[
+    {
+        "id": "0",
+        "label": "Puck Possession",
+        "default": false,
+        "description": "Shows puck possession time by zone, including time with puck in the offensive, neutral, and defensive zone.",
+        "keywords": [],
+        "categories": [
+            "Possession"
+        ]
+    },
+    {
+        "id": "1",
+        "label": "Scoring Chances",
+        "default": false,
+        "description": "Shows shots or scoring chances created off the rush, cycle, forecheck, OZ play, and second-chance shots from the slot.  It also shows offensive generating plays and possession driving plays and puck possession time in seconds.",
+        "keywords": [
+            "otr",
+            "otc",
+            "otfc",
+            "oz plays",
+            "2nd",
+            "ogp",
+            "pdp",
+            "woi"
+        ],
+        "categories": [
+            "Playmaking"
+        ]
+    },
+    {
+        "id": "2",
+        "label": "All Shots",
+        "default": false,
+        "description": "Shows all shots taken from different locations in the offensive zone.",
+        "keywords": [
+            "goals",
+            "g",
+            "1t",
+            "1t%",
+            "one timer",
+            "blocked",
+            "b"
+        ],
+        "categories": [
+            "Shooting"
+        ]
+    },
+    {
+        "id": "3",
+        "label": "Inner Slot Shots",
+        "default": false,
+        "description": "Shows shots, one-timers, and goals from the inner slot, with or without pressure.",
+        "keywords": [
+            "on net",
+            "iss",
+            "son",
+            "tsp",
+            "ts%"
+        ],
+        "categories": [
+            "Shooting"
+        ]
+    },
+    {
+        "id": "4",
+        "label": "Slot Shots",
+        "default": false,
+        "description": "Shows shots, misses, blocks, one-timers, and goals from the slot.",
+        "keywords": [
+            "on net",
+            "iss",
+            "son",
+            "tsp",
+            "ts%"
+        ],
+        "categories": [
+            "Shooting"
+        ]
+    },
+    {
+        "id": "5",
+        "label": "Outside Shots",
+        "default": false,
+        "description": "Shows shots, misses, blocks, one-timers, and goals from outside the slot.",
+        "keywords": [
+            "on net",
+            "iss",
+            "son",
+            "tsp",
+            "ts%"
+        ],
+        "categories": [
+            "Shooting"
+        ]
+    },
+    {
+        "id": "6",
+        "label": "Screened Shots",
+        "default": false,
+        "description": "Shows shots, rebounds, goals, and true shooting percentage from different locations within the offensive zone.",
+        "keywords": [
+            "goals",
+            "g",
+            "tsp"
+        ],
+        "categories": [
+            "Shooting"
+        ]
+    },
+    {
+        "id": "7",
+        "label": "Scoring",
+        "default": false,
+        "description": "Shows goals scored and true shooting percentage. Expected goals shows expected goals created and actual to expected goals scored.",
+        "keywords": [
+            "expg",
+            "xpg",
+            "xg",
+            "exg",
+            "a2xg",
+            "a2xpg"
+        ],
+        "categories": [
+            "Scoring"
+        ]
+    },
+    {
+        "id": "8",
+        "label": "Total",
+        "default": false,
+        "description": "Shows successful, failed, and success percentage for passing in the OZ, NZ, and DZ.",
+        "keywords": [],
+        "categories": [
+            "Passing"
+        ]
+    },
+    {
+        "id": "9",
+        "label": "OZ Passes",
+        "default": false,
+        "description": "Shows passing success, failure, success percentage, and passing tendency in the offensive zone.",
+        "keywords": [],
+        "categories": [
+            "Passing"
+        ]
+    },
+    {
+        "id": "10",
+        "label": "DZ Passes",
+        "default": false,
+        "description": "Shows passing success, failure, success percentage, and passing tendency in the defensive zone.",
+        "keywords": [],
+        "categories": [
+            "Passing"
+        ]
+    },
+    {
+        "id": "11",
+        "label": "NZ Passes",
+        "default": false,
+        "description": "Shows passing success, failure, success percentage, and passing tendency in the neutral zone.",
+        "keywords": [],
+        "categories": [
+            "Passing"
+        ]
+    },
+    {
+        "id": "12",
+        "label": "Receptions",
+        "default": false,
+        "description": "Shows passes received by zone, including in the DZ, NZ, OZ, and inside slot or outside of the slot.",
+        "keywords": [],
+        "categories": [
+            "Passing"
+        ]
+    },
+    {
+        "id": "13",
+        "label": "All Exits",
+        "default": false,
+        "description": "Shows controlled exits by type, dump-in recoveries, dump-outs, and icings.",
+        "keywords": [],
+        "categories": [
+            "DZ Exits"
+        ]
+    },
+    {
+        "id": "14",
+        "label": "By Opp Dump-In Types",
+        "default": false,
+        "description": "Shows defensive zone exit success, failure, and success percentage for dump-in recovery types with and without pressure.",
+        "keywords": [
+            "oz",
+            "offensive",
+            "carry",
+            "pass",
+            "offsides"
+        ],
+        "categories": [
+            "DZ Exits"
+        ]
+    },
+    {
+        "id": "15",
+        "label": "Controlled Entries",
+        "default": false,
+        "description": "Shows OZ entry success, failure, and success percentage by controlled entry type.",
+        "keywords": [
+            "oz",
+            "offensive",
+            "carry",
+            "pass",
+            "offsides"
+        ],
+        "categories": [
+            "OZ Entries"
+        ]
+    },
+    {
+        "id": "16",
+        "label": "All Dump-Ins",
+        "default": false,
+        "description": "Shows dump-ins and recovery success, failure, and success percentage by dump-in type.",
+        "keywords": [
+            "chip",
+            "self chip"
+        ],
+        "categories": [
+            "Dump-Ins"
+        ]
+    },
+    {
+        "id": "17",
+        "label": "Dump-In Types",
+        "default": false,
+        "description": "Shows dump-ins, recoveries, dump-ins that led to a shot, and dump-ins that led to a scoring chance, by dump-in type.",
+        "keywords": [
+            "rec"
+        ],
+        "categories": [
+            "Dump-Ins"
+        ]
+    },
+    {
+        "id": "18",
+        "label": "Regroups",
+        "default": false,
+        "description": "Shows total regroups off of flip dump-out LPRs, including success rate of controlled entries and dump-in recoveries.",
+        "keywords": [
+            "ce",
+            "di"
+        ],
+        "categories": [
+            "LPRs"
+        ]
+    },
+    {
+        "id": "19",
+        "label": "Open Ice Dekes",
+        "default": false,
+        "description": "Shows open ice dekes attempts by zone.",
+        "keywords": [],
+        "categories": [
+            "Possession"
+        ]
+    },
+    {
+        "id": "20",
+        "label": "Loose Puck Recoveries",
+        "default": false,
+        "description": "Shows LPRs by zone, including LPRs after a shot, rebound, and contested LPRs.",
+        "keywords": [
+            "oz",
+            "dz",
+            "nz"
+        ],
+        "categories": [
+            "LPRs"
+        ]
+    },
+    {
+        "id": "21",
+        "label": "All Face-Offs",
+        "default": false,
+        "description": "Shows offensive and defensive zone face-offs taken, won, and face-offs leading to a shot on net or a scoring chance.",
+        "keywords": [
+            "fo",
+            "fow",
+            "fol",
+            "for",
+            "rec",
+            "faceoff"
+        ],
+        "categories": [
+            "Face-Offs"
+        ]
+    },
+    {
+        "id": "22",
+        "label": "All Defensive Plays",
+        "default": false,
+        "description": "Shows defensive plays by zone, including entry denials and entry denial success percentage.",
+        "keywords": [],
+        "categories": [
+            "Defensive Plays"
+        ]
+    },
+    {
+        "id": "23",
+        "label": "DZ Denials",
+        "default": false,
+        "description": "Shows defensive zone entry denial success, failure, and success percentage, including gap distance, and zone entries against leading to controlled exits or uncontrolled exits, and cycles, shots on goal, and scoring chances against.",
+        "keywords": [],
+        "categories": [
+            "Defensive Plays"
+        ]
+    },
+    {
+        "id": "24",
+        "label": "DZ Denials - WOI",
+        "default": false,
+        "description": "Shows all on-ice defensive zone entry denial success, failure, and success percentage, including gap distance, and zone entries against leading to controlled or uncontrolled exits, and cycles, shots on goal, and scoring chances against.",
+        "keywords": [],
+        "categories": [
+            "Defensive Plays"
+        ]
+    },
+    {
+        "id": "25",
+        "label": "Body Checks",
+        "default": false,
+        "description": "Shows body checks by zone.",
+        "keywords": [],
+        "categories": [
+            "Defensive Plays"
+        ]
+    },
+    {
+        "id": "26",
+        "label": "Stick Checks",
+        "default": false,
+        "description": "Shows stick checks by zone.",
+        "keywords": [],
+        "categories": [
+            "Defensive Plays"
+        ]
+    },
+    {
+        "id": "27",
+        "label": "Blocks",
+        "default": false,
+        "description": "Shows blocked shots, blocked passes in the offensive zone, blue line holds and reception preventions.",
+        "keywords": [
+            "blh"
+        ],
+        "categories": [
+            "Defensive Plays"
+        ]
+    },
+    {
+        "id": "28",
+        "label": "Possession Success Rate",
+        "default": false,
+        "description": "Shows possession success rate and turnovers by zone.",
+        "keywords": [],
+        "categories": [
+            "Possession"
+        ]
+    },
+    {
+        "id": "32",
+        "label": "All Plays",
+        "default": true,
+        "description": "Shows goals scored for and against, shots attempts, passes to the slot, and defensive zone rebound recovery success rate while on ice.",
+        "keywords": [
+            "gf",
+            "ga",
+            "woi",
+            "a2exg",
+            "a2xg",
+            "a2xpg",
+            "xpg",
+            "expg",
+            "xg",
+            "exg"
+        ],
+        "categories": [
+            "While On Ice"
+        ]
+    },
+    {
+        "id": "33",
+        "label": "All Penalties",
+        "default": false,
+        "description": "Shows penalties taken by zone.",
+        "keywords": [
+            "undisciplined",
+            "obstruction",
+            "pin",
+            "pim"
+        ],
+        "categories": [
+            "Penalties"
+        ]
+    },
+    {
+        "id": "34",
+        "label": "All Shootouts",
+        "default": false,
+        "description": "Shows total attempts, shots on net, misses, failed dekes, and goals in the shootout.",
+        "keywords": [
+            "so",
+            "goals"
+        ],
+        "categories": [
+            "Shootouts"
+        ]
+    },
+    {
+        "id": "35",
+        "label": "Shot Aim",
+        "default": false,
+        "description": "Shows the shot location for shootout attempts.",
+        "keywords": [
+            "high",
+            "five-hole",
+            "five",
+            "5h",
+            "5hole",
+            "5-hole",
+            "low",
+            "crest",
+            "left",
+            "right"
+        ],
+        "categories": [
+            "Shootouts"
+        ]
+    },
+    {
+        "id": "36",
+        "label": "Shot Types",
+        "default": false,
+        "description": "Shows the shot type for shootout attempts.",
+        "keywords": [
+            "wrist",
+            "snap",
+            "slap",
+            "backhand",
+            "deke"
+        ],
+        "categories": [
+            "Shootouts"
+        ]
+    }
+]

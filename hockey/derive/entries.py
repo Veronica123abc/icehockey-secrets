@@ -143,7 +143,7 @@ if __name__ == "__main__":
     import os
     from pathlib import Path
 
-    GAME_ID = 54559
+    GAME_ID = 191504
 
     game = None
     host = os.getenv("DATABASE_HOST_AZURE")

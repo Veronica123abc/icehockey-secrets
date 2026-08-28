@@ -39,3 +39,9 @@ class TeamsResource(Resource):
         Season-wide team id mapping for one external database.
         """
         return self._t.get(f"/api/v3/seasons/{season_id}/teams/xdbref/{xref_name}")
+
+
+if __name__ == "__main__":
+   r = TeamsResource()
+   print(r.list())
+   print("end")
