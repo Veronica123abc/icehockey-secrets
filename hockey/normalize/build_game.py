@@ -8,6 +8,13 @@ from hockey.normalize.roster import normalize_roster
 from hockey.normalize.team_resolution import TeamResolver
 import time
 
+def _opt_int(value) -> int | None:
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return None
+
+
 def normalize_game_info(*, game_id: int, raw_game_info: dict) -> GameInfo:
     ht = raw_game_info["home_team"]
     at = raw_game_info["away_team"]
@@ -15,6 +22,10 @@ def normalize_game_info(*, game_id: int, raw_game_info: dict) -> GameInfo:
         game_id=game_id,
         home_team=TeamInfo(id=int(ht["id"]), location=str(ht["location"]), name=str(ht["name"])),
         away_team=TeamInfo(id=int(at["id"]), location=str(at["location"]), name=str(at["name"])),
+        date=raw_game_info.get("date"),
+        stage=raw_game_info.get("stage"),
+        home_final_score=_opt_int(raw_game_info.get("home_final_score")),
+        away_final_score=_opt_int(raw_game_info.get("away_final_score")),
     )
 
 

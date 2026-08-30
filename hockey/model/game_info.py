@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import Optional
 
 
 @dataclass(frozen=True, slots=True)
@@ -20,4 +21,10 @@ class GameInfo:
     game_id: int
     home_team: TeamInfo
     away_team: TeamInfo
-    # Add more fields later (date, venue, score, season, etc.) as needed.
+    # Optional metadata -- present on the JSON path, left None by loaders that
+    # don't have it (e.g. build_game_from_db). Render defensively.
+    date: Optional[str] = None            # ISO date, e.g. "2025-09-13"
+    stage: Optional[str] = None           # e.g. "regular", "playoff"
+    home_final_score: Optional[int] = None
+    away_final_score: Optional[int] = None
+    # Add more fields later (venue, season, etc.) as needed.

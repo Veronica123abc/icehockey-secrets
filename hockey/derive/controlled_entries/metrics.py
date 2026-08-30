@@ -49,6 +49,7 @@ def get_full_data(game: Game) -> dict:
         all_carries = oz_carry(game)
         all_team_carries = _for_team(all_carries, team_id)
         all_team_carries_with_play = _whith_play_after(all_team_carries)
+
         all_pass_attempts = oz_pass(game)
         all_team_pass_attempts = _for_team(all_pass_attempts, team_id)
         all_successful_team_pass = _successul(all_team_pass_attempts)
@@ -56,27 +57,43 @@ def get_full_data(game: Game) -> dict:
         all_successful_pass_with_play = _whith_play_after(all_successful_team_pass)
 
         res[team_id] = {
-            "Total Attempts": all_team_carries + all_team_pass_attempts,
+
+
+
             "Total Successful OZ Entries": all_team_carries + all_successful_team_pass,
+            "Successful OZ Carries": all_team_carries,
             "Carries with play after": all_team_carries_with_play,
-            "Total Attempts with pass": all_team_pass_attempts,
-            "Successful passes": all_successful_team_pass,
-            "Passes with play after": all_successful_pass_with_play
+
+            "Attempted Entries with pass": all_team_pass_attempts,
+            "Successful Entries with pass": all_successful_team_pass,
+            "Entries with pass and play after": all_successful_pass_with_play,
+
+            "Attempted Controlled Entries": all_team_carries + all_team_pass_attempts,
+            "Successful Controlled Entries": all_team_carries + all_successful_team_pass
         }
 
 
     return res
 
+def print_res(res):
+    for k in list(res.keys()):
+        print(k)
+        for key in list(res[k].keys()):
+            print(key, ' ', len(res[k][key]))
+
 if __name__ == "__main__":
     GAME_ID = 191848
+    GAME_ID = 191504
     raw = RawGame(game_id=GAME_ID, root_dir=settings.data_root_dir, playsequence_source="playsequence_compiled")
     game = build_game(raw)
     team_id=308
 
     k = get_full_data(game)
 
+    print_res(k)
     oz_carries = oz_carry(game)
     oz_carries = _for_team(oz_carries, team_id)
+    print()
     print('oz carries: ', len(oz_carries))
     oz_carries = _successul(oz_carries)
     print('successful carrries: ', len(oz_carries))
