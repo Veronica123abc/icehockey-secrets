@@ -22,6 +22,10 @@ _NEUTRAL_EVENT_COLOR = "#cbd5e1"
 
 _DIV_ID = "timeline"
 
+# Bump to invalidate cached canvas HTML after visualization changes
+# (mirrors PLOT_VERSION in shift_toi.py).
+CANVAS_VERSION = 1
+
 
 def _default_props(game: Game) -> dict:
     """Known style properties, defaulting to the app palette (templates/base.html)."""
@@ -209,9 +213,17 @@ class GameCanvas:
             if _display_type(e) in set(self._event_types)
         )
 
+    def to_html(self, back_href: str | None = None) -> str:
+        """The canvas as a standalone HTML page.
+
+        ``back_href`` adds a link back to wherever the page was reached from;
+        leave it None for a standalone file, which has nowhere to go back to.
+        """
+        return self._render_html(back_href=back_href)
+
     def show(self) -> None:
         """Render the visual on screen (opens in the browser)."""
-        html = self._render_html()
+        html = self.to_html()
         path = Path(tempfile.gettempdir()) / "game_canvas.html"
         path.write_text(html, encoding="utf-8")
         webbrowser.open(path.as_uri())
@@ -527,10 +539,14 @@ class GameCanvas:
         except (TypeError, ValueError):
             return iso
 
-    def _scoreboard_html(self) -> str:
+    def _scoreboard_html(self, back_href: str | None = None) -> str:
         """The identity band: teams, score and game metadata."""
         props = self._props
         info = self._game.info
+        back = ""
+        if back_href:
+            back = (f'<a class="back" id="back-link" href="{escape(back_href)}">'
+                    f'&larr;</a>')
 
         if info.home_final_score is not None and info.away_final_score is not None:
             score = (f'<span class="score">{info.home_final_score}'
@@ -546,6 +562,7 @@ class GameCanvas:
         meta.append(f"Game {info.game_id}")
 
         return f"""<div class="scoreboard">
+  {back}
   <span class="team"><i class="dot" style="background: {props['home-team-graph-color']}"></i>{_team_label(info.home_team)}</span>
   {score}
   <span class="team"><i class="dot" style="background: {props['away-team-graph-color']}"></i>{_team_label(info.away_team)}</span>
@@ -734,7 +751,7 @@ class GameCanvas:
       </div>""")
         return "\n".join(blocks)
 
-    def _render_html(self) -> str:
+    def _render_html(self, back_href: str | None = None) -> str:
         """Wrap the figure in an HTML page with per-event-type checkboxes."""
         fig = self._build_figure()
         props = self._props
@@ -789,6 +806,16 @@ class GameCanvas:
     color: {props['title-color']};
   }}
   .dot {{ width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }}
+  .back {{
+    font-size: 18px;
+    line-height: 1;
+    color: {props['font-color']};
+    text-decoration: none;
+    padding: 4px 8px;
+    margin-left: -8px;
+    border-radius: 5px;
+  }}
+  .back:hover {{ color: {props['title-color']}; background: rgba(148, 163, 184, 0.1); }}
   .score {{
     font-size: 21px;
     font-weight: 700;
@@ -1145,7 +1172,7 @@ class GameCanvas:
 </style>
 </head>
 <body>
-{self._scoreboard_html()}
+{self._scoreboard_html(back_href)}
 <div class="layout">
   <div class="card rail">
     <div class="rail-head">
@@ -1584,6 +1611,11 @@ function _setTime(s) {{
 }}
 
 (function() {{
+  // Return to the filtered game list the user came from, as game.html does.
+  var backLink = document.getElementById('back-link');
+  var savedHome = sessionStorage.getItem('homeUrl');
+  if (backLink && savedHome) backLink.href = savedHome;
+
   // Python renders the initial x/y, but hover text is built here so there is
   // only one implementation of the format -- so redraw once on load.
   _redraw();

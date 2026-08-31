@@ -59,7 +59,9 @@ def _log_chat(question: str, sql: str | None, row_count: int | None, error: str 
         "error": error,
     }
     _chat_logger.info(json.dumps(entry, ensure_ascii=False))
-_game_cache: dict[int, object] = {}
+# keyed by (game_id, playsequence_source) -- the canvas needs a different
+# source than the analysis pages, so one game can be cached twice.
+_game_cache: dict[tuple, object] = {}
 _plotly_cache: dict[tuple, str] = {}
 
 
@@ -132,7 +134,8 @@ def _list_game_ids() -> list[int]:
 def _invalidate_game_caches(game_id: int) -> None:
     global _game_ids_cache
     _game_ids_cache = None
-    _game_cache.pop(game_id, None)
+    for k in [k for k in _game_cache if isinstance(k, tuple) and k[0] == game_id]:
+        del _game_cache[k]
     for k in [k for k in _plotly_cache if isinstance(k, tuple) and k[0] == game_id]:
         del _plotly_cache[k]
 
@@ -160,32 +163,48 @@ def _game_exists(game_id: int) -> bool:
     return game_dir.is_dir() and (game_dir / "game-info.json").exists()
 
 
-def _load_game(game_id: int):
-    if game_id in _game_cache:
-        app.logger.warning("game %s: cache hit", game_id)
-        return _game_cache[game_id]
-    conn = _db_conn()
-    if conn is not None:
-        try:
-            from hockey.normalize.build_game_db import build_game_from_db
-            game = build_game_from_db(game_id, conn)
-            _game_cache[game_id] = game
-            app.logger.warning("game %s: loaded from database", game_id)
-            return game
-        except Exception as e:
-            app.logger.warning("game %s: db load failed (%s), falling back to filesystem", game_id, e)
-        finally:
-            conn.close()
+def _load_game(game_id: int, playsequence_source: str | None = None):
+    """Load a Game, cached per (game_id, playsequence source).
+
+    ``playsequence_source=None`` keeps the historical behaviour: database
+    first, then the filesystem with RawGame's default source. Naming a source
+    goes straight to the filesystem, since the database has no equivalent
+    distinction. That matters because the two files carry different event
+    vocabularies -- playsequence_compiled.json adds the ~19 derived types
+    (controlledentry, zoneexit, scoringchance, ...) the game canvas is built
+    around, while only the plain file has "whistle".
+    """
+    cache_key = (game_id, playsequence_source)
+    if cache_key in _game_cache:
+        app.logger.warning("game %s: cache hit (%s)", game_id, playsequence_source or "default")
+        return _game_cache[cache_key]
+
+    if playsequence_source is None:
+        conn = _db_conn()
+        if conn is not None:
+            try:
+                from hockey.normalize.build_game_db import build_game_from_db
+                game = build_game_from_db(game_id, conn)
+                _game_cache[cache_key] = game
+                app.logger.warning("game %s: loaded from database", game_id)
+                return game
+            except Exception as e:
+                app.logger.warning("game %s: db load failed (%s), falling back to filesystem", game_id, e)
+            finally:
+                conn.close()
+
     root = _data_root()
     if root is None:
         return None
     try:
         from hockey.io.raw_game import RawGame
         from hockey.normalize.build_game import build_game
-        raw = RawGame(game_id=game_id, root_dir=root)
+        kwargs = {} if playsequence_source is None else {"playsequence_source": playsequence_source}
+        raw = RawGame(game_id=game_id, root_dir=root, **kwargs)
         game = build_game(raw)
-        _game_cache[game_id] = game
-        app.logger.warning("game %s: loaded from filesystem", game_id)
+        _game_cache[cache_key] = game
+        app.logger.warning("game %s: loaded from filesystem (%s)", game_id,
+                           playsequence_source or "default")
         return game
     except Exception:
         return None
@@ -198,6 +217,17 @@ def _build_plotly_html(game) -> str:
         return _plotly_cache[cache_key]
     fig = plot_shift_toi_with_grades(game=game, filename=None)
     html = fig.to_html(full_html=False, include_plotlyjs="cdn")
+    _plotly_cache[cache_key] = html
+    return html
+
+
+def _build_canvas_html(game) -> str:
+    """The game-canvas page. A complete standalone document, not a fragment."""
+    from hockey.visualize.game_canvas import GameCanvas, CANVAS_VERSION
+    cache_key = (game.info.game_id, "canvas", CANVAS_VERSION)
+    if cache_key in _plotly_cache:
+        return _plotly_cache[cache_key]
+    html = GameCanvas(game).to_html(back_href=url_for("index"))
     _plotly_cache[cache_key] = html
     return html
 
@@ -300,6 +330,27 @@ def game_view(game_id: int):
         "num_players": len(game.roster.players),
     }
     return render_template("game.html", info=info, chart_html=chart_html, entries_html=entries_html, xg_html=xg_html)
+
+
+@app.route("/game/<int:game_id>/canvas")
+def game_canvas_view(game_id: int):
+    """Gameflow and metrics: the interactive event timeline for one game."""
+    if not _game_exists(game_id):
+        auto = request.args.get("auto", "0")
+        return redirect(url_for("confirm_download", game_id=game_id, auto=auto))
+    # The canvas needs the compiled playsequence: the plain one is missing the
+    # derived event types the timeline is built around (26 types against 44).
+    game = _load_game(game_id, playsequence_source="playsequence_compiled")
+    if game is None:
+        app.logger.warning(
+            "game %s: compiled playsequence unavailable, falling back to the "
+            "default source -- the canvas will show fewer event types", game_id)
+        game = _load_game(game_id)
+    if game is None:
+        abort(404, description=f"Game {game_id} could not be loaded.")
+    # A whole page of its own, so it is returned as-is rather than rendered
+    # into base.html.
+    return _build_canvas_html(game)
 
 
 @app.route("/api/games")

@@ -108,6 +108,7 @@
 
     .game-card {
         display: block;
+        cursor: pointer;
         background: #1e293b;
         border: 1px solid #334155;
         border-radius: 0.5rem;
@@ -161,11 +162,22 @@
         margin-top: 0.4rem;
     }
 
+    .game-card .card-links {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.25rem 1rem;
+        margin-top: 0.75rem;
+    }
+
     .game-card .view-link {
         font-size: 0.8rem;
         color: #60a5fa;
-        margin-top: 0.75rem;
-        display: block;
+        text-decoration: none;
+    }
+
+    .game-card a.view-link:hover {
+        color: #93bbfd;
+        text-decoration: underline;
     }
 
     .game-count {
@@ -443,11 +455,14 @@
             gameCount.style.display = 'block';
             games.forEach(function(g) {
                 var isUpcoming = (g.status === 'upcoming');
-                var card = document.createElement(isUpcoming ? 'div' : 'a');
+                var card = document.createElement('div');
                 if (!isUpcoming) {
-                    card.href = '/game/' + g.id;
-                    card.addEventListener('click', function() {
+                    card.addEventListener('click', function(evt) {
                         sessionStorage.setItem('homeUrl', window.location.href);
+                        // The card is still clickable anywhere, but the two
+                        // links inside it must navigate on their own.
+                        if (evt.target.closest('a')) return;
+                        window.location.href = '/game/' + g.id;
                     });
                 }
                 card.className = 'game-card' + (isUpcoming ? ' upcoming' : '');
@@ -457,8 +472,11 @@
                 }
                 var stageHtml = g.stage ? '<div class="stage-badge">' + esc(cap(g.stage)) + '</div>' : '';
                 var actionHtml = isUpcoming
-                    ? '<span class="view-link" style="color:#64748b;">Upcoming</span>'
-                    : '<span class="view-link">View analysis &rarr;</span>';
+                    ? '<div class="card-links"><span class="view-link" style="color:#64748b;">Upcoming</span></div>'
+                    : '<div class="card-links">' +
+                        '<a class="view-link" href="/game/' + g.id + '">Custom Analysis &rarr;</a>' +
+                        '<a class="view-link" href="/game/' + g.id + '/canvas">Gameflow and metrics &rarr;</a>' +
+                      '</div>';
                 card.innerHTML =
                     '<div class="matchup">' + esc(g.home_team_name) + ' vs ' + esc(g.away_team_name) + '</div>' +
                     '<div class="meta"><span>' + esc(fmtDate(g.date)) + '</span>' + scoreHtml + '</div>' +
