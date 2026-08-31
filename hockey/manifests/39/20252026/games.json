@@ -4,6 +4,168 @@
     "competition_id": "39",
     "games": [
         {
+            "id": "204333",
+            "date": "2026-05-02",
+            "scheduled_time": "2026-05-02T17:00:00+00:00",
+            "scheduled_venue_time": "2026-05-02T13:00:00",
+            "stage": "regular",
+            "away_team_id": "573",
+            "home_team_id": "578",
+            "venue_id": "555",
+            "event_status": "over",
+            "score": {
+                "573": 4,
+                "578": 2
+            },
+            "reference_id": null,
+            "reference_name": null,
+            "last_metrics_full_process_time": "2026-05-11T06:58:47.329Z"
+        },
+        {
+            "id": "204332",
+            "date": "2026-05-02",
+            "scheduled_time": "2026-05-02T13:00:00+00:00",
+            "scheduled_venue_time": "2026-05-02T09:00:00",
+            "stage": "regular",
+            "away_team_id": "810",
+            "home_team_id": "579",
+            "venue_id": "549",
+            "event_status": "over",
+            "score": {
+                "579": 4,
+                "810": 1
+            },
+            "reference_id": null,
+            "reference_name": null,
+            "last_metrics_full_process_time": "2026-05-02T16:43:10.162Z"
+        },
+        {
+            "id": "204305",
+            "date": "2026-05-01",
+            "scheduled_time": "2026-05-01T17:00:00+00:00",
+            "scheduled_venue_time": "2026-05-01T13:00:00",
+            "stage": "regular",
+            "away_team_id": "573",
+            "home_team_id": "579",
+            "venue_id": "549",
+            "event_status": "over",
+            "score": {
+                "573": 4,
+                "579": 3
+            },
+            "reference_id": null,
+            "reference_name": null,
+            "last_metrics_full_process_time": "2026-05-01T20:31:16.545Z"
+        },
+        {
+            "id": "204304",
+            "date": "2026-05-01",
+            "scheduled_time": "2026-05-01T13:00:00+00:00",
+            "scheduled_venue_time": "2026-05-01T09:00:00",
+            "stage": "regular",
+            "away_team_id": "810",
+            "home_team_id": "578",
+            "venue_id": "555",
+            "event_status": "over",
+            "score": {
+                "578": 1,
+                "810": 0
+            },
+            "reference_id": null,
+            "reference_name": null,
+            "last_metrics_full_process_time": "2026-05-01T16:39:15.544Z"
+        },
+        {
+            "id": "204282",
+            "date": "2026-04-29",
+            "scheduled_time": "2026-04-29T16:00:00+00:00",
+            "scheduled_venue_time": "2026-04-29T12:00:00",
+            "stage": "regular",
+            "away_team_id": "3197",
+            "home_team_id": "578",
+            "venue_id": "555",
+            "event_status": "over",
+            "score": {
+                "578": 7,
+                "3197": 1
+            },
+            "reference_id": null,
+            "reference_name": null,
+            "last_metrics_full_process_time": "2026-05-11T06:58:17.971Z"
+        },
+        {
+            "id": "204281",
+            "date": "2026-04-29",
+            "scheduled_time": "2026-04-29T14:00:00+00:00",
+            "scheduled_venue_time": "2026-04-29T10:00:00",
+            "stage": "regular",
+            "away_team_id": "810",
+            "home_team_id": "571",
+            "venue_id": "557",
+            "event_status": "over",
+            "score": {
+                "571": 2,
+                "810": 5
+            },
+            "reference_id": null,
+            "reference_name": null,
+            "last_metrics_full_process_time": "2026-04-29T21:22:27.807Z"
+        },
+        {
+            "id": "204280",
+            "date": "2026-04-29",
+            "scheduled_time": "2026-04-29T12:00:00+00:00",
+            "scheduled_venue_time": "2026-04-29T08:00:00",
+            "stage": "regular",
+            "away_team_id": "573",
+            "home_team_id": "572",
+            "venue_id": "548",
+            "event_status": "over",
+            "score": {
+                "572": 2,
+                "573": 4
+            },
+            "reference_id": null,
+            "reference_name": null,
+            "last_metrics_full_process_time": "2026-05-11T21:54:51.223Z"
+        },
+        {
+            "id": "204279",
+            "date": "2026-04-29",
+            "scheduled_time": "2026-04-29T10:00:00+00:00",
+            "scheduled_venue_time": "2026-04-29T06:00:00",
+            "stage": "regular",
+            "away_team_id": "576",
+            "home_team_id": "579",
+            "venue_id": "549",
+            "event_status": "over",
+            "score": {
+                "576": 1,
+                "579": 2
+            },
+            "reference_id": null,
+            "reference_name": null,
+            "last_metrics_full_process_time": "2026-05-10T03:43:50.681Z"
+        },
+        {
+            "id": "204278",
+            "date": "2026-04-29",
+            "scheduled_time": "2026-04-29T08:00:00+00:00",
+            "scheduled_venue_time": "2026-04-29T04:00:00",
+            "stage": "regular",
+            "away_team_id": "2015",
+            "home_team_id": "1275",
+            "venue_id": "1219",
+            "event_status": "over",
+            "score": {
+                "1275": 3,
+                "2015": 4
+            },
+            "reference_id": null,
+            "reference_name": null,
+            "last_metrics_full_process_time": "2026-04-30T07:25:31.896Z"
+        },
+        {
             "id": "200092",
             "date": "2026-04-27",
             "scheduled_time": "2026-04-27T16:00:00+00:00",
@@ -12,11 +174,14 @@
             "away_team_id": "578",
             "home_team_id": "810",
             "venue_id": "552",
-            "event_status": "upcoming",
-            "score": null,
+            "event_status": "over",
+            "score": {
+                "578": 5,
+                "810": 2
+            },
             "reference_id": null,
             "reference_name": null,
-            "last_metrics_full_process_time": null
+            "last_metrics_full_process_time": "2026-04-29T07:08:13.411Z"
         },
         {
             "id": "200091",
@@ -27,14 +192,14 @@
             "away_team_id": "1275",
             "home_team_id": "571",
             "venue_id": "557",
-            "event_status": "live",
+            "event_status": "over",
             "score": {
                 "571": 11,
                 "1275": 2
             },
             "reference_id": null,
             "reference_name": null,
-            "last_metrics_full_process_time": null
+            "last_metrics_full_process_time": "2026-04-30T07:25:09.811Z"
         },
         {
             "id": "200090",
@@ -52,7 +217,7 @@
             },
             "reference_id": null,
             "reference_name": null,
-            "last_metrics_full_process_time": "2026-04-27T16:19:40.759Z"
+            "last_metrics_full_process_time": "2026-05-11T03:01:05.732Z"
         },
         {
             "id": "200089",
@@ -70,7 +235,7 @@
             },
             "reference_id": null,
             "reference_name": null,
-            "last_metrics_full_process_time": "2026-04-27T12:57:17.098Z"
+            "last_metrics_full_process_time": "2026-05-11T21:17:21.535Z"
         },
         {
             "id": "200088",
@@ -106,7 +271,7 @@
             },
             "reference_id": null,
             "reference_name": null,
-            "last_metrics_full_process_time": "2026-04-26T22:05:39.064Z"
+            "last_metrics_full_process_time": "2026-05-01T09:33:54.964Z"
         },
         {
             "id": "200086",
@@ -124,7 +289,7 @@
             },
             "reference_id": null,
             "reference_name": null,
-            "last_metrics_full_process_time": "2026-04-26T05:55:23.011Z"
+            "last_metrics_full_process_time": "2026-05-11T06:57:41.096Z"
         },
         {
             "id": "200085",
@@ -142,7 +307,7 @@
             },
             "reference_id": null,
             "reference_name": null,
-            "last_metrics_full_process_time": "2026-04-25T17:13:48.398Z"
+            "last_metrics_full_process_time": "2026-05-11T20:19:08.401Z"
         },
         {
             "id": "200084",
@@ -160,7 +325,7 @@
             },
             "reference_id": null,
             "reference_name": null,
-            "last_metrics_full_process_time": "2026-04-25T17:20:40.105Z"
+            "last_metrics_full_process_time": "2026-05-10T21:53:32.320Z"
         },
         {
             "id": "200083",
@@ -178,7 +343,7 @@
             },
             "reference_id": null,
             "reference_name": null,
-            "last_metrics_full_process_time": "2026-04-25T16:35:31.209Z"
+            "last_metrics_full_process_time": "2026-05-01T09:33:41.034Z"
         },
         {
             "id": "200082",
@@ -214,7 +379,7 @@
             },
             "reference_id": null,
             "reference_name": null,
-            "last_metrics_full_process_time": "2026-04-24T21:38:58.618Z"
+            "last_metrics_full_process_time": "2026-04-29T03:16:53.906Z"
         },
         {
             "id": "200080",
@@ -232,7 +397,7 @@
             },
             "reference_id": null,
             "reference_name": null,
-            "last_metrics_full_process_time": "2026-04-23T22:00:29.911Z"
+            "last_metrics_full_process_time": "2026-05-11T06:57:15.784Z"
         },
         {
             "id": "200079",
@@ -250,7 +415,7 @@
             },
             "reference_id": null,
             "reference_name": null,
-            "last_metrics_full_process_time": "2026-04-23T17:00:25.075Z"
+            "last_metrics_full_process_time": "2026-05-01T09:33:10.056Z"
         },
         {
             "id": "200078",
@@ -268,7 +433,7 @@
             },
             "reference_id": null,
             "reference_name": null,
-            "last_metrics_full_process_time": "2026-04-23T17:28:44.319Z"
+            "last_metrics_full_process_time": "2026-05-11T16:57:14.849Z"
         },
         {
             "id": "200077",
@@ -286,7 +451,7 @@
             },
             "reference_id": null,
             "reference_name": null,
-            "last_metrics_full_process_time": "2026-04-23T15:45:57.425Z"
+            "last_metrics_full_process_time": "2026-04-30T07:24:38.066Z"
         },
         {
             "id": "200076",
@@ -304,7 +469,7 @@
             },
             "reference_id": null,
             "reference_name": null,
-            "last_metrics_full_process_time": "2026-04-23T00:40:01.435Z"
+            "last_metrics_full_process_time": "2026-05-11T06:58:41.477Z"
         },
         {
             "id": "200075",
@@ -322,7 +487,7 @@
             },
             "reference_id": null,
             "reference_name": null,
-            "last_metrics_full_process_time": "2026-04-22T23:30:13.467Z"
+            "last_metrics_full_process_time": "2026-05-01T09:32:33.403Z"
         },
         {
             "id": "200074",
@@ -358,7 +523,7 @@
             },
             "reference_id": null,
             "reference_name": null,
-            "last_metrics_full_process_time": "2026-04-22T12:55:09.632Z"
+            "last_metrics_full_process_time": "2026-04-30T07:24:18.882Z"
         },
         {
             "id": "202828",
@@ -376,7 +541,7 @@
             },
             "reference_id": null,
             "reference_name": null,
-            "last_metrics_full_process_time": "2026-04-17T20:19:49.552Z"
+            "last_metrics_full_process_time": "2026-05-09T19:10:44.914Z"
         }
     ]
 }
