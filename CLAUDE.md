@@ -102,7 +102,16 @@ both chained); `FILTER_BACKEND` still overrides it for that API alone.
 
 ### Three-Level Cache in `app.py`
 
-Module-level globals: `_game_ids_cache` (list), `_game_cache` (dict by game_id), `_plotly_cache` (dict keyed by `(game_id, PLOT_VERSION)`). All are invalidated together by `_invalidate_game_caches()` after a download. This is a simple in-process cache — it resets on worker restart.
+Module-level globals: `_game_ids_cache` (dict by source mode), `_game_cache` and
+`_plotly_cache` (bounded `OrderedDict` LRUs, keyed by `(game_id, …, source mode)`).
+All are invalidated together by `_invalidate_game_caches()` after a download. This
+is a simple in-process cache — it resets on worker restart, and each gunicorn
+worker keeps its own copy.
+
+The LRUs are bounded because a cached game costs roughly 20 MB and the B1 instance
+has ~1.75 GB: unbounded growth OOM-killed a worker partway through browsing.
+`GAME_CACHE_SIZE` (default 5) sets games retained per worker; the plotly cache
+holds 4× that (shift_toi, entries, xg, canvas).
 
 `PLOT_VERSION` is a constant in `shift_toi.py` — bump it to invalidate all cached Plotly HTML after visualization changes.
 
@@ -135,6 +144,7 @@ Grades A/B/C map to colors green/orange/red. Home chances appear above the x-axi
 | Variable | Purpose |
 |----------|---------|
 | `GAME_SOURCE` | `combined` (default), `db_only`, or `data_root_only` — see Source Mode |
+| `GAME_CACHE_SIZE` | Games cached per worker (default 5); bounds memory on small App Service plans |
 | `DATA_ROOT_DIR` | Path to game data folders (each subfolder = one game_id) |
 | `OUTPUT_DIR` | Optional output directory (default: `./output`) |
 | `SPORTLOGIQ_USERNAME` | API credentials (only needed for downloads) |
@@ -171,7 +181,7 @@ Path traversal is guarded by `_is_safe_segment()` in `filter_api.py`.
 Azure Web App (Python 3.11 Linux). CI/CD via GitHub Actions — deploys **only** from branch `claude/deploy-azure-webapp-deuB7`, not from main. Startup command:
 
 ```
-gunicorn --bind=0.0.0.0:8000 --timeout 120 --workers 2 app:app
+gunicorn --bind=0.0.0.0:8000 --timeout 300 --workers 2 app:app
 ```
 
 Game data lives in `/home/data` on Azure (persistent across restarts and redeployments).

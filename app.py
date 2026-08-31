@@ -15,6 +15,7 @@ from __future__ import annotations
 import json
 import logging
 import os
+from collections import OrderedDict
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -65,10 +66,43 @@ def _log_chat(question: str, sql: str | None, row_count: int | None, error: str 
         "error": error,
     }
     _chat_logger.info(json.dumps(entry, ensure_ascii=False))
-# keyed by (game_id, playsequence_source) -- the canvas needs a different
-# source than the analysis pages, so one game can be cached twice.
-_game_cache: dict[tuple, object] = {}
-_plotly_cache: dict[tuple, str] = {}
+# Both caches are bounded LRUs. A cached game costs roughly 20 MB (the Game
+# object plus its rendered HTML), and the B1 instance has ~1.75 GB shared
+# between two gunicorn workers that each keep their own copy -- unbounded
+# growth put a worker into the OOM killer partway through browsing.
+#
+# GAME_CACHE_SIZE is the number of games to retain per worker; it is read at
+# import, so changing it needs a restart (unlike GAME_SOURCE).
+def _cache_size(default: int) -> int:
+    try:
+        return max(1, int(os.getenv("GAME_CACHE_SIZE", "") or default))
+    except ValueError:
+        return default
+
+
+_GAME_CACHE_SIZE = _cache_size(5)
+# Four figures per game at most: shift_toi, entries, xg, canvas.
+_PLOTLY_CACHE_SIZE = _GAME_CACHE_SIZE * 4
+
+# keyed by (game_id, playsequence_source, source mode) -- the canvas needs a
+# different source than the analysis pages, so one game can be cached twice.
+_game_cache: "OrderedDict[tuple, object]" = OrderedDict()
+_plotly_cache: "OrderedDict[tuple, str]" = OrderedDict()
+
+
+def _cache_get(cache: OrderedDict, key: tuple):
+    """Return the cached value and mark it most-recently-used, else None."""
+    if key not in cache:
+        return None
+    cache.move_to_end(key)
+    return cache[key]
+
+
+def _cache_put(cache: OrderedDict, key: tuple, value, maxsize: int):
+    cache[key] = value
+    cache.move_to_end(key)
+    while len(cache) > maxsize:
+        cache.popitem(last=False)
 
 
 def _db_conn():
@@ -194,9 +228,10 @@ def _load_game(game_id: int, playsequence_source: str | None = None):
     around, while only the plain file has "whistle".
     """
     cache_key = (game_id, playsequence_source, game_source())
-    if cache_key in _game_cache:
+    cached = _cache_get(_game_cache, cache_key)
+    if cached is not None:
         app.logger.warning("game %s: cache hit (%s)", game_id, playsequence_source or "default")
-        return _game_cache[cache_key]
+        return cached
 
     if playsequence_source is None:
         conn = _db_conn()
@@ -204,7 +239,7 @@ def _load_game(game_id: int, playsequence_source: str | None = None):
             try:
                 from hockey.normalize.build_game_db import build_game_from_db
                 game = build_game_from_db(game_id, conn)
-                _game_cache[cache_key] = game
+                _cache_put(_game_cache, cache_key, game, _GAME_CACHE_SIZE)
                 app.logger.warning("game %s: loaded from database", game_id)
                 return game
             except Exception as e:
@@ -223,7 +258,7 @@ def _load_game(game_id: int, playsequence_source: str | None = None):
         kwargs = {} if playsequence_source is None else {"playsequence_source": playsequence_source}
         raw = RawGame(game_id=game_id, root_dir=root, **kwargs)
         game = build_game(raw)
-        _game_cache[cache_key] = game
+        _cache_put(_game_cache, cache_key, game, _GAME_CACHE_SIZE)
         app.logger.warning("game %s: loaded from filesystem (%s)", game_id,
                            playsequence_source or "default")
         return game
@@ -234,11 +269,12 @@ def _load_game(game_id: int, playsequence_source: str | None = None):
 def _build_plotly_html(game) -> str:
     from hockey.visualize.shift_toi import plot_shift_toi_with_grades, PLOT_VERSION
     cache_key = (game.info.game_id, "shift_toi", PLOT_VERSION, game_source())
-    if cache_key in _plotly_cache:
-        return _plotly_cache[cache_key]
+    cached = _cache_get(_plotly_cache, cache_key)
+    if cached is not None:
+        return cached
     fig = plot_shift_toi_with_grades(game=game, filename=None)
     html = fig.to_html(full_html=False, include_plotlyjs="cdn")
-    _plotly_cache[cache_key] = html
+    _cache_put(_plotly_cache, cache_key, html, _PLOTLY_CACHE_SIZE)
     return html
 
 
@@ -246,32 +282,35 @@ def _build_canvas_html(game) -> str:
     """The game-canvas page. A complete standalone document, not a fragment."""
     from hockey.visualize.game_canvas import GameCanvas, CANVAS_VERSION
     cache_key = (game.info.game_id, "canvas", CANVAS_VERSION, game_source())
-    if cache_key in _plotly_cache:
-        return _plotly_cache[cache_key]
+    cached = _cache_get(_plotly_cache, cache_key)
+    if cached is not None:
+        return cached
     html = GameCanvas(game).to_html(back_href=url_for("index"))
-    _plotly_cache[cache_key] = html
+    _cache_put(_plotly_cache, cache_key, html, _PLOTLY_CACHE_SIZE)
     return html
 
 
 def _build_entries_html(game) -> str:
     from hockey.visualize.entries import plot_entries, ENTRIES_VERSION
     cache_key = (game.info.game_id, "entries", ENTRIES_VERSION, game_source())
-    if cache_key in _plotly_cache:
-        return _plotly_cache[cache_key]
+    cached = _cache_get(_plotly_cache, cache_key)
+    if cached is not None:
+        return cached
     fig = plot_entries(game=game, filename=None)
     html = fig.to_html(full_html=False, include_plotlyjs=False)
-    _plotly_cache[cache_key] = html
+    _cache_put(_plotly_cache, cache_key, html, _PLOTLY_CACHE_SIZE)
     return html
 
 
 def _build_xg_html(game) -> str:
     from hockey.visualize.xg import plot_xg_with_toi_diff, XG_VERSION
     cache_key = (game.info.game_id, "xg", XG_VERSION, game_source())
-    if cache_key in _plotly_cache:
-        return _plotly_cache[cache_key]
+    cached = _cache_get(_plotly_cache, cache_key)
+    if cached is not None:
+        return cached
     fig = plot_xg_with_toi_diff(game=game, filename=None)
     html = fig.to_html(full_html=False, include_plotlyjs=False)
-    _plotly_cache[cache_key] = html
+    _cache_put(_plotly_cache, cache_key, html, _PLOTLY_CACHE_SIZE)
     return html
 
 
