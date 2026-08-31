@@ -20,15 +20,14 @@ from pathlib import Path
 
 from flask import Flask, render_template, abort, jsonify, redirect, url_for, request
 
-
-app = Flask(__name__)
-
-from filter_api import filter_bp
-app.register_blueprint(filter_bp)
+from source_mode import game_source, use_db, use_files
 
 # ---------------------------------------------------------------------------
 # Configuration
 # ---------------------------------------------------------------------------
+# .env is loaded before filter_api is imported: that module picks its provider
+# at import time, and would otherwise decide with DATABASE_HOST_AZURE still
+# unset locally. On Azure the App Settings are already in the environment.
 _PROJECT_ROOT = Path(__file__).resolve().parent
 _dotenv_path = _PROJECT_ROOT / ".env"
 if _dotenv_path.exists():
@@ -41,7 +40,14 @@ if _dotenv_path.exists():
 
 DATA_ROOT_DIR = os.getenv("DATA_ROOT_DIR", "")
 
-_game_ids_cache: list[int] | None = None
+app = Flask(__name__)
+
+from filter_api import filter_bp  # noqa: E402  (must follow the .env load)
+app.register_blueprint(filter_bp)
+
+# Keyed by source mode: the id list differs per backend, so a switch must not
+# hand back the previous mode's answer.
+_game_ids_cache: dict[str, list[int]] = {}
 
 _chat_logger = logging.getLogger("chat")
 _chat_logger.setLevel(logging.INFO)
@@ -66,7 +72,13 @@ _plotly_cache: dict[tuple, str] = {}
 
 
 def _db_conn():
-    """Open a fresh DB connection when Azure credentials are available, else None."""
+    """Open a fresh DB connection when the mode allows it and credentials exist.
+
+    Returns None in ``data_root_only``, which is what keeps every DB branch
+    below a single ``if conn is not None`` rather than a mode check of its own.
+    """
+    if not use_db():
+        return None
     host = os.getenv("DATABASE_HOST_AZURE")
     if not host:
         return None
@@ -99,9 +111,10 @@ def _data_root() -> Path | None:
 
 
 def _list_game_ids() -> list[int]:
-    global _game_ids_cache
-    if _game_ids_cache is not None:
-        return _game_ids_cache
+    mode = game_source()
+    cached = _game_ids_cache.get(mode)
+    if cached is not None:
+        return cached
     conn = _db_conn()
     if conn is not None:
         try:
@@ -109,12 +122,14 @@ def _list_game_ids() -> list[int]:
             cursor.execute("SELECT sl_id FROM game ORDER BY sl_id")
             ids = [row[0] for row in cursor.fetchall()]
             cursor.close()
-            _game_ids_cache = ids
+            _game_ids_cache[mode] = ids
             return ids
         except Exception:
             return []
         finally:
             conn.close()
+    if not use_files():
+        return []
     root = _data_root()
     if root is None:
         return []
@@ -127,13 +142,12 @@ def _list_game_ids() -> list[int]:
                         ids.append(int(entry.name))
     except OSError:
         return []
-    _game_ids_cache = sorted(ids)
-    return _game_ids_cache
+    _game_ids_cache[mode] = sorted(ids)
+    return _game_ids_cache[mode]
 
 
 def _invalidate_game_caches(game_id: int) -> None:
-    global _game_ids_cache
-    _game_ids_cache = None
+    _game_ids_cache.clear()
     for k in [k for k in _game_cache if isinstance(k, tuple) and k[0] == game_id]:
         del _game_cache[k]
     for k in [k for k in _plotly_cache if isinstance(k, tuple) and k[0] == game_id]:
@@ -141,8 +155,9 @@ def _invalidate_game_caches(game_id: int) -> None:
 
 
 def _game_exists(game_id: int) -> bool:
-    if _game_ids_cache is not None:
-        return game_id in _game_ids_cache
+    cached = _game_ids_cache.get(game_source())
+    if cached is not None:
+        return game_id in cached
     conn = _db_conn()
     if conn is not None:
         try:
@@ -156,6 +171,8 @@ def _game_exists(game_id: int) -> bool:
             pass
         finally:
             conn.close()
+    if not use_files():
+        return False
     root = _data_root()
     if root is None:
         return False
@@ -164,17 +181,19 @@ def _game_exists(game_id: int) -> bool:
 
 
 def _load_game(game_id: int, playsequence_source: str | None = None):
-    """Load a Game, cached per (game_id, playsequence source).
+    """Load a Game, cached per (game_id, playsequence source, source mode).
 
-    ``playsequence_source=None`` keeps the historical behaviour: database
-    first, then the filesystem with RawGame's default source. Naming a source
-    goes straight to the filesystem, since the database has no equivalent
-    distinction. That matters because the two files carry different event
-    vocabularies -- playsequence_compiled.json adds the ~19 derived types
+    ``playsequence_source=None`` follows the active GAME_SOURCE mode: database
+    first, then the filesystem with RawGame's default source, with either half
+    skipped under db_only / data_root_only. Naming a source goes straight to
+    the filesystem, since the database has no equivalent distinction -- so
+    under db_only it finds nothing and the caller falls back to the default
+    source. That distinction matters because the two files carry different
+    event vocabularies -- playsequence_compiled.json adds the ~19 derived types
     (controlledentry, zoneexit, scoringchance, ...) the game canvas is built
     around, while only the plain file has "whistle".
     """
-    cache_key = (game_id, playsequence_source)
+    cache_key = (game_id, playsequence_source, game_source())
     if cache_key in _game_cache:
         app.logger.warning("game %s: cache hit (%s)", game_id, playsequence_source or "default")
         return _game_cache[cache_key]
@@ -193,6 +212,8 @@ def _load_game(game_id: int, playsequence_source: str | None = None):
             finally:
                 conn.close()
 
+    if not use_files():
+        return None
     root = _data_root()
     if root is None:
         return None
@@ -212,7 +233,7 @@ def _load_game(game_id: int, playsequence_source: str | None = None):
 
 def _build_plotly_html(game) -> str:
     from hockey.visualize.shift_toi import plot_shift_toi_with_grades, PLOT_VERSION
-    cache_key = (game.info.game_id, "shift_toi", PLOT_VERSION)
+    cache_key = (game.info.game_id, "shift_toi", PLOT_VERSION, game_source())
     if cache_key in _plotly_cache:
         return _plotly_cache[cache_key]
     fig = plot_shift_toi_with_grades(game=game, filename=None)
@@ -224,7 +245,7 @@ def _build_plotly_html(game) -> str:
 def _build_canvas_html(game) -> str:
     """The game-canvas page. A complete standalone document, not a fragment."""
     from hockey.visualize.game_canvas import GameCanvas, CANVAS_VERSION
-    cache_key = (game.info.game_id, "canvas", CANVAS_VERSION)
+    cache_key = (game.info.game_id, "canvas", CANVAS_VERSION, game_source())
     if cache_key in _plotly_cache:
         return _plotly_cache[cache_key]
     html = GameCanvas(game).to_html(back_href=url_for("index"))
@@ -234,7 +255,7 @@ def _build_canvas_html(game) -> str:
 
 def _build_entries_html(game) -> str:
     from hockey.visualize.entries import plot_entries, ENTRIES_VERSION
-    cache_key = (game.info.game_id, "entries", ENTRIES_VERSION)
+    cache_key = (game.info.game_id, "entries", ENTRIES_VERSION, game_source())
     if cache_key in _plotly_cache:
         return _plotly_cache[cache_key]
     fig = plot_entries(game=game, filename=None)
@@ -245,7 +266,7 @@ def _build_entries_html(game) -> str:
 
 def _build_xg_html(game) -> str:
     from hockey.visualize.xg import plot_xg_with_toi_diff, XG_VERSION
-    cache_key = (game.info.game_id, "xg", XG_VERSION)
+    cache_key = (game.info.game_id, "xg", XG_VERSION, game_source())
     if cache_key in _plotly_cache:
         return _plotly_cache[cache_key]
     fig = plot_xg_with_toi_diff(game=game, filename=None)
@@ -261,7 +282,7 @@ def _build_xg_html(game) -> str:
 @app.route("/health")
 def health():
     db_status = "disabled"
-    if os.getenv("DATABASE_HOST_AZURE"):
+    if use_db() and os.getenv("DATABASE_HOST_AZURE"):
         conn = _db_conn()
         if conn is not None:
             try:
@@ -276,12 +297,18 @@ def health():
                 conn.close()
         else:
             db_status = "unreachable"
-    return jsonify({"ok": True, "db": db_status})
+    return jsonify({
+        "ok": True,
+        "db": db_status,
+        "source": game_source(),
+        "data_root": _data_root() is not None if use_files() else False,
+    })
 
 
 @app.route("/")
 def index():
-    return render_template("index.html", data_configured=_data_root() is not None)
+    return render_template("index.html",
+                           data_configured=use_files() and _data_root() is not None)
 
 
 @app.route("/game/<int:game_id>/confirm-download")
@@ -292,6 +319,13 @@ def confirm_download(game_id: int):
 
 @app.route("/game/<int:game_id>/download", methods=["POST"])
 def download_game(game_id: int):
+    if not use_files():
+        # The download lands under DATA_ROOT_DIR, which db_only never reads --
+        # it would look like a silent no-op.
+        return render_template(
+            "confirm_download.html", game_id=game_id,
+            error="GAME_SOURCE=db_only: downloads go to DATA_ROOT_DIR, which "
+                  "this mode does not read. Switch to combined to download.")
     root = _data_root()
     if root is None:
         return render_template("confirm_download.html", game_id=game_id,

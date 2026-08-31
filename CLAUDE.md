@@ -77,6 +77,29 @@ The filter API reads exclusively from these manifests, not from `DATA_ROOT_DIR`.
 2. Filesystem (`build_game` from JSON) — if `DATA_ROOT_DIR` is set
 3. Redirect to download prompt — fetches from SportLogIQ API, saves to `DATA_ROOT_DIR`
 
+### Source Mode (`source_mode.py`)
+
+`GAME_SOURCE` selects which of those backing stores are consulted:
+
+| Value | Behaviour |
+|-------|-----------|
+| `combined` (default) | DB first, filesystem fallback — the order above |
+| `db_only` | DB only; `DATA_ROOT_DIR` is never read, downloads are refused |
+| `data_root_only` | Filesystem only; no DB connection is opened |
+
+Everything goes through two predicates, `use_db()` and `use_files()`, rather
+than checking the mode string at call sites. `_db_conn()` returns `None` when
+`use_db()` is false, which is what keeps the DB branches unchanged.
+
+The mode is read fresh on every call, so it takes effect without a redeploy —
+but on Azure it is an App Setting, so changing it bounces the workers. It also
+keys the game, plotly and game-id caches, so switching back and forth reuses
+warm caches instead of serving the other mode's data.
+
+`GET /health` reports the active mode. `filter_api.py` follows the same mode
+(`db_only` → `DbProvider`, `data_root_only` → `ManifestProvider`, `combined` →
+both chained); `FILTER_BACKEND` still overrides it for that API alone.
+
 ### Three-Level Cache in `app.py`
 
 Module-level globals: `_game_ids_cache` (list), `_game_cache` (dict by game_id), `_plotly_cache` (dict keyed by `(game_id, PLOT_VERSION)`). All are invalidated together by `_invalidate_game_caches()` after a download. This is a simple in-process cache — it resets on worker restart.
@@ -103,6 +126,7 @@ Grades A/B/C map to colors green/orange/red. Home chances appear above the x-axi
 | `hockey/derive/current_shift.py` | `find_intervals` sweep-line + `current_shift_toi_series` + single-time `current_shift_toi` |
 | `hockey/visualize/shift_toi.py` | Main visualization: 3 line traces + chance markers |
 | `hockey/data_collection/sportlogiq_api.py` | `SportlogiqApi` client + `download_complete_game` |
+| `source_mode.py` | `GAME_SOURCE` mode switch: `game_source()`, `use_db()`, `use_files()` |
 | `hockey/config/settings.py` | `Settings.from_env()` — reads `DATA_ROOT_DIR`, `OUTPUT_DIR` |
 | `hockey/manifests/fetch_manifests.py` | Copies manifests from data dir into the repo |
 
@@ -110,6 +134,7 @@ Grades A/B/C map to colors green/orange/red. Home chances appear above the x-axi
 
 | Variable | Purpose |
 |----------|---------|
+| `GAME_SOURCE` | `combined` (default), `db_only`, or `data_root_only` — see Source Mode |
 | `DATA_ROOT_DIR` | Path to game data folders (each subfolder = one game_id) |
 | `OUTPUT_DIR` | Optional output directory (default: `./output`) |
 | `SPORTLOGIQ_USERNAME` | API credentials (only needed for downloads) |

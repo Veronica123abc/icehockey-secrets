@@ -9,10 +9,16 @@ Provides: /api/leagues, /api/leagues/<id>/seasons,
           /api/teams/<team_id>
           POST /admin/refresh-manifests  (requires X-Admin-Secret header)
 
-Backend is selected at startup:
+Backend follows the GAME_SOURCE mode (see source_mode.py), and is rebuilt
+whenever that mode changes rather than being fixed at import:
+  - GAME_SOURCE=db_only        → DbProvider, no manifest fallback
+  - GAME_SOURCE=data_root_only → ManifestProvider (the manifests are bundled
+                                 files, so this is the no-database mode)
+  - GAME_SOURCE=combined       → DbProvider chained to ManifestProvider
+
+FILTER_BACKEND still overrides it, for pinning this API alone:
   - FILTER_BACKEND=db       → DbProvider (fail hard if DB unavailable)
   - FILTER_BACKEND=manifest → ManifestProvider
-  - (unset)                 → DbProvider if DATABASE_HOST_AZURE is set, else ManifestProvider
 """
 from __future__ import annotations
 
@@ -24,6 +30,8 @@ from collections import defaultdict
 from pathlib import Path
 
 from flask import Blueprint, jsonify, request
+
+from source_mode import DB_ONLY, DATA_ROOT_ONLY, game_source
 
 filter_bp = Blueprint("filter", __name__)
 _log = logging.getLogger(__name__)
@@ -390,13 +398,17 @@ class ChainProvider(FilterProvider):
 # Provider selection
 # ---------------------------------------------------------------------------
 
-def _make_provider() -> FilterProvider:
-    backend = os.getenv("FILTER_BACKEND", "").lower()
-    use_db = backend == "db" or (not backend and bool(os.getenv("DATABASE_HOST_AZURE")))
-    if use_db:
+def _make_provider(backend: str, mode: str) -> FilterProvider:
+    want_db = backend == "db" or (
+        not backend and mode != DATA_ROOT_ONLY and bool(os.getenv("DATABASE_HOST_AZURE"))
+    )
+    if want_db:
         try:
             db = DbProvider()
             db.warm()
+            if backend == "db" or mode == DB_ONLY:
+                _log.info("filter_api: using DbProvider (no manifest fallback)")
+                return db
             # ManifestProvider is left cold on purpose: it loads lazily and
             # caches per file, so chaining it costs nothing at startup.
             _log.info("filter_api: using DbProvider with ManifestProvider fallback")
@@ -404,6 +416,8 @@ def _make_provider() -> FilterProvider:
         except Exception as exc:
             if backend == "db":
                 raise RuntimeError("FILTER_BACKEND=db but DB warm failed") from exc
+            if mode == DB_ONLY:
+                raise RuntimeError("GAME_SOURCE=db_only but DB warm failed") from exc
             _log.warning("filter_api: DbProvider failed (%s), falling back to ManifestProvider", exc)
     p = ManifestProvider()
     p.warm()
@@ -411,7 +425,22 @@ def _make_provider() -> FilterProvider:
     return p
 
 
-_provider: FilterProvider = _make_provider()
+# Built on first use and reused until the mode changes, so GAME_SOURCE can be
+# flipped without a redeploy while warm providers survive ordinary requests.
+_provider_cache: dict[tuple[str, str], FilterProvider] = {}
+
+
+def _get_provider() -> FilterProvider:
+    key = (os.getenv("FILTER_BACKEND", "").lower(), game_source())
+    provider = _provider_cache.get(key)
+    if provider is None:
+        provider = _make_provider(*key)
+        _provider_cache[key] = provider
+    return provider
+
+
+# Warm the current mode at import, as the module-level provider used to do.
+_get_provider()
 
 
 # ---------------------------------------------------------------------------
@@ -420,14 +449,14 @@ _provider: FilterProvider = _make_provider()
 
 @filter_bp.route("/api/leagues")
 def api_leagues():
-    return jsonify({"leagues": _provider.load_leagues()})
+    return jsonify({"leagues": _get_provider().load_leagues()})
 
 
 @filter_bp.route("/api/leagues/<league_id>/seasons")
 def api_seasons(league_id: str):
     if not _is_safe_segment(league_id):
         return jsonify({"seasons": []})
-    comp = _provider.load_competition(league_id)
+    comp = _get_provider().load_competition(league_id)
     if not comp:
         return jsonify({"seasons": []})
     return jsonify({"seasons": [s["name"] for s in comp.get("seasons", [])]})
@@ -437,7 +466,7 @@ def api_seasons(league_id: str):
 def api_stages(league_id: str, season: str):
     if not (_is_safe_segment(league_id) and _is_safe_segment(season)):
         return jsonify({"stages": []})
-    comp = _provider.load_competition(league_id)
+    comp = _get_provider().load_competition(league_id)
     if not comp:
         return jsonify({"stages": []})
     season_data = next((s for s in comp.get("seasons", []) if s["name"] == season), None)
@@ -454,9 +483,9 @@ def api_stages(league_id: str, season: str):
 def api_stage_games(league_id: str, season: str, stage: str):
     if not all(_is_safe_segment(s) for s in (league_id, season, stage)):
         return jsonify({"games": []})
-    all_games = _provider.get_games(league_id, season)
+    all_games = _get_provider().get_games(league_id, season)
     game_list = [g for g in all_games if g.get("stage", "").lower() == stage.lower()]
-    return jsonify({"games": _format_games(game_list, _provider.load_teams())})
+    return jsonify({"games": _format_games(game_list, _get_provider().load_teams())})
 
 
 @filter_bp.route("/api/leagues/<league_id>/seasons/<season>/games")
@@ -469,7 +498,7 @@ def api_season_games(league_id: str, season: str):
     except (ValueError, TypeError):
         limit = None
 
-    comp = _provider.load_competition(league_id)
+    comp = _get_provider().load_competition(league_id)
     if not comp:
         return jsonify({"games": []})
     season_data = next((s for s in comp.get("seasons", []) if s["name"] == season), None)
@@ -481,8 +510,8 @@ def api_season_games(league_id: str, season: str):
         [st["name"] for st in season_data.get("stages", [])],
         key=lambda s: stage_priority.index(s.lower()) if s.lower() in stage_priority else 99,
     )
-    all_games = _provider.get_games(league_id, season)
-    teams = _provider.load_teams()
+    all_games = _get_provider().get_games(league_id, season)
+    teams = _get_provider().load_teams()
     result = []
     for stage in ordered_stages:
         game_list = sorted(
@@ -505,17 +534,17 @@ def api_recent_games(league_id: str):
         limit = min(int(request.args.get("limit", 30)), 100)
     except (ValueError, TypeError):
         limit = 30
-    comp = _provider.load_competition(league_id)
+    comp = _get_provider().load_competition(league_id)
     if not comp or not comp.get("seasons"):
         return jsonify({"games": []})
     most_recent_season = comp["seasons"][0]["name"]
     game_list = sorted(
-        _provider.get_games(league_id, most_recent_season),
+        _get_provider().get_games(league_id, most_recent_season),
         key=lambda g: g.get("date", ""),
         reverse=True,
     )
     return jsonify({
-        "games": _format_games(game_list[:limit], _provider.load_teams()),
+        "games": _format_games(game_list[:limit], _get_provider().load_teams()),
         "season": most_recent_season,
     })
 
@@ -525,19 +554,19 @@ def api_league_teams(league_id: str):
     if not _is_safe_segment(league_id):
         return jsonify({"teams": [], "season": None})
 
-    comp = _provider.load_competition(league_id)
+    comp = _get_provider().load_competition(league_id)
     if not comp:
         return jsonify({"teams": [], "season": None})
 
     season_param = request.args.get("season", "").strip()
     if season_param and _is_safe_segment(season_param):
         chosen_season = season_param
-        chosen_games = _provider.get_games(league_id, chosen_season)
+        chosen_games = _get_provider().get_games(league_id, chosen_season)
     else:
         chosen_season = None
         chosen_games = []
         for season in comp.get("seasons", []):
-            games = _provider.get_games(league_id, season["name"])
+            games = _get_provider().get_games(league_id, season["name"])
             if sum(1 for g in games if g.get("event_status") == "over") >= 20:
                 chosen_season = season["name"]
                 chosen_games = games
@@ -551,7 +580,7 @@ def api_league_teams(league_id: str):
     } | {
         str(g["away_team_id"]) for g in chosen_games if "away_team_id" in g
     }
-    teams_by_id = {str(t["id"]): t for t in _provider.load_teams_full()}
+    teams_by_id = {str(t["id"]): t for t in _get_provider().load_teams_full()}
     teams = sorted(
         [
             {
@@ -573,7 +602,7 @@ def api_team(team_id: str):
     if not _is_safe_segment(team_id):
         return jsonify({"error": "invalid"}), 400
     team = next(
-        (t for t in _provider.load_teams_full() if str(t.get("id", "")) == team_id), None
+        (t for t in _get_provider().load_teams_full() if str(t.get("id", "")) == team_id), None
     )
     if team is None:
         return jsonify({"error": "not found"}), 404
@@ -591,6 +620,8 @@ def refresh_manifests():
     secret = os.getenv("ADMIN_SECRET", "")
     if not secret or request.headers.get("X-Admin-Secret") != secret:
         return jsonify({"error": "unauthorized"}), 401
-    _provider.clear()
-    _provider.warm()
-    return jsonify({"ok": True, "backend": type(_provider).__name__})
+    provider = _get_provider()
+    provider.clear()
+    provider.warm()
+    return jsonify({"ok": True, "backend": type(provider).__name__,
+                    "source": game_source()})
