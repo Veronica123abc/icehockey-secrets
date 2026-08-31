@@ -72,8 +72,8 @@ _EVENT_GROUPS: tuple[tuple[str, tuple[str, ...]], ...] = (
     )),
     ("Pressure & physical", ("check", "pressure")),
     ("Stoppages & specials", (
-        "faceoff", "faceoffrecovery", "penalty", "penaltydrawn", "icing",
-        "offside", "goalieloss", "goaliewin",
+        "faceoff+", "faceoff-", "faceoff", "faceoffrecovery", "penalty",
+        "penaltydrawn", "icing", "offside", "goalieloss", "goaliewin",
     )),
 )
 
@@ -83,6 +83,15 @@ _OTHER_GROUP = "Other"
 # count is flagged so you can see that before you tick it.
 _DENSE_THRESHOLD = 300
 
+# Which team an event is attributed to. Traces are split by side so the team
+# selector is a visibility toggle rather than a re-plot.
+_SIDE_HOME = "h"
+_SIDE_AWAY = "a"
+_SIDE_NONE = "n"
+_SIDES = (_SIDE_HOME, _SIDE_AWAY, _SIDE_NONE)
+# Team-selector value meaning "don't filter".
+_TEAM_BOTH = "both"
+
 # Lane geometry. A lane is one y unit; ticks fill the middle 70% of it.
 _LANE_HALF = 0.35
 # Vertical space the chart needs besides the lanes themselves (the x axis and
@@ -91,6 +100,42 @@ _LANE_CHROME = 54
 # Floor for the lane area. One lane's worth of plot is a sliver that's awkward
 # to click for a TOI readout, so short selections still get a usable strip.
 _MIN_LANE_AREA = 96
+
+
+# Faceoffs come in pairs -- one event per team at the same moment, one
+# successful and one failed -- so a single "faceoff" lane draws both at once in
+# two colours and hides who won. Split them by outcome. Anything with another
+# outcome (Sportlogiq also emits "undetermined") keeps the plain name rather
+# than being dropped from the widget.
+_OUTCOME_SUFFIX = {"successful": "+", "failed": "-"}
+_SPLIT_BY_OUTCOME = ("faceoff",)
+
+
+def _display_type(event: Event) -> str:
+    """The event type as the UI names it: see _OUTCOME_SUFFIX."""
+    if event.name in _SPLIT_BY_OUTCOME:
+        suffix = _OUTCOME_SUFFIX.get(event.get_raw("outcome"))
+        if suffix:
+            return f"{event.name}{suffix}"
+    return event.name
+
+
+def _team_label(team) -> str:
+    """Display label for a team, without the doubling display_name can carry.
+
+    TeamInfo.display_name is "<location> <name>", which supplier playsequence
+    strings match exactly -- TeamResolver.team_id_from_string depends on that
+    and raises on a mismatch, so it must not change. But it reads as
+    "Brynas Brynas IF" whenever the name already carries the location, so the
+    UI uses this instead.
+    """
+    location = (team.location or "").strip()
+    name = (team.name or "").strip()
+    if not location:
+        return name
+    if not name:
+        return location
+    return name if name.startswith(location) else f"{location} {name}"
 
 
 def _lane_margin(lanes: list[str]) -> int:
@@ -127,7 +172,7 @@ class GameCanvas:
         self._props = _default_props(game)
         # Distinct event types present in the game (assessed at construction).
         self._event_types: list[str] = sorted(
-            {e.name for e in game.events if e.name and e.t is not None}
+            {_display_type(e) for e in game.events if e.name and e.t is not None}
         )
         self._preselected: set[str] = set()
         # Rail reading order, which is also the order lanes are packed in.
@@ -137,7 +182,13 @@ class GameCanvas:
         # How many events of each type -- shown in the rail so the cost of
         # ticking a type is visible before you tick it.
         self._event_counts: Counter[str] = Counter(
-            e.name for e in game.events if e.name and e.t is not None
+            _display_type(e) for e in game.events if e.name and e.t is not None
+        )
+        # Events per player, shown beside each roster row so it's obvious who
+        # actually played (a scratch reads 0).
+        self._player_counts: Counter[int] = Counter(
+            e.player_id for e in game.events
+            if e.player_id is not None and e.name and e.t is not None
         )
         # Precompute per-second shift-TOI snapshots once (avoids click-time lag).
         # Indexed by game second: self._toi_series[s] -> {team_id: {...}}.
@@ -154,7 +205,8 @@ class GameCanvas:
     def draw_events(self, events: list[Event]) -> None:
         """Pre-select (pre-check) the event types present in ``events``."""
         self._preselected.update(
-            e.name for e in events if e.name in set(self._event_types)
+            _display_type(e) for e in events
+            if _display_type(e) in set(self._event_types)
         )
 
     def show(self) -> None:
@@ -186,21 +238,46 @@ class GameCanvas:
             _MIN_LANE_AREA, num_lanes * self._props["lane-height"]
         )
 
-    def _event_color(self, event: Event) -> str:
-        # Colour by the acting team. team_id is populated on every event;
-        # team_id_in_possession is null on ~40% of them (all scoring chances,
-        # entries and faceoffs), which would paint most ticks neutral grey.
+    def _event_side(self, event: Event) -> str:
+        """Which side an event belongs to: ``h``, ``a`` or ``n`` (no team).
+
+        Attributed to the acting team. team_id is populated on every event;
+        team_id_in_possession is null on ~40% of them (all scoring chances,
+        entries and faceoffs), which would leave most events unattributed.
+        """
         team = event.team_id if event.team_id is not None else event.team_id_in_possession
         if team == self._game.info.home_team.id:
-            return self._props["home-team-graph-color"]
+            return _SIDE_HOME
         if team == self._game.info.away_team.id:
+            return _SIDE_AWAY
+        return _SIDE_NONE
+
+    def _side_color(self, side: str) -> str:
+        if side == _SIDE_HOME:
+            return self._props["home-team-graph-color"]
+        if side == _SIDE_AWAY:
             return self._props["away-team-graph-color"]
         return _NEUTRAL_EVENT_COLOR
 
-    def _build_figure(self) -> tuple[go.Figure, dict[str, list[int]]]:
+    def _side_name(self, side: str) -> str:
+        if side == _SIDE_HOME:
+            return _team_label(self._game.info.home_team)
+        if side == _SIDE_AWAY:
+            return _team_label(self._game.info.away_team)
+        return ""
+
+    def _event_color(self, event: Event) -> str:
+        return self._side_color(self._event_side(event))
+
+    def _build_figure(self) -> go.Figure:
         """
-        Build the timeline figure plus a mapping of event type -> the trace
-        indices that render it (so checkboxes can toggle them via restyle).
+        Build the timeline figure.
+
+        Also populates ``self._segments``: event type -> one entry per side,
+        each carrying the two trace indices that render it (``l``ine and
+        ``h``over), the ``s``ide, and the event ``t``imes and ``p``layer ids
+        behind them. The browser re-derives the traces from that whenever a
+        filter changes.
         """
         end_time = self._end_time
         props = self._props
@@ -235,36 +312,44 @@ class GameCanvas:
         # so possessing-team coloring is preserved within a type.
         events_by_type: dict[str, list[Event]] = defaultdict(list)
         for e in self._game.events:
-            if e.name in self._event_types and e.t is not None:
-                events_by_type[e.name].append(e)
+            display = _display_type(e)
+            if display in self._event_types and e.t is not None:
+                events_by_type[display].append(e)
 
         # Lanes: each visible type occupies one row of the y axis, so types
         # stay separable instead of overprinting each other. Lanes are packed
         # (no gaps) in display order, which means toggling a type off reflows
-        # the ones below it -- the browser redoes this in _relayoutLanes().
+        # the ones below it -- the browser redoes this in _redraw().
         lanes = self._initial_lanes()
         lane_of = {etype: i for i, etype in enumerate(lanes)}
 
-        type_traces: dict[str, list[int]] = {}
-        lane_specs: dict[str, list[list]] = {}
+        # Traces are split by side (home / away / unattributed) so the team
+        # selector only has to flip `visible` -- no re-plotting. Each side gets
+        # its own line trace and its own hover trace, so hover targets vanish
+        # with the ticks they belong to.
+        segments: dict[str, list[dict]] = {}
         for etype in self._display_order:
-            events = events_by_type[etype]
-            visible = etype in self._preselected
             lane = lane_of.get(etype, 0)
             low, high = lane - _LANE_HALF, lane + _LANE_HALF
-            specs: list[list] = []
+            visible = etype in self._preselected   # team filter starts at "both"
+            specs: list[dict] = []
 
-            by_color: dict[str, list[Event]] = defaultdict(list)
-            for e in events:
-                by_color[self._event_color(e)].append(e)
+            by_side: dict[str, list[Event]] = defaultdict(list)
+            for e in events_by_type[etype]:
+                by_side[self._event_side(e)].append(e)
 
-            for color, group in by_color.items():
+            for side in _SIDES:
+                group = by_side.get(side)
+                if not group:
+                    continue
+                color = self._side_color(side)
+
                 xs: list = []
                 ys: list = []
                 for e in group:
                     xs += [e.t, e.t, None]
                     ys += [low, high, None]
-                specs.append([len(fig.data), "line", len(group)])
+                line_idx = len(fig.data)
                 fig.add_trace(go.Scatter(
                     x=xs, y=ys, mode="lines",
                     line=dict(color=color, width=1),
@@ -274,27 +359,37 @@ class GameCanvas:
                     showlegend=False,
                 ))
 
-            # Invisible on-lane markers give a large hover target so the
-            # event's game time shows on hover (thin lines are hard to hit).
-            specs.append([len(fig.data), "hover", len(events)])
-            fig.add_trace(go.Scatter(
-                x=[e.t for e in events],
-                y=[lane] * len(events),
-                mode="markers",
-                marker=dict(size=16, opacity=0),
-                name=etype,
-                hovertext=[
-                    f"{etype} — {self._period_time_str(e.t)}" for e in events
-                ],
-                hovertemplate="%{hovertext}<extra></extra>",
-                visible=visible,
-                showlegend=False,
-            ))
+                # Invisible on-lane markers give a large hover target so the
+                # event's details show on hover (thin lines are hard to hit).
+                # Hover text is filled in by the browser (_redraw), so there is
+                # only one implementation of the format.
+                hover_idx = len(fig.data)
+                fig.add_trace(go.Scatter(
+                    x=[e.t for e in group],
+                    y=[lane] * len(group),
+                    mode="markers",
+                    marker=dict(size=16, opacity=0),
+                    name=etype,
+                    hovertemplate="%{hovertext}<extra></extra>",
+                    visible=visible,
+                    showlegend=False,
+                ))
 
-            lane_specs[etype] = specs
-            type_traces[etype] = [s[0] for s in specs]
+                # The event times and player ids behind these two traces. The
+                # browser re-derives x/y from them whenever a filter changes --
+                # a player filter can't be expressed as trace visibility, since
+                # one trace mixes every player on that side.
+                specs.append({
+                    "l": line_idx,
+                    "h": hover_idx,
+                    "s": side,
+                    "t": [round(e.t, 1) for e in group],
+                    "p": [e.player_id for e in group],
+                })
 
-        self._lane_specs = lane_specs
+            segments[etype] = specs
+
+        self._segments = segments
 
         period_annotations = [
             dict(
@@ -355,11 +450,13 @@ class GameCanvas:
             ),
             shapes=shapes,
             annotations=period_annotations,
-            height=self._chart_height(len(lanes)),
+            # No explicit height/width: that would set autosize=false and make
+            # Plotly.Plots.resize a no-op. The .plot-wrap div owns the size,
+            # and the figure measures itself against it.
             hovermode="closest",
             margin=dict(t=26, b=28, l=_lane_margin(lanes), r=12),
         )
-        return fig, type_traces
+        return fig
 
     def _player_name(self, player_id: int) -> str:
         p = self._game.roster.players.get(player_id)
@@ -449,26 +546,47 @@ class GameCanvas:
         meta.append(f"Game {info.game_id}")
 
         return f"""<div class="scoreboard">
-  <span class="team"><i class="dot" style="background: {props['home-team-graph-color']}"></i>{info.home_team.display_name}</span>
+  <span class="team"><i class="dot" style="background: {props['home-team-graph-color']}"></i>{_team_label(info.home_team)}</span>
   {score}
-  <span class="team"><i class="dot" style="background: {props['away-team-graph-color']}"></i>{info.away_team.display_name}</span>
+  <span class="team"><i class="dot" style="background: {props['away-team-graph-color']}"></i>{_team_label(info.away_team)}</span>
   <span class="sep"></span>
   <span class="meta">{' · '.join(meta)}</span>
   <span class="spacer"></span>
   <span class="counts">{len(self._game.events):,} events · {len(self._event_types)} types</span>
 </div>"""
 
-    def _legend_html(self) -> str:
-        props = self._props
-        items = (
-            (props["home-team-graph-color"], self._game.info.home_team.display_name),
-            (props["away-team-graph-color"], self._game.info.away_team.display_name),
-            (_NEUTRAL_EVENT_COLOR, "unattributed"),
-        )
-        return "".join(
-            f'<span><i style="background: {color}"></i>{label}</span>'
-            for color, label in items
-        )
+    def _team_selector_html(self) -> str:
+        """Segmented control filtering the chart to one team's events.
+
+        Doubles as the colour key, so there is no separate legend. The
+        unattributed swatch only appears if the game actually has events with
+        no team on them.
+        """
+        info = self._game.info
+        segments = [
+            (_TEAM_BOTH, "Both teams", None),
+            (_SIDE_HOME, _team_label(info.home_team), self._side_color(_SIDE_HOME)),
+            (_SIDE_AWAY, _team_label(info.away_team), self._side_color(_SIDE_AWAY)),
+        ]
+        buttons = []
+        for value, label, color in segments:
+            active = " active" if value == _TEAM_BOTH else ""
+            swatch = (f'<i class="dot" style="background: {color}"></i>'
+                      if color else "")
+            buttons.append(
+                f'<button type="button" class="seg{active}" data-side="{value}"'
+                f' onclick="_setTeam(\'{value}\')">{swatch}{label}</button>'
+            )
+
+        unattributed = ""
+        if any(self._event_side(e) == _SIDE_NONE
+               for e in self._game.events if e.t is not None):
+            unattributed = (
+                f'<span class="legend-note">'
+                f'<i class="dot" style="background: {_NEUTRAL_EVENT_COLOR}"></i>'
+                f'unattributed</span>'
+            )
+        return f'<div class="segbar" id="team-sel">{"".join(buttons)}</div>{unattributed}'
 
     def _group_event_types(self) -> list[tuple[str, list[str]]]:
         """Bucket this game's event types into display groups, in a fixed order.
@@ -487,7 +605,100 @@ class GameCanvas:
             groups.append((_OTHER_GROUP, sorted(remaining)))
         return groups
 
-    def _rail_html(self, type_traces: dict[str, list[int]]) -> str:
+    def _roster_by_side(self) -> list[tuple[str, list]]:
+        """The two rosters, home first, each sorted by jersey number."""
+        team_ids = {
+            _SIDE_HOME: self._game.info.home_team.id,
+            _SIDE_AWAY: self._game.info.away_team.id,
+        }
+        out = []
+        for side in (_SIDE_HOME, _SIDE_AWAY):
+            players = [
+                p for p in self._game.roster.players.values()
+                if p.team_id == team_ids[side]
+            ]
+            players.sort(key=lambda p: (p.jersey_number is None,
+                                        p.jersey_number or 0))
+            out.append((side, players))
+        return out
+
+    def _on_ice_for_js(self) -> dict[int, list[list[float]]]:
+        """player id -> the merged [start, end) spans they were on the ice.
+
+        Backs the "player WOI" mode: an event counts when its time falls inside
+        one of these spans, whoever the event itself is attributed to. Spans
+        rather than per-event on-ice sets -- 742 intervals against 5,583
+        events, and the browser only has to test a time.
+        """
+        by_player: dict[int, list[list[float]]] = defaultdict(list)
+        for x in self._game.toi:
+            end = self._end_time if x.end_t is None else x.end_t
+            if end <= x.start_t:
+                continue
+            by_player[x.player_id].append([round(x.start_t, 1), round(end, 1)])
+
+        merged_by_player: dict[int, list[list[float]]] = {}
+        for pid, spans in by_player.items():
+            spans.sort()
+            merged = [spans[0]]
+            for start, end in spans[1:]:
+                if start <= merged[-1][1]:
+                    merged[-1][1] = max(merged[-1][1], end)
+                else:
+                    merged.append([start, end])
+            merged_by_player[pid] = merged
+        return merged_by_player
+
+    def _player_mode_html(self) -> str:
+        """Switch between "attributed to the player" and "player on the ice"."""
+        return (
+            '<div class="segbar modesel" id="mode-sel">'
+            '<button type="button" class="seg active" data-mode="player"'
+            ' onclick="_setPlayerMode(\'player\')">Player</button>'
+            '<button type="button" class="seg" data-mode="woi"'
+            ' onclick="_setPlayerMode(\'woi\')">Player WOI</button>'
+            '</div>'
+        )
+
+    def _player_names_for_js(self) -> dict[int, str]:
+        """player id -> display name, for hover text built in the browser."""
+        return {
+            p.player_id: escape(self._player_name(p.player_id))
+            for p in self._game.roster.players.values()
+        }
+
+    def _roster_html(self) -> str:
+        """The roster pane: per-team player checkboxes filtering the chart.
+
+        Selecting nothing means "every player" -- the filter only narrows once
+        at least one player is picked.
+        """
+        blocks = []
+        for side, players in self._roster_by_side():
+            rows = []
+            for p in players:
+                count = self._player_counts.get(p.player_id, 0)
+                number = "" if p.jersey_number is None else p.jersey_number
+                rows.append(
+                    f'      <label class="plr" data-pid="{p.player_id}">'
+                    f'<input type="checkbox" onchange="_togglePlayer(this)">'
+                    f'<span class="plr-num">{number}</span>'
+                    f'<span class="plr-name">{escape(self._player_name(p.player_id))}</span>'
+                    f'<span class="plr-pos">{escape(p.position or "")}</span>'
+                    f'<span class="plr-count">{count:,}</span></label>'
+                )
+            blocks.append(f"""    <div class="team-block" data-side="{side}">
+      <div class="roster-team">
+        <i class="dot" style="background: {self._side_color(side)}"></i>
+        <span class="roster-team-name">{self._side_name(side)}</span>
+        <span class="spacer"></span>
+        <span class="roster-size">{len(players)}</span>
+      </div>
+{chr(10).join(rows)}
+    </div>""")
+        return "\n".join(blocks)
+
+    def _rail_html(self) -> str:
         """The event-type rail: collapsible groups of checkboxes with counts.
 
         A group starts expanded only if it contains a pre-selected type, so an
@@ -501,11 +712,9 @@ class GameCanvas:
                 count = self._event_counts[name]
                 checked = " checked" if name in self._preselected else ""
                 dense = " dense" if count >= _DENSE_THRESHOLD else ""
-                indices = json.dumps(type_traces[name])
                 rows.append(
                     f'        <label class="evt" data-type="{name}">'
-                    f'<input type="checkbox" data-indices=\'{indices}\''
-                    f' onchange="_toggle(this)"{checked}>'
+                    f'<input type="checkbox" onchange="_toggle(this)"{checked}>'
                     f'<span class="evt-name">{name}</span>'
                     f'<span class="evt-count{dense}">{count:,}</span></label>'
                 )
@@ -527,17 +736,22 @@ class GameCanvas:
 
     def _render_html(self) -> str:
         """Wrap the figure in an HTML page with per-event-type checkboxes."""
-        fig, type_traces = self._build_figure()
+        fig = self._build_figure()
         props = self._props
 
         fig_html = fig.to_html(
-            full_html=False, include_plotlyjs="cdn", div_id=_DIV_ID
+            full_html=False, include_plotlyjs="cdn", div_id=_DIV_ID,
+            config={"responsive": True},
         )
+        # The plot is sized by this wrapper, not by the figure: a div with an
+        # explicit height reserves the space in the flow, so the chart can't
+        # draw over the card below it when the lane count changes.
+        plot_height = self._chart_height(len(self._initial_lanes()))
 
         toi_data, toi_names, toi_positions = self._toi_embed()
         toi_ceiling = self._toi_bar_ceiling()
 
-        rail_html = self._rail_html(type_traces)
+        rail_html = self._rail_html()
 
         num_types = len(self._event_types)
         selected = len(self._preselected)
@@ -548,7 +762,7 @@ class GameCanvas:
 <html>
 <head>
 <meta charset="utf-8">
-<title>{props['title']} — {self._game.info.home_team.display_name} vs {self._game.info.away_team.display_name}</title>
+<title>{props['title']} — {_team_label(self._game.info.home_team)} vs {_team_label(self._game.info.away_team)}</title>
 <style>
   *, *::before, *::after {{ box-sizing: border-box; }}
   body {{
@@ -594,6 +808,7 @@ class GameCanvas:
   .layout {{
     display: flex;
     align-items: flex-start;
+    flex-wrap: wrap;
     gap: 20px;
     padding: 20px 24px 24px;
   }}
@@ -603,13 +818,91 @@ class GameCanvas:
     border-radius: 8px;
   }}
   .rail {{
-    width: 320px;
+    width: 300px;
     flex-shrink: 0;
     padding: 16px;
     max-height: calc(100vh - 132px);
     overflow-y: auto;
   }}
-  .main {{ flex-grow: 1; min-width: 0; }}
+  .roster {{
+    width: 264px;
+    flex-shrink: 0;
+    padding: 16px;
+    max-height: calc(100vh - 132px);
+    overflow-y: auto;
+  }}
+  .team-block {{ margin-top: 12px; }}
+  .team-block.dimmed {{ opacity: 0.35; }}
+  .roster-team {{
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding-bottom: 8px;
+    margin-bottom: 4px;
+    border-bottom: 1px solid {props['border-color']};
+  }}
+  .roster-team .dot {{ width: 9px; height: 9px; }}
+  .roster-team-name {{ font-size: 12.5px; font-weight: 600; color: {props['title-color']}; }}
+  .roster-size {{ font-size: 11px; color: {props['axis-color']}; }}
+  .plr {{
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 27px;
+    padding: 0 8px;
+    margin: 0 -8px;
+    border-radius: 5px;
+    font-size: 12.5px;
+    color: {props['font-color']};
+    cursor: pointer;
+    user-select: none;
+  }}
+  .plr:hover {{
+    background: rgba(148, 163, 184, 0.08);
+    color: {props['text-color']};
+  }}
+  .plr:has(input:checked) {{ background: rgba(96, 165, 250, 0.09); }}
+  .plr:has(input:checked) .plr-name {{ color: {props['text-color']}; }}
+  .plr input {{
+    width: 14px;
+    height: 14px;
+    margin: 0;
+    flex-shrink: 0;
+    accent-color: {props['home-team-graph-color']};
+    cursor: pointer;
+  }}
+  .plr-num {{
+    width: 18px;
+    flex-shrink: 0;
+    text-align: right;
+    font-size: 11px;
+    color: {props['axis-color']};
+    font-variant-numeric: tabular-nums;
+  }}
+  .plr-name {{
+    flex-grow: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }}
+  .plr-pos {{
+    flex-shrink: 0;
+    font-size: 10px;
+    font-weight: 600;
+    color: {props['axis-color']};
+  }}
+  .plr-count {{
+    width: 30px;
+    flex-shrink: 0;
+    text-align: right;
+    font-size: 11px;
+    color: {props['axis-color']};
+    font-variant-numeric: tabular-nums;
+  }}
+  /* Floor the chart column so a narrow window wraps the panes onto the next
+     row instead of crushing the timeline. */
+  .main {{ flex-grow: 1; flex-basis: 460px; min-width: 460px; }}
   .section-heading {{
     font-size: 12px;
     font-weight: 600;
@@ -719,21 +1012,58 @@ class GameCanvas:
   }}
   .evt-count.dense {{ color: #fbbf24; }}
   .timeline-card {{ padding: 18px 20px 14px; }}
+  .plot-wrap {{ position: relative; width: 100%; }}
+  /* to_html wraps the graph div in a plain <div>; that one needs a definite
+     height too, or the graph div's height:100% resolves against auto and
+     Plotly falls back to its 450px default and overflows the card. */
+  .plot-wrap > div {{ height: 100%; }}
+  .plot-wrap .plotly-graph-div {{ width: 100% !important; height: 100% !important; }}
   .card-head {{
     display: flex;
     align-items: center;
     gap: 16px;
     margin-bottom: 4px;
   }}
-  .legend {{ display: flex; align-items: center; gap: 14px; margin-left: auto; }}
-  .legend span {{
+  .head-right {{ display: flex; align-items: center; gap: 14px; margin-left: auto; }}
+  .segbar {{
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    padding: 2px;
+    background: {props['background-color']};
+    border: 1px solid {props['border-color']};
+    border-radius: 7px;
+  }}
+  .seg {{
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border: 0;
+    border-radius: 5px;
+    background: none;
+    font-family: inherit;
+    font-size: 12px;
+    color: {props['font-color']};
+    cursor: pointer;
+  }}
+  .seg:hover {{ color: {props['text-color']}; }}
+  .seg.active {{
+    background: {props['border-color']};
+    color: {props['title-color']};
+    font-weight: 600;
+  }}
+  .seg .dot {{ width: 8px; height: 8px; }}
+  .modesel {{ margin: 11px 0 8px; }}
+  .modesel .seg {{ flex-grow: 1; justify-content: center; }}
+  .legend-note {{
     display: inline-flex;
     align-items: center;
     gap: 6px;
     font-size: 12px;
     color: {props['font-color']};
   }}
-  .legend i {{ width: 8px; height: 8px; border-radius: 2px; display: block; }}
+  .legend-note .dot {{ width: 8px; height: 8px; }}
   .toi-card {{ padding: 18px 20px; margin-top: 20px; }}
   .toi-head {{ display: flex; align-items: center; gap: 12px; }}
   .time-chip {{
@@ -821,7 +1151,7 @@ class GameCanvas:
     <div class="rail-head">
       <span class="section-heading">Event types</span>
       <span class="spacer"></span>
-      <button type="button" class="clear" onclick="_clearAll()">Clear</button>
+      <button type="button" class="clear" id="rail-clear" onclick="_clearAll()">Clear</button>
     </div>
     <div class="rail-meta" id="rail-meta">{rail_meta}</div>
     <div class="search">
@@ -837,9 +1167,11 @@ class GameCanvas:
     <div class="card timeline-card">
       <div class="card-head">
         <span class="section-heading">{props['title']}</span>
-        <span class="legend">{self._legend_html()}</span>
+        <span class="head-right">{self._team_selector_html()}</span>
       </div>
+      <div class="plot-wrap" id="plot-wrap" style="height: {plot_height}px">
 {fig_html}
+      </div>
     </div>
     <div class="card toi-card">
       <div class="toi-head">
@@ -851,6 +1183,16 @@ class GameCanvas:
       <div id="toi-box"><div class="toi-empty">Click anywhere on the timeline to read current shift TOI at that moment.</div></div>
     </div>
   </div>
+  <div class="card roster">
+    <div class="rail-head">
+      <span class="section-heading">Players</span>
+      <span class="spacer"></span>
+      <button type="button" class="clear" id="roster-clear" onclick="_clearPlayers()">Clear</button>
+    </div>
+{self._player_mode_html()}
+    <div class="rail-meta" id="roster-meta">all players</div>
+{self._roster_html()}
+  </div>
 </div>
 <script>
 var TOI_DATA = {json.dumps(toi_data)};
@@ -860,27 +1202,168 @@ var TOI_CEIL = {toi_ceiling};
 var PLAYHEAD_SHAPE = {self._playhead_shape};
 var PLAYHEAD_NOTE = {self._playhead_note};
 var LANE_ORDER = {json.dumps(self._display_order)};
-var LANE_SPECS = {json.dumps(self._lane_specs)};
+var SEGMENTS = {json.dumps(self._segments)};
 var LANE_HALF = {_LANE_HALF};
 var LANE_HEIGHT = {props['lane-height']};
 var LANE_CHROME = {_LANE_CHROME};
 var MIN_LANE_AREA = {_MIN_LANE_AREA};
 var HEIGHT_AUTO = {json.dumps(props['height'] is None)};
-var HOME_NAME = {json.dumps(self._game.info.home_team.display_name)};
-var AWAY_NAME = {json.dumps(self._game.info.away_team.display_name)};
+var TEAM = '{_TEAM_BOTH}';
+var PLAYERS = {{}};          // selected player ids; empty object = every player
+var NUM_PLAYERS = 0;
+var PLAYER_NAMES = {json.dumps(self._player_names_for_js())};
+var ON_ICE = {json.dumps(self._on_ice_for_js())};
+var PLAYER_MODE = 'player';   // 'player' = attributed to them, 'woi' = on ice
+var WOI_SPANS = [];           // selected players' on-ice spans, merged
+var DENSE_THRESHOLD = {_DENSE_THRESHOLD};
+var HOME_NAME = {json.dumps(_team_label(self._game.info.home_team))};
+var AWAY_NAME = {json.dumps(_team_label(self._game.info.away_team))};
 var HOME_COLOR = {json.dumps(props['home-team-graph-color'])};
 var AWAY_COLOR = {json.dumps(props['away-team-graph-color'])};
 var NUM_TYPES = {num_types};
 var _preSearchOpen = null;   // group open/closed state to restore after a search
 
-function _toggle(cb) {{
-  var gd = document.getElementById('{_DIV_ID}');
-  var indices = JSON.parse(cb.dataset.indices);
-  if (indices.length) {{
-    Plotly.restyle(gd, {{visible: cb.checked}}, indices);
+// A trace shows when its type is ticked AND it belongs to the selected team.
+// "Both teams" keeps unattributed events; picking a team drops them, since
+// they aren't that team's events. A segment belongs to exactly one side, so
+// the team filter is decided per segment.
+function _sideShown(side) {{
+  return TEAM === '{_TEAM_BOTH}' || side === TEAM;
+}}
+
+// Merge the selected players' on-ice spans into one sorted, non-overlapping
+// list, so "was anyone selected on the ice at t" is a binary search.
+function _rebuildWoiSpans() {{
+  var all = [];
+  for (var pid in PLAYERS) {{
+    if (PLAYERS[pid] !== true) continue;
+    var spans = ON_ICE[pid];
+    if (spans) spans.forEach(function(s) {{ all.push(s); }});
   }}
-  _relayoutLanes();
-  _updateCounts();
+  all.sort(function(a, b) {{ return a[0] - b[0]; }});
+  WOI_SPANS = [];
+  all.forEach(function(s) {{
+    var last = WOI_SPANS[WOI_SPANS.length - 1];
+    if (last && s[0] <= last[1]) {{
+      if (s[1] > last[1]) last[1] = s[1];
+    }} else {{
+      WOI_SPANS.push([s[0], s[1]]);
+    }}
+  }});
+}}
+
+function _onIceAt(t) {{
+  var lo = 0, hi = WOI_SPANS.length - 1;
+  while (lo <= hi) {{
+    var mid = (lo + hi) >> 1;
+    if (t < WOI_SPANS[mid][0]) hi = mid - 1;
+    else if (t >= WOI_SPANS[mid][1]) lo = mid + 1;
+    else return true;
+  }}
+  return false;
+}}
+
+// No players picked means "every player" -- the filter only narrows once at
+// least one is selected. With players picked, "Player" keeps the events
+// attributed to them; "Player WOI" keeps every event that happened while one
+// of them was on the ice, whoever it is attributed to.
+function _eventShown(seg, i) {{
+  if (NUM_PLAYERS === 0) return true;
+  var credited = PLAYERS[seg.p[i]] === true;
+  // WOI also keeps anything credited to a selected player. Being credited
+  // implies being on the ice, but ~2% of events (mostly faceoffs, a couple of
+  // seconds before the recorded shift start) fall just outside the supplier's
+  // own TOI interval -- without this, a player's own faceoff can vanish from
+  // their WOI view, and WOI would not be a superset of Player.
+  if (PLAYER_MODE === 'woi') return credited || _onIceAt(seg.t[i]);
+  return credited;
+}}
+
+function _setPlayerMode(mode) {{
+  if (mode === PLAYER_MODE) return;
+  PLAYER_MODE = mode;
+  document.querySelectorAll('#mode-sel .seg').forEach(function(btn) {{
+    btn.classList.toggle('active', btn.dataset.mode === mode);
+  }});
+  _redraw();
+}}
+
+function _toggle(cb) {{
+  _redraw();
+}}
+
+function _fmtCount(n) {{
+  return String(n).replace(/\\B(?=(\\d{{3}})+(?!\\d))/g, ',');
+}}
+
+// How many events of a type survive the team and player filters. This is what
+// the rail shows, so its numbers always describe what the chart would draw --
+// including the dense flag.
+function _typeCount(type) {{
+  var n = 0;
+  SEGMENTS[type].forEach(function(seg) {{
+    if (!_sideShown(seg.s)) return;
+    if (NUM_PLAYERS === 0) {{ n += seg.t.length; return; }}
+    for (var i = 0; i < seg.t.length; i++) {{
+      if (_eventShown(seg, i)) n++;
+    }}
+  }});
+  return n;
+}}
+
+function _updateTypeCounts() {{
+  document.querySelectorAll('#controls .evt').forEach(function(row) {{
+    var n = _typeCount(row.dataset.type);
+    var cell = row.querySelector('.evt-count');
+    cell.textContent = _fmtCount(n);
+    cell.classList.toggle('dense', n >= DENSE_THRESHOLD);
+  }});
+}}
+
+function _setTeam(side) {{
+  if (side === TEAM) return;
+  TEAM = side;
+  document.querySelectorAll('#team-sel .seg').forEach(function(btn) {{
+    btn.classList.toggle('active', btn.dataset.side === side);
+  }});
+  // Dim the roster of the team whose events are filtered out, so an empty
+  // result reads as "excluded by the team filter" rather than as a bug.
+  document.querySelectorAll('.team-block').forEach(function(block) {{
+    block.classList.toggle('dimmed', !_sideShown(block.dataset.side));
+  }});
+  _redraw();
+}}
+
+function _togglePlayer(cb) {{
+  var pid = cb.parentNode.dataset.pid;
+  if (cb.checked) {{
+    if (PLAYERS[pid] !== true) {{ PLAYERS[pid] = true; NUM_PLAYERS++; }}
+  }} else if (PLAYERS[pid] === true) {{
+    delete PLAYERS[pid];
+    NUM_PLAYERS--;
+  }}
+  _rebuildWoiSpans();
+  _redraw();
+}}
+
+function _clearPlayers() {{
+  document.querySelectorAll('.plr input').forEach(function(b) {{ b.checked = false; }});
+  PLAYERS = {{}};
+  NUM_PLAYERS = 0;
+  _rebuildWoiSpans();
+  _redraw();
+}}
+
+function _updateRosterMeta() {{
+  document.getElementById('roster-meta').textContent = NUM_PLAYERS
+    ? NUM_PLAYERS + ' selected · ' +
+      (PLAYER_MODE === 'woi' ? 'events while on ice' : 'events they are credited with')
+    : 'all players';
+  var clear = document.getElementById('roster-clear');
+  if (clear) {{
+    clear.style.color = NUM_PLAYERS ? HOME_COLOR : '#475569';
+    clear.style.cursor = NUM_PLAYERS ? 'pointer' : 'default';
+  }}
 }}
 
 function _visibleTypes() {{
@@ -890,28 +1373,55 @@ function _visibleTypes() {{
   }});
 }}
 
-// Lanes are packed with no gaps, so toggling any type off moves every lane
-// below it up one. Rebuild the y values for whatever is on and re-label the
-// axis to match. y is derived from each trace's own point count: a line trace
-// is [low, high, null] per event, a hover trace one point per event.
-function _relayoutLanes() {{
+function _hoverText(type, t, pid, side) {{
+  var text = type + ' — ' + _fmtTime(Math.round(t));
+  if (side === 'h') text += ' · ' + HOME_NAME;
+  else if (side === 'a') text += ' · ' + AWAY_NAME;
+  var who = PLAYER_NAMES[pid];
+  if (who) text += ' · ' + who;
+  return text;
+}}
+
+// Single redraw path for all three filters. Ticked types get a lane each,
+// packed with no gaps in rail order, so toggling one moves the lanes below it.
+// Within a lane, x/y are rebuilt from the segment's event times, keeping only
+// the events that pass the team and player filters -- a player filter can't be
+// expressed as trace visibility, since one trace mixes every player.
+function _redraw() {{
   var on = _visibleTypes();
-  var indices = [];
-  var ys = [];
+  var shownIdx = [], xs = [], ys = [], texts = [];
+  var hiddenIdx = [];
   var longest = 0;
+  var lanes = {{}};
 
   on.forEach(function(type, lane) {{
     if (type.length > longest) longest = type.length;
-    var low = lane - LANE_HALF, high = lane + LANE_HALF;
-    LANE_SPECS[type].forEach(function(spec) {{
-      var y = [], i;
-      if (spec[1] === 'line') {{
-        for (i = 0; i < spec[2]; i++) {{ y.push(low, high, null); }}
-      }} else {{
-        for (i = 0; i < spec[2]; i++) {{ y.push(lane); }}
+    lanes[type] = lane;
+  }});
+
+  LANE_ORDER.forEach(function(type) {{
+    var lane = lanes[type];
+    var ticked = lane !== undefined;
+    SEGMENTS[type].forEach(function(seg) {{
+      if (!ticked || !_sideShown(seg.s)) {{
+        hiddenIdx.push(seg.l, seg.h);
+        return;
       }}
-      indices.push(spec[0]);
-      ys.push(y);
+      var low = lane - LANE_HALF, high = lane + LANE_HALF;
+      var lineX = [], lineY = [], markX = [], markY = [], hover = [];
+      for (var i = 0; i < seg.t.length; i++) {{
+        if (!_eventShown(seg, i)) continue;
+        var t = seg.t[i];
+        lineX.push(t, t, null);
+        lineY.push(low, high, null);
+        markX.push(t);
+        markY.push(lane);
+        hover.push(_hoverText(type, t, seg.p[i], seg.s));
+      }}
+      shownIdx.push(seg.l);
+      xs.push(lineX); ys.push(lineY); texts.push([]);
+      shownIdx.push(seg.h);
+      xs.push(markX); ys.push(markY); texts.push(hover);
     }});
   }});
 
@@ -923,16 +1433,35 @@ function _relayoutLanes() {{
     'yaxis.showticklabels': n > 0,
     'margin.l': n ? Math.min(220, Math.max(60, longest * 7 + 16)) : 12
   }};
+  // Height is driven by the wrapper, not by layout.height: the wrapper
+  // reserves the space in the document flow, so a taller chart pushes the
+  // cards below it down instead of drawing over them.
   if (HEIGHT_AUTO) {{
-    layout.height = LANE_CHROME + Math.max(MIN_LANE_AREA, n * LANE_HEIGHT);
+    var wrap = document.getElementById('plot-wrap');
+    if (wrap) {{
+      wrap.style.height =
+        (LANE_CHROME + Math.max(MIN_LANE_AREA, n * LANE_HEIGHT)) + 'px';
+    }}
   }}
 
   var gd = document.getElementById('{_DIV_ID}');
-  if (indices.length) {{
-    Plotly.update(gd, {{y: ys}}, layout, indices);
+  if (hiddenIdx.length) {{
+    Plotly.restyle(gd, {{visible: false}}, hiddenIdx);
+  }}
+  if (shownIdx.length) {{
+    Plotly.update(gd, {{x: xs, y: ys, hovertext: texts, visible: true}},
+                  layout, shownIdx);
   }} else {{
     Plotly.relayout(gd, layout);
   }}
+  // Re-measure against the wrapper. Also corrects the width Plotly captured
+  // mid-parse, before the roster pane narrowed this column.
+  if (Plotly.Plots && Plotly.Plots.resize) {{
+    Plotly.Plots.resize(gd);
+  }}
+  _updateCounts();
+  _updateTypeCounts();
+  _updateRosterMeta();
 }}
 
 function _updateCounts() {{
@@ -942,7 +1471,7 @@ function _updateCounts() {{
   }});
   document.getElementById('rail-meta').textContent =
     NUM_TYPES + ' types in this game · ' + (total ? total + ' on chart' : 'none on chart');
-  var clear = document.querySelector('.clear');
+  var clear = document.getElementById('rail-clear');
   clear.style.color = total ? HOME_COLOR : '#475569';
   clear.style.cursor = total ? 'pointer' : 'default';
   document.querySelectorAll('.group').forEach(function(g) {{
@@ -960,19 +1489,10 @@ function _toggleGroup(head) {{
 }}
 
 function _clearAll() {{
-  var gd = document.getElementById('{_DIV_ID}');
-  var indices = [];
-  document.querySelectorAll('#controls input[type=checkbox]').forEach(function(b) {{
-    if (b.checked) {{
-      b.checked = false;
-      indices = indices.concat(JSON.parse(b.dataset.indices));
-    }}
+  document.querySelectorAll('#controls .evt input').forEach(function(b) {{
+    b.checked = false;
   }});
-  if (indices.length) {{
-    Plotly.restyle(gd, {{visible: false}}, indices);
-  }}
-  _relayoutLanes();
-  _updateCounts();
+  _redraw();
 }}
 
 function _filter(q) {{
@@ -1064,7 +1584,9 @@ function _setTime(s) {{
 }}
 
 (function() {{
-  _updateCounts();
+  // Python renders the initial x/y, but hover text is built here so there is
+  // only one implementation of the format -- so redraw once on load.
+  _redraw();
   var gd = document.getElementById('{_DIV_ID}');
   gd.addEventListener('click', function(evt) {{
     var fl = gd._fullLayout;

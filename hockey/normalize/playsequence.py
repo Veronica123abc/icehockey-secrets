@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Optional
+from typing import Callable, Optional
 
 from hockey.model.events import Event
 from hockey.normalize.team_resolution import TeamResolver
@@ -54,7 +54,14 @@ def normalize_playsequence(
     game_id: int,
     raw_playsequence: dict,
     teams: TeamResolver,
+    on_ice_lookup: Optional[Callable[[dict], dict]] = None,
 ) -> list[Event]:
+    """Normalize playsequence events into the domain model.
+
+    ``on_ice_lookup`` supplies the on-ice rosters for events that don't carry
+    them (the compiled file doesn't). Pass ``RawGame.on_ice_for``; leave it None
+    to skip the join, in which case the on-ice fields stay empty.
+    """
     events = []
     for e in raw_playsequence.get("events", []):
         t = float(e["game_time"])
@@ -67,7 +74,12 @@ def normalize_playsequence(
         # regular format uses "player_reference_id"; compiled uses "player_id"
         player_id = _maybe_int(e.get("player_reference_id") or e.get("player_id"))
         grade = e.get("expected_goals_all_shots_grade")
-        team_defencemen_on_ice_refs = _int_list(e.get("team_defencemen_on_ice_refs"))
+        # The full playsequence carries the on-ice rosters inline; the compiled
+        # one doesn't, so fall back to the lookup that links the two files.
+        on_ice = e
+        if on_ice_lookup is not None and e.get("team_forwards_on_ice_refs") is None:
+            on_ice = on_ice_lookup(e) or {}
+        team_defencemen_on_ice_refs = _int_list(on_ice.get("team_defencemen_on_ice_refs"))
         event_id = _maybe_int(e.get("event_id"))
         base_event_id = _maybe_int(e.get("base_event_id"))
         events.append(
@@ -84,7 +96,16 @@ def normalize_playsequence(
                 raw=e,
                 event_id=event_id,
                 base_event_id=base_event_id,
-
+                team_forwards_on_ice_refs=_int_list(
+                    on_ice.get("team_forwards_on_ice_refs")),
+                team_goalie_on_ice_ref=_maybe_int(
+                    on_ice.get("team_goalie_on_ice_ref")),
+                opposing_team_forwards_on_ice_refs=_int_list(
+                    on_ice.get("opposing_team_forwards_on_ice_refs")),
+                opposing_team_defencemen_on_ice_refs=_int_list(
+                    on_ice.get("opposing_team_defencemen_on_ice_refs")),
+                opposing_team_goalie_on_ice_ref=_maybe_int(
+                    on_ice.get("opposing_team_goalie_on_ice_ref")),
             )
         )
 

@@ -5,6 +5,13 @@ from typing import Optional
 from hockey.model.roster import Player, Roster
 
 
+def _opt_int(x) -> Optional[int]:
+    try:
+        return int(x)
+    except (TypeError, ValueError):
+        return None
+
+
 def _opt_str(x) -> Optional[str]:
     if x is None:
         return None
@@ -57,6 +64,7 @@ def normalize_roster(*, game_id: int, raw_roster: dict) -> Roster:
                 first_name=_opt_str(p.get("first_name")),
                 last_name=_opt_str(p.get("last_name")),
                 position=_opt_str(p.get("position")),
+                jersey_number=_opt_int(p.get("jersey_number")),
             )
 
     return Roster(game_id=game_id, players=players)

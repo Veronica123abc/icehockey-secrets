@@ -12,6 +12,7 @@ class Player:
     last_name: Optional[str]
     position: Optional[str]  # "G", "D", "F", etc.
     shoots: Optional[str] = None
+    jersey_number: Optional[int] = None
 
 
 @dataclass(frozen=True, slots=True)

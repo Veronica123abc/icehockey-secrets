@@ -7,6 +7,7 @@ from hockey.normalize.player_toi import normalize_player_toi
 from hockey.normalize.roster import normalize_roster
 from hockey.normalize.team_resolution import TeamResolver
 import time
+import warnings
 
 def _opt_int(value) -> int | None:
     try:
@@ -29,13 +30,40 @@ def normalize_game_info(*, game_id: int, raw_game_info: dict) -> GameInfo:
     )
 
 
-def build_game(raw: RawGame) -> Game:
+def build_game(raw: RawGame, *, link_on_ice: bool = True) -> Game:
+    """Build a Game from the raw JSON files.
+
+    ``link_on_ice`` fills each event's on-ice rosters by linking
+    playsequence_compiled.json back to playsequence.json, which is the only
+    file carrying them. It costs one extra file read (~0.09s per game) and is
+    lazy: with link_on_ice=False, playsequence.json is never opened. If that
+    file is missing, the on-ice fields are left empty and a warning is raised
+    rather than failing the load.
+    """
     info = normalize_game_info(game_id=raw.game_id, raw_game_info=raw.game_info)
     resolver = TeamResolver.from_game_info(info)
+
+    on_ice_lookup = None
+    # playsequence.json carries the rosters inline, so linking it to itself
+    # would only rebuild indexes to re-find events we already have.
+    if link_on_ice and raw.playsequence_source != "playsequence":
+        try:
+            raw.playsequence_raw
+        except FileNotFoundError:
+            warnings.warn(
+                f"playsequence.json missing for game {raw.game_id}; "
+                "on-ice rosters will be empty on every event.",
+                RuntimeWarning,
+                stacklevel=2,
+            )
+        else:
+            on_ice_lookup = raw.on_ice_for
+
     events = normalize_playsequence(
         game_id=raw.game_id,
         raw_playsequence=raw.playsequence,
         teams=resolver,
+        on_ice_lookup=on_ice_lookup,
     )
     toi = normalize_player_toi(
         game_id=raw.game_id,
