@@ -131,8 +131,14 @@ class ManifestProvider(FilterProvider):
         return p if p.exists() and p.is_dir() else None
 
     def _manifest_dir(self) -> Path:
+        # Mirror _global_manifest_file: only prefer the data dir when it really
+        # holds manifests, otherwise fall back to the ones bundled in the repo.
         root = self._data_root()
-        return (root / "leagues") if root else _REPO_MANIFEST_DIR
+        if root:
+            p = root / "leagues"
+            if p.is_dir():
+                return p
+        return _REPO_MANIFEST_DIR
 
     def _global_manifest_file(self, filename: str) -> Path:
         root = self._data_root()
@@ -323,6 +329,64 @@ class DbProvider(FilterProvider):
 
 
 # ---------------------------------------------------------------------------
+# Chain provider
+# ---------------------------------------------------------------------------
+
+class ChainProvider(FilterProvider):
+    """Query providers in order, falling back when one has no data.
+
+    The DB only holds games that have actually been ingested, while the
+    bundled manifests carry the full league/season/game catalogue. Chaining
+    them means a league absent from the DB still resolves through the
+    manifests instead of returning an empty dropdown.
+    """
+
+    def __init__(self, providers: list[FilterProvider]) -> None:
+        self._providers = list(providers)
+
+    def _union_by_id(self, method: str) -> list[dict]:
+        seen: set[str] = set()
+        merged: list[dict] = []
+        for p in self._providers:
+            for item in getattr(p, method)():
+                item_id = str(item.get("id", ""))
+                if item_id and item_id not in seen:
+                    seen.add(item_id)
+                    merged.append(item)
+        return merged
+
+    def load_leagues(self) -> list[dict]:
+        return sorted(
+            self._union_by_id("load_leagues"), key=lambda lg: lg.get("name", "")
+        )
+
+    def load_teams_full(self) -> list[dict]:
+        return self._union_by_id("load_teams_full")
+
+    def load_competition(self, league_id: str) -> dict | None:
+        for p in self._providers:
+            comp = p.load_competition(league_id)
+            if comp and comp.get("seasons"):
+                return comp
+        return None
+
+    def get_games(self, league_id: str, season: str) -> list:
+        for p in self._providers:
+            games = p.get_games(league_id, season)
+            if games:
+                return games
+        return []
+
+    def warm(self) -> None:
+        for p in self._providers:
+            p.warm()
+
+    def clear(self) -> None:
+        for p in self._providers:
+            p.clear()
+
+
+# ---------------------------------------------------------------------------
 # Provider selection
 # ---------------------------------------------------------------------------
 
@@ -331,10 +395,12 @@ def _make_provider() -> FilterProvider:
     use_db = backend == "db" or (not backend and bool(os.getenv("DATABASE_HOST_AZURE")))
     if use_db:
         try:
-            p = DbProvider()
-            p.warm()
-            _log.info("filter_api: using DbProvider")
-            return p
+            db = DbProvider()
+            db.warm()
+            # ManifestProvider is left cold on purpose: it loads lazily and
+            # caches per file, so chaining it costs nothing at startup.
+            _log.info("filter_api: using DbProvider with ManifestProvider fallback")
+            return ChainProvider([db, ManifestProvider()])
         except Exception as exc:
             if backend == "db":
                 raise RuntimeError("FILTER_BACKEND=db but DB warm failed") from exc
