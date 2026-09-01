@@ -33,9 +33,9 @@ def normalize_game_info(*, game_id: int, raw_game_info: dict) -> GameInfo:
 def build_game(raw: RawGame, *, link_on_ice: bool = True) -> Game:
     """Build a Game from the raw JSON files.
 
-    ``link_on_ice`` fills each event's on-ice rosters by linking
-    playsequence_compiled.json back to playsequence.json, which is the only
-    file carrying them. It costs one extra file read (~0.09s per game) and is
+    ``link_on_ice`` fills each event's on-ice rosters, play_section and
+    expected-goals metrics by linking playsequence_compiled.json back to
+    playsequence.json, which is the only file carrying them. It costs one extra file read (~0.09s per game) and is
     lazy: with link_on_ice=False, playsequence.json is never opened. If that
     file is missing, the on-ice fields are left empty and a warning is raised
     rather than failing the load.
@@ -52,12 +52,12 @@ def build_game(raw: RawGame, *, link_on_ice: bool = True) -> Game:
         except FileNotFoundError:
             warnings.warn(
                 f"playsequence.json missing for game {raw.game_id}; "
-                "on-ice rosters will be empty on every event.",
+                "on-ice rosters and expected goals will be empty on every event.",
                 RuntimeWarning,
                 stacklevel=2,
             )
         else:
-            on_ice_lookup = raw.on_ice_for
+            on_ice_lookup = raw.linked_fields_for
 
     events = normalize_playsequence(
         game_id=raw.game_id,

@@ -15,6 +15,22 @@ def _maybe_int(x) -> Optional[int]:
     except (TypeError, ValueError):
         return None
 
+def _maybe_float(x) -> Optional[float]:
+    if x is None:
+        return None
+    try:
+        return float(str(x).strip())
+    except (TypeError, ValueError):
+        return None
+
+
+def _maybe_str(x) -> Optional[str]:
+    if x is None:
+        return None
+    s = str(x).strip()
+    return s or None
+
+
 def _int_list(xs):
     if not xs:
         return []
@@ -58,9 +74,12 @@ def normalize_playsequence(
 ) -> list[Event]:
     """Normalize playsequence events into the domain model.
 
-    ``on_ice_lookup`` supplies the on-ice rosters for events that don't carry
-    them (the compiled file doesn't). Pass ``RawGame.on_ice_for``; leave it None
-    to skip the join, in which case the on-ice fields stay empty.
+    ``on_ice_lookup`` supplies the fields the compiled file drops -- the on-ice
+    rosters, play_section and the expected-goals metrics. Pass
+    ``RawGame.linked_fields_for``; leave it None to skip the join, in which case
+    those fields stay empty. Whatever the lookup returns is also merged into the
+    event's raw payload, so ``Game.events_supplier_df()`` and the DB ingest see
+    one flat event dict rather than two half-populated ones.
     """
     events = []
     for e in raw_playsequence.get("events", []):
@@ -73,17 +92,15 @@ def normalize_playsequence(
         team_id = _resolve_team_id(e, "team", "team_id", teams)
         # regular format uses "player_reference_id"; compiled uses "player_id"
         player_id = _maybe_int(e.get("player_reference_id") or e.get("player_id"))
-        grade = e.get("expected_goals_all_shots_grade")
-        # The full playsequence carries the on-ice rosters inline; the compiled
-        # one doesn't, so fall back to the lookup that links the two files.
-        on_ice = e
+        # The full playsequence carries the on-ice rosters and the expected-goals
+        # metrics inline; the compiled one doesn't, so fall back to the lookup
+        # that links the two files and fold the result into the payload.
         if on_ice_lookup is not None and e.get("team_forwards_on_ice_refs") is None:
-            on_ice = on_ice_lookup(e) or {}
-        team_defencemen_on_ice_refs = _int_list(on_ice.get("team_defencemen_on_ice_refs"))
+            e = {**e, **(on_ice_lookup(e) or {})}
+        grade = _maybe_str(e.get("expected_goals_all_shots_grade"))
+        team_defencemen_on_ice_refs = _int_list(e.get("team_defencemen_on_ice_refs"))
         event_id = _maybe_int(e.get("event_id"))
         base_event_id = _maybe_int(e.get("base_event_id"))
-
-        
 
         events.append(
             Event(
@@ -100,15 +117,22 @@ def normalize_playsequence(
                 event_id=event_id,
                 base_event_id=base_event_id,
                 team_forwards_on_ice_refs=_int_list(
-                    on_ice.get("team_forwards_on_ice_refs")),
+                    e.get("team_forwards_on_ice_refs")),
                 team_goalie_on_ice_ref=_maybe_int(
-                    on_ice.get("team_goalie_on_ice_ref")),
+                    e.get("team_goalie_on_ice_ref")),
                 opposing_team_forwards_on_ice_refs=_int_list(
-                    on_ice.get("opposing_team_forwards_on_ice_refs")),
+                    e.get("opposing_team_forwards_on_ice_refs")),
                 opposing_team_defencemen_on_ice_refs=_int_list(
-                    on_ice.get("opposing_team_defencemen_on_ice_refs")),
+                    e.get("opposing_team_defencemen_on_ice_refs")),
                 opposing_team_goalie_on_ice_ref=_maybe_int(
-                    on_ice.get("opposing_team_goalie_on_ice_ref")),
+                    e.get("opposing_team_goalie_on_ice_ref")),
+                play_section=_maybe_str(e.get("play_section")),
+                expected_goals_all_shots=_maybe_float(
+                    e.get("expected_goals_all_shots")),
+                expected_goals_on_net=_maybe_float(
+                    e.get("expected_goals_on_net")),
+                expected_goals_on_net_grade=_maybe_str(
+                    e.get("expected_goals_on_net_grade")),
             )
         )
 

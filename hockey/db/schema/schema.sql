@@ -42,6 +42,56 @@ CREATE TABLE `affiliation` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Table structure for table `compiled_event`
+--
+
+DROP TABLE IF EXISTS `compiled_event`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `compiled_event` (
+  `id` int NOT NULL,
+  `base_event_id` int DEFAULT NULL,
+  `sl_event_id` varchar(45) DEFAULT NULL,
+  `sl_base_event_id` varchar(45) DEFAULT NULL,
+  `game_id` int DEFAULT NULL,
+  `x_adj_coord` float DEFAULT NULL,
+  `y_adj_coord` float DEFAULT NULL,
+  `zone` varchar(2) DEFAULT NULL,
+  `period` int DEFAULT NULL,
+  `period_time` float DEFAULT NULL,
+  `game_time` float DEFAULT NULL,
+  `team_id` int DEFAULT NULL,
+  `player_id` int DEFAULT NULL,
+  `shorthand` varchar(255) DEFAULT NULL,
+  `name` varchar(45) DEFAULT NULL,
+  `type` varchar(255) DEFAULT NULL,
+  `outcome` varchar(45) DEFAULT NULL,
+  `flags` varchar(255) DEFAULT NULL,
+  `current_possession` int DEFAULT NULL,
+  `current_play_in_possession` int DEFAULT NULL,
+  `team_in_possession` int DEFAULT NULL,
+  `manpowersituation` varchar(45) DEFAULT NULL,
+  `team_skaters_on_ice` int DEFAULT NULL,
+  `opposing_team_skaters_on_ice` int DEFAULT NULL,
+  `play_section` varchar(45) DEFAULT NULL,
+  `expected_goals_all_shots` float DEFAULT '0',
+  `expected_goals_on_net` float DEFAULT '0',
+  `expected_goals_on_net_grade` char(1) DEFAULT NULL,
+  `expected_goals_all_shots_grade` char(1) DEFAULT NULL,
+  `team_forwards_on_ice_refs` varchar(255) DEFAULT NULL,
+  `opposing_team_defencemen_on_ice_refs` varchar(255) DEFAULT NULL,
+  `team_defencemen_on_ice_refs` varchar(255) DEFAULT NULL,
+  `opposing_team_forwards_on_ice_refs` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `idnew_table_UNIQUE` (`id`),
+  KEY `fk_compiled_event_1_idx` (`game_id`),
+  KEY `fk_compiled_event_2_idx` (`player_id`),
+  CONSTRAINT `fk_compiled_event_1` FOREIGN KEY (`game_id`) REFERENCES `game` (`id`) ON UPDATE RESTRICT,
+  CONSTRAINT `fk_compiled_event_2` FOREIGN KEY (`player_id`) REFERENCES `player` (`id`) ON UPDATE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Table structure for table `event`
 --
 

@@ -160,22 +160,40 @@ class RawGame:
         candidates = by_direct.get(self._direct_key(compiled_event), ())
         return candidates[0] if len(candidates) == 1 else None
 
-    def on_ice_for(self, compiled_event: dict) -> dict:
-        """On-ice player references for a compiled event, or empty lists."""
+    # Fields playsequence.json carries and playsequence_compiled.json drops.
+    ON_ICE_FIELDS = (
+        "team_forwards_on_ice_refs",
+        "team_defencemen_on_ice_refs",
+        "team_goalie_on_ice_ref",
+        "opposing_team_forwards_on_ice_refs",
+        "opposing_team_defencemen_on_ice_refs",
+        "opposing_team_goalie_on_ice_ref",
+    )
+    METRIC_FIELDS = (
+        "play_section",
+        "expected_goals_all_shots",
+        "expected_goals_all_shots_grade",
+        "expected_goals_on_net",
+        "expected_goals_on_net_grade",
+    )
+    LINKED_FIELDS = ON_ICE_FIELDS + METRIC_FIELDS
+
+    def linked_fields_for(self, compiled_event: dict) -> dict:
+        """Every playsequence.json-only field for a compiled event.
+
+        The on-ice rosters plus the expected-goals metrics and play_section.
+        Empty when the event could not be linked -- an empty dict means
+        "unknown", not "absent".
+        """
         full = self.full_event_for(compiled_event)
         if full is None:
             return {}
-        return {
-            key: full.get(key)
-            for key in (
-                "team_forwards_on_ice_refs",
-                "team_defencemen_on_ice_refs",
-                "team_goalie_on_ice_ref",
-                "opposing_team_forwards_on_ice_refs",
-                "opposing_team_defencemen_on_ice_refs",
-                "opposing_team_goalie_on_ice_ref",
-            )
-        }
+        return {key: full.get(key) for key in self.LINKED_FIELDS}
+
+    def on_ice_for(self, compiled_event: dict) -> dict:
+        """On-ice player references for a compiled event, or empty lists."""
+        linked = self.linked_fields_for(compiled_event)
+        return {key: linked[key] for key in self.ON_ICE_FIELDS if key in linked}
 
     def _full_events_by_key(self) -> dict[tuple[float, int], dict]:
         """

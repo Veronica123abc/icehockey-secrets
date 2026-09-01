@@ -27,6 +27,12 @@ class Event:
     opposing_team_forwards_on_ice_refs: Optional[list[int]] = None
     opposing_team_defencemen_on_ice_refs: Optional[list[int]] = None
     opposing_team_goalie_on_ice_ref: Optional[int] = None
+    # Same story as the on-ice rosters: only playsequence.json carries these.
+    # ``grade`` is the expected_goals_all_shots grade, kept under its old name.
+    play_section: Optional[str] = None
+    expected_goals_all_shots: Optional[float] = None
+    expected_goals_on_net: Optional[float] = None
+    expected_goals_on_net_grade: Optional[str] = None
 
     @property
     def players_on_ice(self) -> list[int]:
