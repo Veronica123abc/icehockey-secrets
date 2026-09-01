@@ -82,6 +82,9 @@ def normalize_playsequence(
         team_defencemen_on_ice_refs = _int_list(on_ice.get("team_defencemen_on_ice_refs"))
         event_id = _maybe_int(e.get("event_id"))
         base_event_id = _maybe_int(e.get("base_event_id"))
+
+        
+
         events.append(
             Event(
                 game_id=game_id,

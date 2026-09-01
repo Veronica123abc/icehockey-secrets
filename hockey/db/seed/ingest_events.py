@@ -192,7 +192,7 @@ def ingest_events(game: Game) -> None:
 if __name__ == "__main__":
     from hockey.catalog import DataCatalog
 
-    LEAGUE_ID = 39
+    LEAGUE_ID = 17
     SEASON = "20252026"
 
     catalog = DataCatalog(settings.data_root_dir)

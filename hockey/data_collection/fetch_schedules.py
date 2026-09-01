@@ -58,7 +58,7 @@ def download_all_game_indexes_per_stage(
 
 
 if __name__ == "__main__":
-    LEAGUE_ID = 1
+    LEAGUE_ID = 17
     seasons = ["20252026"]
     catalog = DataCatalog(settings.data_root_dir)
     download_all_game_indexes_per_season(LEAGUE_ID, catalog)

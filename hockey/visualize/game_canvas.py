@@ -24,7 +24,7 @@ _DIV_ID = "timeline"
 
 # Bump to invalidate cached canvas HTML after visualization changes
 # (mirrors PLOT_VERSION in shift_toi.py).
-CANVAS_VERSION = 1
+CANVAS_VERSION = 2
 
 
 def _default_props(game: Game) -> dict:
@@ -570,6 +570,9 @@ class GameCanvas:
   <span class="meta">{' · '.join(meta)}</span>
   <span class="spacer"></span>
   <span class="counts">{len(self._game.events):,} events · {len(self._event_types)} types</span>
+  <span class="sep"></span>
+  <span class="report-hint" id="report-hint"></span>
+  <button type="button" class="btn primary" id="report-btn" onclick="_openReport()">Generate report</button>
 </div>"""
 
     def _team_selector_html(self) -> str:
@@ -683,6 +686,63 @@ class GameCanvas:
             p.player_id: escape(self._player_name(p.player_id))
             for p in self._game.roster.players.values()
         }
+
+    def _player_meta_for_js(self) -> dict[int, dict]:
+        """player id -> the roster facts the report tabulates by.
+
+        Only players the roster pane lists, so the report and the pane agree
+        on who exists; ``s`` is the side, which the team filter narrows on.
+        """
+        meta: dict[int, dict] = {}
+        for side, players in self._roster_by_side():
+            for p in players:
+                meta[p.player_id] = {
+                    "n": "" if p.jersey_number is None else p.jersey_number,
+                    # Escaped here: the report writes these with innerHTML.
+                    "name": escape(self._player_name(p.player_id)),
+                    "pos": escape(p.position or ""),
+                    "s": side,
+                }
+        return meta
+
+    def _report_info(self) -> dict:
+        """Title, subtitle and download filename for the report sheet."""
+        info = self._game.info
+        meta = []
+        if info.date:
+            meta.append(self._format_date(info.date))
+        if info.stage:
+            meta.append(_STAGE_LABELS.get(info.stage, info.stage.capitalize()))
+        meta.append(f"Game {info.game_id}")
+        if info.home_final_score is not None and info.away_final_score is not None:
+            meta.append(f"{info.home_final_score}–{info.away_final_score}")
+        return {
+            "title": escape(f"{_team_label(info.home_team)} vs "
+                            f"{_team_label(info.away_team)} — player report"),
+            "meta": escape(" · ".join(meta)),
+            "slug": f"game-{info.game_id}-player-report",
+        }
+
+    def _report_html(self) -> str:
+        """The report overlay: a shell the browser fills in on demand.
+
+        A direct child of <body> so the print stylesheet can hide everything
+        else and send just the sheet to the PDF.
+        """
+        return """<div class="report-overlay" id="report-overlay" hidden onclick="_backdrop(event)">
+  <div class="report-modal" role="dialog" aria-modal="true" aria-labelledby="report-title">
+    <div class="report-bar">
+      <span class="section-heading" id="report-title">Player report</span>
+      <span class="report-sub" id="report-sub"></span>
+      <span class="spacer"></span>
+      <span class="report-hint">PDF opens your browser\'s print dialog — pick "Save as PDF"</span>
+      <button type="button" class="btn" onclick="_downloadCsv()">Download CSV</button>
+      <button type="button" class="btn primary" onclick="_downloadPdf()">Download PDF</button>
+      <button type="button" class="btn ghost" onclick="_closeReport()">Close</button>
+    </div>
+    <div class="report-scroll"><div class="report-sheet" id="report-body"></div></div>
+  </div>
+</div>"""
 
     def _roster_html(self) -> str:
         """The roster pane: per-team player checkboxes filtering the chart.
@@ -1168,6 +1228,155 @@ class GameCanvas:
     font-size: 12px;
     color: #cbd5e1;
   }}
+  .btn {{
+    font-family: inherit;
+    font-size: 12px;
+    padding: 6px 12px;
+    border: 1px solid {props['border-color']};
+    border-radius: 6px;
+    background: {props['background-color']};
+    color: {props['text-color']};
+    cursor: pointer;
+    white-space: nowrap;
+  }}
+  .btn:hover {{ border-color: #475569; color: {props['title-color']}; }}
+  .btn.primary {{
+    background: {props['home-team-graph-color']};
+    border-color: {props['home-team-graph-color']};
+    color: #0b1220;
+    font-weight: 600;
+  }}
+  .btn.primary:hover {{ filter: brightness(1.08); color: #0b1220; }}
+  .btn.ghost {{ background: none; border-color: transparent; color: {props['font-color']}; }}
+  .report-hint {{ font-size: 11.5px; color: {props['axis-color']}; }}
+  .report-overlay {{
+    position: fixed;
+    inset: 0;
+    z-index: 40;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 26px;
+    background: rgba(2, 6, 23, 0.74);
+  }}
+  .report-modal {{
+    display: flex;
+    flex-direction: column;
+    width: min(1200px, 100%);
+    max-height: 100%;
+    background: {props['card-color']};
+    border: 1px solid {props['border-color']};
+    border-radius: 10px;
+    overflow: hidden;
+  }}
+  .report-bar {{
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+    padding: 13px 18px;
+    border-bottom: 1px solid {props['border-color']};
+  }}
+  .report-sub {{
+    font-size: 12px;
+    color: {props['font-color']};
+    font-variant-numeric: tabular-nums;
+  }}
+  .report-scroll {{ overflow: auto; padding: 22px; background: {props['background-color']}; }}
+  /* The sheet is deliberately light: it is what the PDF will look like, so
+     what is on screen is a preview of the printed page rather than a
+     differently themed version of it. */
+  .report-sheet {{
+    width: fit-content;
+    min-width: min(1100px, 100%);
+    margin: 0 auto;
+    padding: 30px 34px 34px;
+    background: #ffffff;
+    color: #0f172a;
+    border-radius: 6px;
+    font-size: 12px;
+  }}
+  .rep-title {{ font-size: 18px; font-weight: 700; margin-bottom: 5px; }}
+  .rep-meta {{ font-size: 11.5px; color: #475569; }}
+  .rep-filters {{ display: flex; flex-wrap: wrap; gap: 6px; margin-top: 13px; }}
+  .rep-chip {{
+    font-size: 11px;
+    color: #334155;
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    border-radius: 9999px;
+    padding: 2px 9px;
+  }}
+  .rep-team-head {{
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 24px 0 9px;
+    font-size: 13px;
+    font-weight: 700;
+  }}
+  .rep-table {{
+    min-width: 100%;
+    border-collapse: collapse;
+    font-variant-numeric: tabular-nums;
+  }}
+  .rep-table th, .rep-table td {{
+    padding: 5px 7px;
+    text-align: right;
+    white-space: nowrap;
+    border-bottom: 1px solid #e2e8f0;
+  }}
+  .rep-table th {{
+    font-size: 10.5px;
+    font-weight: 600;
+    color: #475569;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    border-bottom: 1px solid #94a3b8;
+  }}
+  .rep-table th.l, .rep-table td.l {{ text-align: left; }}
+  .rep-table td.zero {{ color: #cbd5e1; }}
+  .rep-table tbody tr:nth-child(even) {{ background: #f8fafc; }}
+  .rep-table tfoot td {{
+    font-weight: 700;
+    border-top: 1px solid #94a3b8;
+    border-bottom: 0;
+  }}
+  .rep-empty {{ color: #64748b; padding: 12px 0; }}
+  .rep-note {{ margin-top: 16px; font-size: 10.5px; color: #64748b; }}
+  @media print {{
+    /* Scoped to the open report so a plain Ctrl+P on the canvas still prints
+       the canvas. */
+    body.report-open > *:not(#report-overlay) {{ display: none !important; }}
+    body.report-open #report-overlay {{
+      position: static;
+      display: block;
+      padding: 0;
+      background: none;
+    }}
+    body.report-open .report-modal {{
+      width: auto;
+      max-height: none;
+      border: 0;
+      border-radius: 0;
+      background: none;
+    }}
+    body.report-open .report-bar {{ display: none !important; }}
+    body.report-open .report-scroll {{
+      overflow: visible;
+      padding: 0;
+      background: none;
+    }}
+    body.report-open .report-sheet {{
+      width: auto;
+      min-width: 0;
+      padding: 0;
+      border-radius: 0;
+    }}
+    .rep-table thead {{ display: table-header-group; }}
+    .rep-table tr {{ break-inside: avoid; }}
+    @page {{ size: landscape; margin: 12mm; }}
+  }}
   .toi-none {{ font-size: 12.5px; color: {props['axis-color']}; padding: 6px 0; }}
 </style>
 </head>
@@ -1221,6 +1430,7 @@ class GameCanvas:
 {self._roster_html()}
   </div>
 </div>
+{self._report_html()}
 <script>
 var TOI_DATA = {json.dumps(toi_data)};
 var TOI_NAMES = {json.dumps(toi_names)};
@@ -1248,6 +1458,9 @@ var AWAY_NAME = {json.dumps(_team_label(self._game.info.away_team))};
 var HOME_COLOR = {json.dumps(props['home-team-graph-color'])};
 var AWAY_COLOR = {json.dumps(props['away-team-graph-color'])};
 var NUM_TYPES = {num_types};
+var PLAYER_META = {json.dumps(self._player_meta_for_js())};
+var REPORT_INFO = {json.dumps(self._report_info())};
+var REPORT = null;           // the model behind the sheet on screen
 var _preSearchOpen = null;   // group open/closed state to restore after a search
 
 // A trace shows when its type is ticked AND it belongs to the selected team.
@@ -1489,6 +1702,249 @@ function _redraw() {{
   _updateCounts();
   _updateTypeCounts();
   _updateRosterMeta();
+  _updateReportHint();
+}}
+
+// -- Report -----------------------------------------------------------------
+// Built in the browser from what is already on the page (SEGMENTS, ON_ICE,
+// PLAYER_META), so it needs no round trip and always tabulates exactly the
+// selection the chart is drawing: the ticked types, the picked players, the
+// team filter and the Player/WOI mode.
+
+// Whether one player was on the ice at t. _onIceAt tests the merged spans of
+// every selected player at once, which is what the chart needs; a per-player
+// report has to ask about one player at a time.
+function _onIceForPlayer(pid, t) {{
+  var spans = ON_ICE[pid];
+  if (!spans) return false;
+  var lo = 0, hi = spans.length - 1;
+  while (lo <= hi) {{
+    var mid = (lo + hi) >> 1;
+    if (t < spans[mid][0]) hi = mid - 1;
+    else if (t >= spans[mid][1]) lo = mid + 1;
+    else return true;
+  }}
+  return false;
+}}
+
+// [seconds on ice, shifts]. The spans are already merged, so supplier
+// intervals that overlap are not counted twice.
+function _playerToi(pid) {{
+  var spans = ON_ICE[pid] || [];
+  var total = 0;
+  for (var i = 0; i < spans.length; i++) total += spans[i][1] - spans[i][0];
+  return [Math.round(total), spans.length];
+}}
+
+function _fmtToi(s) {{
+  var m = Math.floor(s / 60);
+  var ss = s % 60;
+  return m + ':' + (ss < 10 ? '0' : '') + ss;
+}}
+
+// PLAYER_META names are HTML-escaped for innerHTML; CSV wants them raw.
+function _decode(html) {{
+  var el = document.createElement('textarea');
+  el.innerHTML = html;
+  return el.value;
+}}
+
+// Selecting no players means "every player", as it does for the chart.
+function _reportPlayerIds() {{
+  var out = [];
+  Object.keys(PLAYER_META).forEach(function(pid) {{
+    if (!_sideShown(PLAYER_META[pid].s)) return;
+    if (NUM_PLAYERS > 0 && PLAYERS[pid] !== true) return;
+    out.push(pid);
+  }});
+  out.sort(function(a, b) {{
+    var ma = PLAYER_META[a], mb = PLAYER_META[b];
+    if (ma.s !== mb.s) return ma.s === 'h' ? -1 : 1;
+    return (ma.n === '' ? 9999 : ma.n) - (mb.n === '' ? 9999 : mb.n);
+  }});
+  return out;
+}}
+
+function _reportModel() {{
+  var metrics = _visibleTypes();
+  var pids = _reportPlayerIds();
+  var counts = {{}};
+  pids.forEach(function(pid) {{
+    counts[pid] = {{}};
+    metrics.forEach(function(m) {{ counts[pid][m] = 0; }});
+  }});
+
+  metrics.forEach(function(type) {{
+    SEGMENTS[type].forEach(function(seg) {{
+      if (!_sideShown(seg.s)) return;
+      for (var i = 0; i < seg.t.length; i++) {{
+        var owner = seg.p[i];
+        var credited = owner !== null && counts[owner] !== undefined;
+        if (credited) counts[owner][type]++;
+        if (PLAYER_MODE !== 'woi') continue;
+        // WOI adds the events a player was on the ice for but is not credited
+        // with; the credited one is skipped here so it is not counted twice.
+        for (var j = 0; j < pids.length; j++) {{
+          var pid = pids[j];
+          if (credited && String(owner) === pid) continue;
+          if (_onIceForPlayer(pid, seg.t[i])) counts[pid][type]++;
+        }}
+      }}
+    }});
+  }});
+
+  var rows = [];
+  pids.forEach(function(pid) {{
+    var toi = _playerToi(pid);
+    var total = 0;
+    metrics.forEach(function(m) {{ total += counts[pid][m]; }});
+    // With nobody picked the report covers the whole roster, scratches
+    // included -- drop the rows that are empty in every column. A player the
+    // user picked explicitly stays, so an all-zero row is still an answer.
+    if (NUM_PLAYERS === 0 && total === 0 && toi[0] === 0) return;
+    rows.push({{pid: pid, meta: PLAYER_META[pid], toi: toi[0],
+               shifts: toi[1], counts: counts[pid], total: total}});
+  }});
+  return {{metrics: metrics, rows: rows}};
+}}
+
+function _repTable(metrics, rows) {{
+  var head = '<tr><th class="l">#</th><th class="l">Player</th>' +
+    '<th class="l">Pos</th><th>TOI</th><th>Shifts</th>' +
+    metrics.map(function(m) {{ return '<th>' + m + '</th>'; }}).join('') +
+    (metrics.length ? '<th>Total</th>' : '') + '</tr>';
+
+  var body = rows.map(function(r) {{
+    return '<tr><td class="l">' + r.meta.n + '</td>' +
+      '<td class="l">' + r.meta.name + '</td>' +
+      '<td class="l">' + r.meta.pos + '</td>' +
+      '<td>' + _fmtToi(r.toi) + '</td>' +
+      '<td>' + r.shifts + '</td>' +
+      metrics.map(function(m) {{
+        var v = r.counts[m];
+        return '<td' + (v ? '' : ' class="zero"') + '>' + v + '</td>';
+      }}).join('') +
+      (metrics.length ? '<td>' + r.total + '</td>' : '') + '</tr>';
+  }}).join('');
+
+  var sums = metrics.map(function(m) {{
+    return rows.reduce(function(a, r) {{ return a + r.counts[m]; }}, 0);
+  }});
+  var foot = '<tr><td class="l"></td><td class="l">Total</td><td></td>' +
+    '<td>' + _fmtToi(rows.reduce(function(a, r) {{ return a + r.toi; }}, 0)) + '</td>' +
+    '<td>' + rows.reduce(function(a, r) {{ return a + r.shifts; }}, 0) + '</td>' +
+    sums.map(function(v) {{ return '<td>' + v + '</td>'; }}).join('') +
+    (metrics.length
+      ? '<td>' + sums.reduce(function(a, v) {{ return a + v; }}, 0) + '</td>' : '') +
+    '</tr>';
+
+  return '<table class="rep-table"><thead>' + head + '</thead><tbody>' +
+    body + '</tbody><tfoot>' + foot + '</tfoot></table>';
+}}
+
+function _renderReport(model) {{
+  var chips = [
+    TEAM === 'both' ? 'Both teams' : (TEAM === 'h' ? HOME_NAME : AWAY_NAME),
+    NUM_PLAYERS ? NUM_PLAYERS + ' players selected' : 'All players',
+    PLAYER_MODE === 'woi' ? 'Events while on ice (WOI)'
+                          : 'Events credited to the player',
+    model.metrics.length
+      ? model.metrics.length + (model.metrics.length === 1 ? ' metric' : ' metrics')
+      : 'No metrics selected'
+  ];
+
+  var html = '<div class="rep-title">' + REPORT_INFO.title + '</div>' +
+    '<div class="rep-meta">' + REPORT_INFO.meta + '</div>' +
+    '<div class="rep-meta">Generated ' + new Date().toLocaleString() + '</div>' +
+    '<div class="rep-filters">' +
+      chips.map(function(c) {{ return '<span class="rep-chip">' + c + '</span>'; }}).join('') +
+    '</div>';
+
+  var tables = '';
+  ['h', 'a'].forEach(function(side) {{
+    var rows = model.rows.filter(function(r) {{ return r.meta.s === side; }});
+    if (!rows.length) return;
+    tables += '<div class="rep-team-head">' +
+      '<i class="dot" style="background: ' +
+        (side === 'h' ? HOME_COLOR : AWAY_COLOR) + '"></i>' +
+      (side === 'h' ? HOME_NAME : AWAY_NAME) + '</div>' +
+      _repTable(model.metrics, rows);
+  }});
+  html += tables || '<div class="rep-empty">' + (model.metrics.length
+    ? 'No players match the current selection.'
+    : 'Tick at least one event type in the rail to give the report columns.') +
+    '</div>';
+
+  if (PLAYER_MODE === 'woi' && model.metrics.length) {{
+    html += '<div class="rep-note">WOI counts every event that happened while ' +
+      'the player was on the ice, whoever it is credited to, so one event can ' +
+      'appear on several rows and the column totals exceed the event count.</div>';
+  }}
+  return html;
+}}
+
+function _openReport() {{
+  REPORT = _reportModel();
+  document.getElementById('report-body').innerHTML = _renderReport(REPORT);
+  document.getElementById('report-sub').textContent =
+    REPORT.rows.length + (REPORT.rows.length === 1 ? ' player · ' : ' players · ') +
+    REPORT.metrics.length + (REPORT.metrics.length === 1 ? ' metric' : ' metrics');
+  document.getElementById('report-overlay').hidden = false;
+  document.body.classList.add('report-open');
+}}
+
+function _closeReport() {{
+  document.getElementById('report-overlay').hidden = true;
+  document.body.classList.remove('report-open');
+}}
+
+function _backdrop(evt) {{
+  if (evt.target.id === 'report-overlay') _closeReport();
+}}
+
+function _updateReportHint() {{
+  var m = _visibleTypes().length;
+  document.getElementById('report-hint').textContent =
+    (NUM_PLAYERS ? NUM_PLAYERS + ' players' : 'all players') + ' × ' +
+    m + (m === 1 ? ' metric' : ' metrics');
+}}
+
+function _downloadPdf() {{
+  window.print();
+}}
+
+function _csvCell(v) {{
+  v = String(v);
+  return /[",\\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v;
+}}
+
+function _downloadCsv() {{
+  if (!REPORT) return;
+  var m = REPORT.metrics;
+  var header = ['Team', 'Number', 'Player', 'Position', 'TOI (s)', 'Shifts']
+    .concat(m).concat(m.length ? ['Total'] : []);
+  var lines = [header.map(_csvCell).join(',')];
+  REPORT.rows.forEach(function(r) {{
+    var cells = [r.meta.s === 'h' ? HOME_NAME : AWAY_NAME, r.meta.n,
+                 _decode(r.meta.name), _decode(r.meta.pos), r.toi, r.shifts];
+    m.forEach(function(k) {{ cells.push(r.counts[k]); }});
+    if (m.length) cells.push(r.total);
+    lines.push(cells.map(_csvCell).join(','));
+  }});
+  // BOM so Excel reads the UTF-8 in the player names.
+  _saveFile(REPORT_INFO.slug + '.csv', 'text/csv;charset=utf-8',
+            '﻿' + lines.join('\\n'));
+}}
+
+function _saveFile(name, mime, body) {{
+  var url = URL.createObjectURL(new Blob([body], {{type: mime}}));
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = name;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(function() {{ URL.revokeObjectURL(url); }}, 0);
 }}
 
 function _updateCounts() {{
@@ -1615,6 +2071,10 @@ function _setTime(s) {{
   var backLink = document.getElementById('back-link');
   var savedHome = sessionStorage.getItem('homeUrl');
   if (backLink && savedHome) backLink.href = savedHome;
+
+  document.addEventListener('keydown', function(evt) {{
+    if (evt.key === 'Escape') _closeReport();
+  }});
 
   // Python renders the initial x/y, but hover text is built here so there is
   // only one implementation of the format -- so redraw once on load.
