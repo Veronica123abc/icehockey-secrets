@@ -4,6 +4,7 @@ import numpy as np
 from pathlib import Path
 from tqdm import tqdm
 
+from hockey.catalog import DataCatalog
 from hockey.db import database
 from hockey.config.settings import Settings
 from hockey.io.raw_game import RawGame
@@ -19,6 +20,12 @@ settings = Settings.from_env(project_root=Path(__file__).resolve().parent)
 # carries (see RawGame.LINKED_FIELDS). They are kept in parallel for now.
 EVENT_TABLE = "event"
 COMPILED_EVENT_TABLE = "compiled_event"
+
+# Set to a game id to ingest just that one game when this module is run with
+# no arguments -- the short path for the IDE's run/debug button. Leave it None
+# to run the league/season batch at the bottom instead.
+DEBUG_GAME_ID: int | None = None
+DEBUG_COMPILED = True
 
 LIST_PLAYER_COLUMNS = (
     'team_forwards_on_ice_refs',
@@ -301,11 +308,20 @@ def ingest_events(game: Game, *, compiled: bool = False) -> None:
     _ingest_events_df(game, player_map, team_map_by_name, game_db_id, event_columns)
 
 
+def ingest_one_game(game_id: int, *, compiled: bool = False) -> None:
+    """Build one game from disk and ingest it. Set a breakpoint and step in."""
+    source = "playsequence_compiled" if compiled else "playsequence"
+    catalog = DataCatalog(settings.data_root_dir)
+    game = build_game(catalog.raw_game(game_id, playsequence_source=source))
+    ingest_events(game, compiled=compiled)
+
+
 if __name__ == "__main__":
     import argparse
 
-    from hockey.catalog import DataCatalog
-
+    GAME_ID = 203978
+    ingest_one_game(GAME_ID, compiled=True)
+    exit(0)
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "--compiled",
@@ -313,9 +329,17 @@ if __name__ == "__main__":
         help="ingest playsequence_compiled.json into compiled_event "
              "(default: playsequence.json into event)",
     )
+    parser.add_argument("--game", type=int, help="ingest this one game and stop")
     parser.add_argument("--league", type=int, default=17, help="league id (default: 17)")
     parser.add_argument("--season", default="20252026", help="season (default: 20252026)")
     args = parser.parse_args()
+
+    if args.game is not None:
+        ingest_one_game(args.game, compiled=args.compiled)
+        raise SystemExit
+    if DEBUG_GAME_ID is not None:
+        ingest_one_game(DEBUG_GAME_ID, compiled=DEBUG_COMPILED)
+        raise SystemExit
 
     source = "playsequence_compiled" if args.compiled else "playsequence"
 

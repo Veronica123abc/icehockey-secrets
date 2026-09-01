@@ -34,6 +34,6 @@ if __name__ == "__main__":
     SEASON = "20252026"
 
     catalog = DataCatalog(settings.data_root_dir)
-    download_complete_games(game_ids=[191504], root_dir=catalog._root, verbose=True)
+    download_complete_games(game_ids=[203978], root_dir=catalog._root, verbose=True)
     exit(0)
     download_missing_games(LEAGUE_ID, SEASON, catalog, check_filesize=True)
