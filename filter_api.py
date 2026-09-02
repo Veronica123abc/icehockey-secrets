@@ -451,11 +451,11 @@ _get_provider()
 
 @filter_bp.route("/api/leagues")
 def api_leagues():
-    allowed_leagues=['1', '13', '17', '213']
-    leagues = _get_provider().load_leagues()
-    leagues = [l for l in leagues if l['id'] in allowed_leagues]
-    return jsonify({"leagues": leagues})
-    #return jsonify({"leagues": _get_provider().load_leagues()})
+    # allowed_leagues=['1', '13', '17', '213']
+    # leagues = _get_provider().load_leagues()
+    # leagues = [l for l in leagues if l['id'] in allowed_leagues]
+    # #return jsonify({"leagues": leagues})
+    return jsonify({"leagues": _get_provider().load_leagues()})
 
 
 @filter_bp.route("/api/leagues/<league_id>/seasons")
