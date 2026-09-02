@@ -373,7 +373,14 @@
         var gameCount = document.getElementById('game-count');
         var loading   = document.getElementById('loading');
 
-        var DEFAULT_LEAGUE = '1';
+        // Demo defaults, applied only when the URL carries no state. League and
+        // team are matched by NAME, not id: the manifest backend reports
+        // SportLogIQ ids (Allsvenskan = 17) while the DB backend reports its own
+        // primary keys (= 434), so an id here would only ever work on one of them.
+        var DEFAULT_LEAGUE_NAME = 'Hockey Allsvenskan';
+        var DEFAULT_SEASON      = '20252026';
+        var DEFAULT_STAGE       = 'regular';
+        var DEFAULT_TEAM_NAME   = 'MoDo Hockey';
 
         // --- Status filter state ---
 
@@ -391,6 +398,7 @@
         var _teamFilter = '';
         var _teamNames = {};
         var _teamOptionKey = null;
+        var _pendingTeamName = '';   // demo default, resolved on the first load
 
         function setGames(games, label) {
             _allGames = games || [];
@@ -400,6 +408,15 @@
                 if (g.home_team_id) _teamNames[g.home_team_id] = g.home_team_name;
                 if (g.away_team_id) _teamNames[g.away_team_id] = g.away_team_name;
             });
+            // The default team is named, not id'd, so it can only be resolved
+            // once a batch of games has supplied this backend's team ids.
+            if (!_teamFilter && _pendingTeamName) {
+                for (var id in _teamNames) {
+                    if (_teamNames[id] === _pendingTeamName) { _teamFilter = id; break; }
+                }
+                _pendingTeamName = '';
+                if (_teamFilter) updateUrl(leagueSel.value, seasonSel.value, stageSel.value);
+            }
             renderFiltered();
         }
 
@@ -461,7 +478,7 @@
         function getParams() {
             var p = new URLSearchParams(window.location.search);
             return {
-                league: p.get('league') || DEFAULT_LEAGUE,
+                league: p.get('league') || '',
                 season: p.get('season') || '',
                 stage:  p.get('stage')  || '',
                 team:   p.get('team')   || '',
@@ -617,22 +634,43 @@
         fetch('/api/leagues')
             .then(function(r) { return r.json(); })
             .then(function(data) {
+                var leagues = data.leagues || [];
+                // Resolve the league to actually load, rather than trusting a
+                // hardcoded id: the URL's league if this backend really has it,
+                // else the demo default by name, else whatever came first. The
+                // old code fetched for a fixed id while the browser displayed
+                // the first option, so the two disagreed and seasons came back
+                // empty until you switched leagues by hand.
+                var chosen = leagues.filter(function(lg) { return lg.id === init.league; })[0]
+                          || leagues.filter(function(lg) { return lg.name === DEFAULT_LEAGUE_NAME; })[0]
+                          || leagues[0];
+                var leagueId = chosen ? chosen.id : '';
+                // Demo defaults apply only when we fell back to the demo league
+                // with nothing pinned in the URL.
+                var demo = !init.league && !!chosen && chosen.name === DEFAULT_LEAGUE_NAME;
+
                 leagueSel.innerHTML = '';
-                data.leagues.forEach(function(lg) {
+                leagues.forEach(function(lg) {
                     var o = document.createElement('option');
                     o.value = lg.id;
                     o.textContent = lg.name;
-                    if (lg.id === init.league) o.selected = true;
+                    if (lg.id === leagueId) o.selected = true;
                     leagueSel.appendChild(o);
                 });
+                if (!leagueId) return;
 
-                return fetch('/api/leagues/' + init.league + '/seasons')
+                if (demo && !init.team) _pendingTeamName = DEFAULT_TEAM_NAME;
+
+                return fetch('/api/leagues/' + leagueId + '/seasons')
                     .then(function(r) { return r.json(); })
                     .then(function(seasonsData) {
                         var allSeasons = seasonsData.seasons || [];
 
-                        // Default to most recent season when not in URL
                         var targetSeason = init.season;
+                        if (!targetSeason && demo && allSeasons.indexOf(DEFAULT_SEASON) !== -1) {
+                            targetSeason = DEFAULT_SEASON;
+                        }
+                        // Default to most recent season when not in URL
                         if (!targetSeason && allSeasons.length > 0) {
                             var sorted = allSeasons.slice().sort(function(a, b) { return a > b ? -1 : 1; });
                             targetSeason = sorted[0];
@@ -648,11 +686,11 @@
                         seasonSel.disabled = false;
 
                         if (!targetSeason) {
-                            loadRecentGames(init.league);
+                            loadRecentGames(leagueId);
                             return;
                         }
 
-                        return fetch('/api/leagues/' + init.league + '/seasons/' + targetSeason + '/stages')
+                        return fetch('/api/leagues/' + leagueId + '/seasons/' + targetSeason + '/stages')
                             .then(function(r) { return r.json(); })
                             .then(function(stagesData) {
                                 var allStages = stagesData.stages || [];
@@ -666,17 +704,22 @@
                                         stageSel.appendChild(o);
                                     });
                                     stageSel.disabled = false;
-                                    updateUrl(init.league, targetSeason, stage);
+                                    updateUrl(leagueId, targetSeason, stage);
                                     if (stage) {
-                                        loadStageGames(init.league, targetSeason, stage);
+                                        loadStageGames(leagueId, targetSeason, stage);
                                     } else {
-                                        loadSeasonGames(init.league, targetSeason);
+                                        loadSeasonGames(leagueId, targetSeason);
                                     }
                                 }
 
                                 // If stage was specified in URL, use it directly
                                 if (init.stage) {
                                     finishWithStage(init.stage);
+                                    return;
+                                }
+
+                                if (demo && allStages.indexOf(DEFAULT_STAGE) !== -1) {
+                                    finishWithStage(DEFAULT_STAGE);
                                     return;
                                 }
 
@@ -688,7 +731,7 @@
                                     finishWithStage('regular');
                                     return;
                                 }
-                                return fetch('/api/leagues/' + init.league + '/seasons/' + targetSeason + '/stages/playoffs/games')
+                                return fetch('/api/leagues/' + leagueId + '/seasons/' + targetSeason + '/stages/playoffs/games')
                                     .then(function(r) { return r.json(); })
                                     .then(function(gamesData) {
                                         var hasFinished = (gamesData.games || []).some(function(g) {
