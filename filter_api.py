@@ -451,11 +451,15 @@ _get_provider()
 
 @filter_bp.route("/api/leagues")
 def api_leagues():
-    # allowed_leagues=['1', '13', '17', '213']
-    # leagues = _get_provider().load_leagues()
-    # leagues = [l for l in leagues if l['id'] in allowed_leagues]
-    # #return jsonify({"leagues": leagues})
-    return jsonify({"leagues": _get_provider().load_leagues()})
+    # Temporary trim of the league dropdown. Matched on name rather than id:
+    # ManifestProvider reports SportLogIQ ids (SHL = 13) while DbProvider
+    # reports DB primary keys (SHL = 431), so an id list only ever matches one
+    # of the two backends. Empty the set to show every league again.
+    allowed_leagues = {"NHL", "SHL", "Hockey Allsvenskan", "IIHF World Championship"}
+    leagues = _get_provider().load_leagues()
+    if allowed_leagues:
+        leagues = [lg for lg in leagues if lg.get("name") in allowed_leagues]
+    return jsonify({"leagues": leagues})
 
 
 @filter_bp.route("/api/leagues/<league_id>/seasons")
