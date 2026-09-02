@@ -79,6 +79,8 @@ def _format_games(game_list: list, teams: dict[str, str]) -> list[dict]:
             "date": _get(g, "date", "gameDate", "game_date"),
             "stage": g.get("stage", ""),
             "status": g.get("event_status", ""),
+            "home_team_id": home_id,
+            "away_team_id": away_id,
             "home_team_name": teams.get(home_id, "Team " + home_id),
             "away_team_name": teams.get(away_id, "Team " + away_id),
             "home_score": home_score,
@@ -449,7 +451,11 @@ _get_provider()
 
 @filter_bp.route("/api/leagues")
 def api_leagues():
-    return jsonify({"leagues": _get_provider().load_leagues()})
+    allowed_leagues=['1', '13', '17', '213']
+    leagues = _get_provider().load_leagues()
+    leagues = [l for l in leagues if l['id'] in allowed_leagues]
+    return jsonify({"leagues": leagues})
+    #return jsonify({"leagues": _get_provider().load_leagues()})
 
 
 @filter_bp.route("/api/leagues/<league_id>/seasons")

@@ -335,6 +335,12 @@
             </select>
         </div>
         <div class="filter-group">
+            <label for="team-select">Team</label>
+            <select id="team-select">
+                <option value="">All teams</option>
+            </select>
+        </div>
+        <div class="filter-group">
             <label>Status</label>
             <div class="status-toggles">
                 <button class="status-btn active" data-status="over">Finished</button>
@@ -362,6 +368,7 @@
         var leagueSel = document.getElementById('league-select');
         var seasonSel = document.getElementById('season-select');
         var stageSel  = document.getElementById('stage-select');
+        var teamSel   = document.getElementById('team-select');
         var gameGrid  = document.getElementById('game-grid');
         var gameCount = document.getElementById('game-count');
         var loading   = document.getElementById('loading');
@@ -376,18 +383,77 @@
         var _displayCount = 34;
         var _displayStep  = 34;
 
+        // --- Team filter state ---
+        // The options are derived from the games currently loaded, so the
+        // dropdown never offers a team with nothing to show. Names are
+        // remembered across loads to keep a selected team labelled even when
+        // the current selection has no game for it.
+        var _teamFilter = '';
+        var _teamNames = {};
+        var _teamOptionKey = null;
+
         function setGames(games, label) {
             _allGames = games || [];
             _currentLabel = label || '';
             _displayCount = _displayStep;
+            _allGames.forEach(function(g) {
+                if (g.home_team_id) _teamNames[g.home_team_id] = g.home_team_name;
+                if (g.away_team_id) _teamNames[g.away_team_id] = g.away_team_name;
+            });
             renderFiltered();
         }
 
+        function syncTeamOptions(games) {
+            var ids = {};
+            games.forEach(function(g) {
+                if (g.home_team_id) ids[g.home_team_id] = true;
+                if (g.away_team_id) ids[g.away_team_id] = true;
+            });
+            // A selected team stays listed even once filtered out of the
+            // current games, so the dropdown keeps showing what is in effect.
+            if (_teamFilter) ids[_teamFilter] = true;
+            var list = Object.keys(ids).map(function(id) {
+                return {id: id, name: _teamNames[id] || ('Team ' + id)};
+            });
+            list.sort(function(a, b) { return a.name.localeCompare(b.name); });
+
+            var key = list.map(function(t) { return t.id; }).join(',');
+            if (key !== _teamOptionKey) {
+                _teamOptionKey = key;
+                teamSel.innerHTML = '<option value="">All teams</option>';
+                list.forEach(function(t) {
+                    var o = document.createElement('option');
+                    o.value = t.id;
+                    o.textContent = t.name;
+                    teamSel.appendChild(o);
+                });
+            }
+            teamSel.value = _teamFilter;
+        }
+
         function renderFiltered() {
-            var filtered = _allGames.filter(function(g) {
+            var byStatus = _allGames.filter(function(g) {
                 return _activeStatuses.has(g.status || 'over');
             });
-            renderGames(filtered.slice(0, _displayCount), _currentLabel, filtered.length);
+            syncTeamOptions(byStatus);
+
+            var filtered = byStatus;
+            var label = _currentLabel;
+            if (_teamFilter) {
+                filtered = byStatus.filter(function(g) {
+                    return g.home_team_id === _teamFilter || g.away_team_id === _teamFilter;
+                });
+                var name = _teamNames[_teamFilter];
+                if (name) label = label ? label + ' · ' + name : name;
+            }
+            renderGames(filtered.slice(0, _displayCount), label, filtered.length);
+        }
+
+        function setTeamFilter(teamId) {
+            _teamFilter = teamId || '';
+            _displayCount = _displayStep;
+            updateUrl(leagueSel.value, seasonSel.value, stageSel.value);
+            renderFiltered();
         }
 
         // --- URL state helpers ---
@@ -398,6 +464,7 @@
                 league: p.get('league') || DEFAULT_LEAGUE,
                 season: p.get('season') || '',
                 stage:  p.get('stage')  || '',
+                team:   p.get('team')   || '',
             };
         }
 
@@ -406,6 +473,7 @@
             if (league) p.set('league', league);
             if (season) p.set('season', season);
             if (stage)  p.set('stage',  stage);
+            if (_teamFilter) p.set('team', _teamFilter);
             history.replaceState(null, '', '?' + p.toString());
         }
 
@@ -544,6 +612,7 @@
         // --- Bootstrap: restore state from URL, or pick smart defaults ---
 
         var init = getParams();
+        _teamFilter = init.team;
 
         fetch('/api/leagues')
             .then(function(r) { return r.json(); })
@@ -636,6 +705,7 @@
         leagueSel.addEventListener('change', function() {
             var id = leagueSel.value;
             if (!id) return;
+            _teamFilter = '';
             updateUrl(id, '', '');
             resetSelect(seasonSel, 'Select season...');
             resetSelect(stageSel, 'Select stage...');
@@ -679,6 +749,10 @@
             updateUrl(leagueSel.value, seasonSel.value, stage);
             if (!stage) return;
             loadStageGames(leagueSel.value, seasonSel.value, stage);
+        });
+
+        teamSel.addEventListener('change', function() {
+            setTeamFilter(teamSel.value);
         });
 
         // --- Status toggle handlers ---
