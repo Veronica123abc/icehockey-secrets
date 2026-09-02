@@ -25,7 +25,7 @@ _DIV_ID = "timeline"
 
 # Bump to invalidate cached canvas HTML after visualization changes
 # (mirrors PLOT_VERSION in shift_toi.py).
-CANVAS_VERSION = 3
+CANVAS_VERSION = 4
 
 
 def _default_props(game: Game) -> dict:
@@ -65,35 +65,29 @@ _STAGE_LABELS = {"regular": "Regular season", "playoff": "Playoffs"}
 # family rather than dropping into "Other".
 _EVENT_GROUPS: tuple[tuple[str, tuple[str, ...]], ...] = (
     ("Scoring", (
-        "goal", "goalagainst", "assist", "scoringchance",
-        "shot on net", "shot (blocked)", "shot (missed)", "shot",
-        "loosepuckshot", "rebound", "save",
-        "block (shot)", "block (pass)", "block (blueline)", "block",
+        "goal", "goalagainst", "assist",
+        "scoringchance", "scoringchance against",
+        "shot attempts", "shot on net", "shot (blocked)", "shot (missed)",
+        "block",
     )),
     ("Entries & exits", (
-        "controlledentry+", "controlledentry-", "controlledentry",
-        "controlledentryagainst+", "controlledentryagainst-",
-        "controlledentryagainst",
-        "dumpin+", "dumpin-", "dumpin", "dumpinentry", "dumpinagainst",
-        "dumpinrecovery (offensive)", "dumpinrecovery (defensive)",
-        "dumpinrecovery-", "dumpinrecovery",
-        "zoneexit", "controlledexit+", "controlledexit-", "controlledexit",
-        "dumpout+", "dumpout-", "dumpout", "dumpoutrecovery",
-        "breakout", "controlledbreakout", "carrytoslot", "endtoendrush",
+        "controlled entry", "controlled entry against",
+        "dumpin+", "dumpin-", "dumpinagainst",
+        "dumpinrecovery+ (offensive)", "dumpinrecovery+ (defensive)",
+        "dumpinrecoveries- (offensive)", "dumpinrecoveries- (defensive)",
+        "dumpoutrecovery+ (offensive)", "dumpoutrecovery+ (defensive)",
+        "dumpoutrecoveries- (offensive)", "dumpoutrecoveries- (defensive)",
+        "controlled exits", "dumpouts",
+        "carry to slot", "carry to slot against", "linecarries",
     )),
     ("Puck movement", (
-        "possession+", "possession-", "possession",
-        "pass+", "pass-", "pass", "reception+", "reception-", "reception",
-        "lpr", "carry", "puckprotection", "failedpasslocation",
-        "receptionprevention", "innerslotclear",
+        "possession", "pass+", "pass-", "reception+", "reception-",
+        "failed pass location", "lpr+", "lpr-",
     )),
-    ("Pressure & physical", ("check to body", "check to stick", "check",
-                             "pressure")),
+    ("Pressure & physical", ("check to body", "check to stick")),
     ("Stoppages & specials", (
-        "faceoff+", "faceoff-", "faceoff",
-        "faceoffrecovery+", "faceoffrecovery-", "faceoffrecovery",
-        "penalty", "penaltydrawn", "icing", "offside",
-        "goalieloss", "goaliewin",
+        "faceoff+", "faceoff-", "faceoff recovery",
+        "icing", "offside", "penalty", "penalty drawn",
     )),
 )
 
@@ -132,27 +126,32 @@ _MIN_LANE_AREA = 96
 # An event whose name appears below but matches none of its rules keeps the
 # plain name (Sportlogiq also emits "undetermined") rather than being dropped
 # from the widget.
-_OUTCOME_SUFFIX = {"successful": "+", "failed": "-"}
-
-# Outcome-specific metrics: one lane per outcome, named "<name>+" / "<name>-".
-_SPLIT_BY_OUTCOME = frozenset({
-    "faceoff", "faceoffrecovery", "pass", "reception", "possession",
-    "dumpin", "dumpinrecovery", "dumpout",
-    "controlledentry", "controlledentryagainst", "controlledexit",
-})
-
-
 @dataclass(frozen=True)
 class _LaneRule:
-    """One lane, and the event filter that fills it. Unset fields don't filter."""
+    """One lane, and the event filter that fills it. Unset fields don't filter.
+
+    ``mirror`` names a second lane carrying the same events with the sides
+    swapped -- the "against" metrics. They are not supplier events: a scoring
+    chance is one event, and whether it reads as "for" or "against" depends on
+    which team you are asking about. The mirrored lane exists so the player
+    report can answer "how often was this player on the ice while the OTHER
+    team did this", which a single lane cannot express: in WOI mode the report
+    counts every player on the ice for an event regardless of whose event it
+    is, so "for" and "against" would otherwise land in the same column.
+    """
     label: str
     outcome: str | None = None
     type_prefix: str | None = None   # `type` starts with this
     type_has: str | None = None      # `type` contains this
     type_lacks: str | None = None    # `type` does not contain this
+    type_equals: str | None = None   # `type` is exactly this
+    grade_in: frozenset | None = None  # expected_goals_all_shots_grade
+    mirror: str | None = None        # extra lane, drawn for the opposing side
 
-    def matches(self, outcome: str | None, type_: str) -> bool:
+    def matches(self, outcome: str | None, type_: str, grade: str | None) -> bool:
         if self.outcome is not None and outcome != self.outcome:
+            return False
+        if self.type_equals is not None and type_ != self.type_equals:
             return False
         if self.type_prefix is not None and not type_.startswith(self.type_prefix):
             return False
@@ -160,48 +159,122 @@ class _LaneRule:
             return False
         if self.type_lacks is not None and self.type_lacks in type_:
             return False
+        if self.grade_in is not None and grade not in self.grade_in:
+            return False
         return True
 
 
-# Metrics that split on `type` (checked before the outcome split above). The
-# supplier's `type` carries a tail of qualifiers -- "offensivewithplaywith
-# shotonnet", "outsideblocked" -- so these match on a prefix or a substring,
-# never on equality.
-_SPLIT_BY_TYPE: dict[str, tuple[_LaneRule, ...]] = {
+_CHANCE_GRADES = frozenset({"A", "B", "C"})
+
+# The metric list from hockey/derive/gameflow_metrics/CLAUDE.md, and nothing
+# else. An event name absent from this table contributes no lane at all, which
+# is what prunes the widget: the supplier emits 42 event names and this exposes
+# the listed metrics only.
+#
+# Every matching rule fires, so one event can land in several lanes -- a shot
+# on net counts towards "shot attempts" as well as its own lane.
+#
+# The supplier's `type` carries a tail of qualifiers ("offensivewithplaywith
+# shotonnet", "outsideblocked"), so these match on a prefix or a substring
+# rather than equality wherever a qualifier tail is expected.
+_LANE_RULES: dict[str, tuple[_LaneRule, ...]] = {
+    "goal": (_LaneRule("goal"),),
+    "goalagainst": (_LaneRule("goalagainst"),),
+    "assist": (_LaneRule("assist"),),
+    "scoringchance": (
+        _LaneRule("scoringchance", grade_in=_CHANCE_GRADES,
+                  mirror="scoringchance against"),
+    ),
     "shot": (
+        _LaneRule("shot attempts"),
         _LaneRule("shot on net", outcome="successful"),
         _LaneRule("shot (blocked)", outcome="failed", type_has="blocked"),
         _LaneRule("shot (missed)", outcome="failed", type_lacks="blocked"),
     ),
-    "block": (
-        _LaneRule("block (shot)", type_prefix="shot"),
-        _LaneRule("block (pass)", type_prefix="pass"),
-        _LaneRule("block (blueline)", type_prefix="blueline"),
+    "block": (_LaneRule("block", type_prefix="shot"),),
+    "controlledentry": (_LaneRule("controlled entry", outcome="successful"),),
+    "controlledentryagainst": (_LaneRule("controlled entry against"),),
+    "dumpin": (
+        _LaneRule("dumpin+", outcome="successful"),
+        _LaneRule("dumpin-", outcome="failed"),
+    ),
+    "dumpinagainst": (_LaneRule("dumpinagainst"),),
+    "dumpinrecovery": (
+        _LaneRule("dumpinrecovery+ (offensive)", outcome="successful",
+                  type_prefix="offensive",
+                  mirror="dumpinrecoveries- (defensive)"),
+        _LaneRule("dumpinrecovery+ (defensive)", outcome="successful",
+                  type_prefix="defensive",
+                  mirror="dumpinrecoveries- (offensive)"),
+    ),
+    "dumpoutrecovery": (
+        _LaneRule("dumpoutrecovery+ (offensive)", outcome="successful",
+                  type_prefix="offensive",
+                  mirror="dumpoutrecoveries- (defensive)"),
+        _LaneRule("dumpoutrecovery+ (defensive)", outcome="successful",
+                  type_prefix="defensive",
+                  mirror="dumpoutrecoveries- (offensive)"),
+    ),
+    "controlledexit": (_LaneRule("controlled exits", outcome="successful"),),
+    "dumpout": (_LaneRule("dumpouts"),),
+    "carrytoslot": (_LaneRule("carry to slot", mirror="carry to slot against"),),
+    "carry": (_LaneRule("linecarries"),),
+    "possession": (_LaneRule("possession", outcome="successful"),),
+    "pass": (
+        _LaneRule("pass+", outcome="successful"),
+        _LaneRule("pass-", outcome="failed"),
+    ),
+    "reception": (
+        _LaneRule("reception+", outcome="successful"),
+        _LaneRule("reception-", outcome="failed"),
+    ),
+    "failedpasslocation": (_LaneRule("failed pass location"),),
+    "lpr": (
+        # "contested" is a substring, not the whole type: the supplier also
+        # emits qualified forms like "hipresopdumpcontested", ~23% of them.
+        _LaneRule("lpr+", outcome="successful", type_has="contested"),
+        _LaneRule("lpr-", outcome="failed", type_has="contested"),
     ),
     "check": (
         _LaneRule("check to body", type_prefix="body"),
         _LaneRule("check to stick", type_prefix="stick"),
     ),
-    "dumpinrecovery": (
-        _LaneRule("dumpinrecovery (offensive)", outcome="successful",
-                  type_prefix="offensive"),
-        _LaneRule("dumpinrecovery (defensive)", outcome="successful",
-                  type_prefix="defensive"),
+    "faceoff": (
+        _LaneRule("faceoff+", outcome="successful"),
+        _LaneRule("faceoff-", outcome="failed"),
     ),
+    "faceoffrecovery": (_LaneRule("faceoff recovery", outcome="successful"),),
+    "icing": (_LaneRule("icing"),),
+    "offside": (_LaneRule("offside"),),
+    "penalty": (_LaneRule("penalty"),),
+    "penaltydrawn": (_LaneRule("penalty drawn"),),
 }
 
+# Lanes that carry another lane's events with the sides swapped.
+_MIRRORED_LANES: frozenset = frozenset(
+    rule.mirror
+    for rules in _LANE_RULES.values() for rule in rules
+    if rule.mirror
+)
 
-def _display_type(event: Event) -> str:
-    """The lane this event belongs to: see _SPLIT_BY_TYPE / _SPLIT_BY_OUTCOME."""
+_FLIP_SIDE = {_SIDE_HOME: _SIDE_AWAY, _SIDE_AWAY: _SIDE_HOME, _SIDE_NONE: _SIDE_NONE}
+
+
+def _display_lanes(event: Event) -> tuple[str, ...]:
+    """Every lane this event belongs to; empty if it is not a listed metric."""
+    rules = _LANE_RULES.get(event.name)
+    if not rules:
+        return ()
     outcome = event.get_raw("outcome")
-    for rule in _SPLIT_BY_TYPE.get(event.name, ()):
-        if rule.matches(outcome, event.type or ""):
-            return rule.label
-    if event.name in _SPLIT_BY_OUTCOME:
-        suffix = _OUTCOME_SUFFIX.get(outcome)
-        if suffix:
-            return f"{event.name}{suffix}"
-    return event.name
+    type_ = event.type or ""
+    grade = event.get_raw("expected_goals_all_shots_grade")
+    lanes: list[str] = []
+    for rule in rules:
+        if rule.matches(outcome, type_, grade):
+            lanes.append(rule.label)
+            if rule.mirror:
+                lanes.append(rule.mirror)
+    return tuple(lanes)
 
 
 def _team_label(team) -> str:
@@ -256,7 +329,8 @@ class GameCanvas:
         self._props = _default_props(game)
         # Distinct event types present in the game (assessed at construction).
         self._event_types: list[str] = sorted(
-            {_display_type(e) for e in game.events if e.name and e.t is not None}
+            {lane for e in game.events if e.name and e.t is not None
+             for lane in _display_lanes(e)}
         )
         self._preselected: set[str] = set()
         # Rail reading order, which is also the order lanes are packed in.
@@ -266,7 +340,8 @@ class GameCanvas:
         # How many events of each type -- shown in the rail so the cost of
         # ticking a type is visible before you tick it.
         self._event_counts: Counter[str] = Counter(
-            _display_type(e) for e in game.events if e.name and e.t is not None
+            lane for e in game.events if e.name and e.t is not None
+            for lane in _display_lanes(e)
         )
         # Events per player, shown beside each roster row so it's obvious who
         # actually played (a scratch reads 0).
@@ -288,9 +363,9 @@ class GameCanvas:
 
     def draw_events(self, events: list[Event]) -> None:
         """Pre-select (pre-check) the event types present in ``events``."""
+        known = set(self._event_types)
         self._preselected.update(
-            _display_type(e) for e in events
-            if _display_type(e) in set(self._event_types)
+            lane for e in events for lane in _display_lanes(e) if lane in known
         )
 
     def to_html(self, back_href: str | None = None) -> str:
@@ -403,10 +478,13 @@ class GameCanvas:
         # vertical line segments (x=[t,t,None], y=[0,1,None]); split by color
         # so possessing-team coloring is preserved within a type.
         events_by_type: dict[str, list[Event]] = defaultdict(list)
+        known = set(self._event_types)
         for e in self._game.events:
-            display = _display_type(e)
-            if display in self._event_types and e.t is not None:
-                events_by_type[display].append(e)
+            if e.t is None or not e.name:
+                continue
+            for lane in _display_lanes(e):
+                if lane in known:
+                    events_by_type[lane].append(e)
 
         # Lanes: each visible type occupies one row of the y axis, so types
         # stay separable instead of overprinting each other. Lanes are packed
@@ -426,9 +504,14 @@ class GameCanvas:
             visible = etype in self._preselected   # team filter starts at "both"
             specs: list[dict] = []
 
+            # An "against" lane is the same events seen from the other
+            # bench, so it draws on the opposite side and credits nobody: the
+            # player who made the play is on the team the metric is against.
+            mirrored = etype in _MIRRORED_LANES
             by_side: dict[str, list[Event]] = defaultdict(list)
             for e in events_by_type[etype]:
-                by_side[self._event_side(e)].append(e)
+                side = self._event_side(e)
+                by_side[_FLIP_SIDE[side] if mirrored else side].append(e)
 
             for side in _SIDES:
                 group = by_side.get(side)
@@ -476,7 +559,8 @@ class GameCanvas:
                     "h": hover_idx,
                     "s": side,
                     "t": [round(e.t, 1) for e in group],
-                    "p": [e.player_id for e in group],
+                    "p": ([None] * len(group) if mirrored
+                          else [e.player_id for e in group]),
                 })
 
             segments[etype] = specs
