@@ -8,7 +8,7 @@ from plotly.subplots import make_subplots
 from hockey.model.game import Game
 from hockey.derive.entries import zone_entries, ZoneEntry
 
-ENTRIES_VERSION = 3  # bump to invalidate cached entries HTML after visualization changes
+ENTRIES_VERSION = 4  # bump to invalidate cached entries HTML after visualization changes
 
 ENTRY_COLORS = {
     "dumpin": "#60a5fa",

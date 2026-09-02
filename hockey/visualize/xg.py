@@ -10,7 +10,7 @@ from plotly.subplots import make_subplots
 from hockey.model.game import Game
 from hockey.visualize.shift_toi import _team_color, _game_end_time_seconds
 
-XG_VERSION = 3
+XG_VERSION = 4
 
 
 def _hex_to_rgb(hex_color: str) -> str:
@@ -30,6 +30,11 @@ def _cumulative_xg(game: Game) -> dict[int, tuple[list[float], list[float]]]:
 
     shots: dict[int, list[tuple[float, float]]] = {home_id: [], away_id: []}
     for e in game.events:
+        # Shots only. On the compiled vocabulary the events derived from a shot
+        # (possession, scoringchance, save, ...) carry its xG too, and counting
+        # them would multiply the total by roughly four.
+        if e.name != "shot":
+            continue
         raw = e.get_raw("expected_goals_all_shots")
         if raw is None or raw == "":
             continue

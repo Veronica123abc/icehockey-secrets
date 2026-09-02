@@ -18,7 +18,7 @@ from hockey.model.game import Game
 from pathlib import Path
 # from hockey.derive.current_shift_series import find_intervals, find_intervals, current_shift_toi_series
 
-PLOT_VERSION = 4  # bump to invalidate _plotly_cache after visualization changes
+PLOT_VERSION = 5  # bump to invalidate _plotly_cache after visualization changes
 
 _TEAM_COLORS: dict[str, str] | None = None
 
@@ -36,12 +36,16 @@ def _team_color(team_id: int, default: str) -> str:
 
 
 def _game_end_time_seconds(game: Game, default: int = 3600) -> int:
-    if game.events:
-        return int(np.ceil(max(e.t for e in game.events)))
-    if game.toi:
-        end_candidates = [x.end_t for x in game.toi if x.end_t is not None]
-        if end_candidates:
-            return int(np.ceil(max(end_candidates)))
+    """When the game ends: the last event or the last shift, whichever is later.
+
+    Both, not just the events, because the compiled vocabulary has no final
+    whistle -- its last event is the last thing that happened on the puck,
+    which can fall a second or two short of the last shift ending.
+    """
+    candidates = [e.t for e in game.events]
+    candidates += [x.end_t for x in game.toi if x.end_t is not None]
+    if candidates:
+        return int(np.ceil(max(candidates)))
     return default
 
 
@@ -183,9 +187,13 @@ def plot_shift_toi_with_grades(
     home_id = game.info.home_team.id
     away_id = game.info.away_team.id
 
+    # The shot itself, never the events derived from it: on the compiled
+    # vocabulary a shot's possession/scoringchance/save rows inherit its grade,
+    # which would stack four markers on one chance.
     graded = [
         e for e in game.events
-        if getattr(e, "grade", None) in {"A", "B", "C"} and
+        if e.name == "shot" and
+           getattr(e, "grade", None) in {"A", "B", "C"} and
            e.get_raw('team_skaters_on_ice', 5) == 5 and
            e.get_raw('opposing_team_skaters_on_ice', 5) == 5
     ]

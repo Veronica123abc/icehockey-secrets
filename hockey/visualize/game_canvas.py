@@ -4,6 +4,7 @@ import json
 import tempfile
 import webbrowser
 from collections import Counter, defaultdict
+from dataclasses import dataclass
 from datetime import datetime
 from html import escape
 from pathlib import Path
@@ -24,7 +25,7 @@ _DIV_ID = "timeline"
 
 # Bump to invalidate cached canvas HTML after visualization changes
 # (mirrors PLOT_VERSION in shift_toi.py).
-CANVAS_VERSION = 2
+CANVAS_VERSION = 3
 
 
 def _default_props(game: Game) -> dict:
@@ -59,25 +60,40 @@ _STAGE_LABELS = {"regular": "Regular season", "playoff": "Playoffs"}
 # (most-used first), not alphabetical. Types absent from this table fall into
 # a trailing "Other" group, so a game from another league still lists all of
 # its types.
+# Bare names stay listed alongside their split lanes: an event with an
+# "undetermined" outcome falls back to one, and it should group with its own
+# family rather than dropping into "Other".
 _EVENT_GROUPS: tuple[tuple[str, tuple[str, ...]], ...] = (
     ("Scoring", (
-        "goal", "goalagainst", "assist", "scoringchance", "shot",
-        "loosepuckshot", "rebound", "save", "block",
+        "goal", "goalagainst", "assist", "scoringchance",
+        "shot on net", "shot (blocked)", "shot (missed)", "shot",
+        "loosepuckshot", "rebound", "save",
+        "block (shot)", "block (pass)", "block (blueline)", "block",
     )),
     ("Entries & exits", (
-        "controlledentry", "controlledentryagainst", "dumpin", "dumpinentry",
-        "dumpinagainst", "dumpinrecovery", "zoneexit", "controlledexit",
-        "dumpout", "dumpoutrecovery", "breakout", "controlledbreakout",
-        "carrytoslot", "endtoendrush",
+        "controlledentry+", "controlledentry-", "controlledentry",
+        "controlledentryagainst+", "controlledentryagainst-",
+        "controlledentryagainst",
+        "dumpin+", "dumpin-", "dumpin", "dumpinentry", "dumpinagainst",
+        "dumpinrecovery (offensive)", "dumpinrecovery (defensive)",
+        "dumpinrecovery-", "dumpinrecovery",
+        "zoneexit", "controlledexit+", "controlledexit-", "controlledexit",
+        "dumpout+", "dumpout-", "dumpout", "dumpoutrecovery",
+        "breakout", "controlledbreakout", "carrytoslot", "endtoendrush",
     )),
     ("Puck movement", (
-        "possession", "pass", "reception", "lpr", "carry", "puckprotection",
-        "failedpasslocation", "receptionprevention", "innerslotclear",
+        "possession+", "possession-", "possession",
+        "pass+", "pass-", "pass", "reception+", "reception-", "reception",
+        "lpr", "carry", "puckprotection", "failedpasslocation",
+        "receptionprevention", "innerslotclear",
     )),
-    ("Pressure & physical", ("check", "pressure")),
+    ("Pressure & physical", ("check to body", "check to stick", "check",
+                             "pressure")),
     ("Stoppages & specials", (
-        "faceoff+", "faceoff-", "faceoff", "faceoffrecovery", "penalty",
-        "penaltydrawn", "icing", "offside", "goalieloss", "goaliewin",
+        "faceoff+", "faceoff-", "faceoff",
+        "faceoffrecovery+", "faceoffrecovery-", "faceoffrecovery",
+        "penalty", "penaltydrawn", "icing", "offside",
+        "goalieloss", "goaliewin",
     )),
 )
 
@@ -106,19 +122,83 @@ _LANE_CHROME = 54
 _MIN_LANE_AREA = 96
 
 
-# Faceoffs come in pairs -- one event per team at the same moment, one
-# successful and one failed -- so a single "faceoff" lane draws both at once in
-# two colours and hides who won. Split them by outcome. Anything with another
-# outcome (Sportlogiq also emits "undetermined") keeps the plain name rather
-# than being dropped from the widget.
+# A lane is an event type filtered the way the metrics in
+# hockey/derive/gameflow_metrics/CLAUDE.md are: most of them only count with a
+# particular outcome, and a few split further on `type`. Faceoffs are the
+# clearest case -- they come in pairs, one event per team at the same moment,
+# one successful and one failed, so a single "faceoff" lane would draw both at
+# once and hide who won.
+#
+# An event whose name appears below but matches none of its rules keeps the
+# plain name (Sportlogiq also emits "undetermined") rather than being dropped
+# from the widget.
 _OUTCOME_SUFFIX = {"successful": "+", "failed": "-"}
-_SPLIT_BY_OUTCOME = ("faceoff",)
+
+# Outcome-specific metrics: one lane per outcome, named "<name>+" / "<name>-".
+_SPLIT_BY_OUTCOME = frozenset({
+    "faceoff", "faceoffrecovery", "pass", "reception", "possession",
+    "dumpin", "dumpinrecovery", "dumpout",
+    "controlledentry", "controlledentryagainst", "controlledexit",
+})
+
+
+@dataclass(frozen=True)
+class _LaneRule:
+    """One lane, and the event filter that fills it. Unset fields don't filter."""
+    label: str
+    outcome: str | None = None
+    type_prefix: str | None = None   # `type` starts with this
+    type_has: str | None = None      # `type` contains this
+    type_lacks: str | None = None    # `type` does not contain this
+
+    def matches(self, outcome: str | None, type_: str) -> bool:
+        if self.outcome is not None and outcome != self.outcome:
+            return False
+        if self.type_prefix is not None and not type_.startswith(self.type_prefix):
+            return False
+        if self.type_has is not None and self.type_has not in type_:
+            return False
+        if self.type_lacks is not None and self.type_lacks in type_:
+            return False
+        return True
+
+
+# Metrics that split on `type` (checked before the outcome split above). The
+# supplier's `type` carries a tail of qualifiers -- "offensivewithplaywith
+# shotonnet", "outsideblocked" -- so these match on a prefix or a substring,
+# never on equality.
+_SPLIT_BY_TYPE: dict[str, tuple[_LaneRule, ...]] = {
+    "shot": (
+        _LaneRule("shot on net", outcome="successful"),
+        _LaneRule("shot (blocked)", outcome="failed", type_has="blocked"),
+        _LaneRule("shot (missed)", outcome="failed", type_lacks="blocked"),
+    ),
+    "block": (
+        _LaneRule("block (shot)", type_prefix="shot"),
+        _LaneRule("block (pass)", type_prefix="pass"),
+        _LaneRule("block (blueline)", type_prefix="blueline"),
+    ),
+    "check": (
+        _LaneRule("check to body", type_prefix="body"),
+        _LaneRule("check to stick", type_prefix="stick"),
+    ),
+    "dumpinrecovery": (
+        _LaneRule("dumpinrecovery (offensive)", outcome="successful",
+                  type_prefix="offensive"),
+        _LaneRule("dumpinrecovery (defensive)", outcome="successful",
+                  type_prefix="defensive"),
+    ),
+}
 
 
 def _display_type(event: Event) -> str:
-    """The event type as the UI names it: see _OUTCOME_SUFFIX."""
+    """The lane this event belongs to: see _SPLIT_BY_TYPE / _SPLIT_BY_OUTCOME."""
+    outcome = event.get_raw("outcome")
+    for rule in _SPLIT_BY_TYPE.get(event.name, ()):
+        if rule.matches(outcome, event.type or ""):
+            return rule.label
     if event.name in _SPLIT_BY_OUTCOME:
-        suffix = _OUTCOME_SUFFIX.get(event.get_raw("outcome"))
+        suffix = _OUTCOME_SUFFIX.get(outcome)
         if suffix:
             return f"{event.name}{suffix}"
     return event.name

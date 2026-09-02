@@ -217,15 +217,15 @@ def _game_exists(game_id: int) -> bool:
 def _load_game(game_id: int, playsequence_source: str | None = None):
     """Load a Game, cached per (game_id, playsequence source, source mode).
 
-    ``playsequence_source=None`` follows the active GAME_SOURCE mode: database
-    first, then the filesystem with RawGame's default source, with either half
-    skipped under db_only / data_root_only. Naming a source goes straight to
-    the filesystem, since the database has no equivalent distinction -- so
-    under db_only it finds nothing and the caller falls back to the default
-    source. That distinction matters because the two files carry different
-    event vocabularies -- playsequence_compiled.json adds the ~19 derived types
-    (controlledentry, zoneexit, scoringchance, ...) the game canvas is built
-    around, while only the plain file has "whistle".
+    Follows the active GAME_SOURCE mode: database first, then the filesystem,
+    with either half skipped under db_only / data_root_only.
+
+    The source names a vocabulary, not just a file: playsequence_compiled.json
+    adds the ~19 derived types (controlledentry, zoneexit, scoringchance, ...)
+    the game canvas is built around, while only the plain file has "whistle".
+    Both halves honour it -- the database keeps the same split across its two
+    event tables, so "playsequence_compiled" reads `compiled_event` and
+    anything else reads `event`.
     """
     cache_key = (game_id, playsequence_source, game_source())
     cached = _cache_get(_game_cache, cache_key)
@@ -233,19 +233,23 @@ def _load_game(game_id: int, playsequence_source: str | None = None):
         app.logger.warning("game %s: cache hit (%s)", game_id, playsequence_source or "default")
         return cached
 
-    if playsequence_source is None:
-        conn = _db_conn()
-        if conn is not None:
-            try:
-                from hockey.normalize.build_game_db import build_game_from_db
-                game = build_game_from_db(game_id, conn)
-                _cache_put(_game_cache, cache_key, game, _GAME_CACHE_SIZE)
-                app.logger.warning("game %s: loaded from database", game_id)
-                return game
-            except Exception as e:
-                app.logger.warning("game %s: db load failed (%s), falling back to filesystem", game_id, e)
-            finally:
-                conn.close()
+    compiled = playsequence_source == "playsequence_compiled"
+    conn = _db_conn()
+    if conn is not None:
+        try:
+            from hockey.normalize.build_game_db import build_game_from_db
+            game = build_game_from_db(game_id, conn, compiled=compiled)
+            if not game.events:
+                raise ValueError(
+                    f"no rows in {'compiled_event' if compiled else 'event'}")
+            _cache_put(_game_cache, cache_key, game, _GAME_CACHE_SIZE)
+            app.logger.warning("game %s: loaded from database (%s)", game_id,
+                               "compiled_event" if compiled else "event")
+            return game
+        except Exception as e:
+            app.logger.warning("game %s: db load failed (%s), falling back to filesystem", game_id, e)
+        finally:
+            conn.close()
 
     if not use_files():
         return None
@@ -386,7 +390,12 @@ def game_view(game_id: int):
     if not _game_exists(game_id):
         auto = request.args.get("auto", "0")
         return redirect(url_for("confirm_download", game_id=game_id, auto=auto))
-    game = _load_game(game_id)
+    # Same source as the canvas: the compiled vocabulary carries everything the
+    # plain one does for these three charts, plus the derived types. Falls back
+    # to the plain source for a game that only exists there.
+    game = _load_game(game_id, playsequence_source="playsequence_compiled")
+    if game is None:
+        game = _load_game(game_id)
     if game is None:
         abort(404, description=f"Game {game_id} could not be loaded.")
 

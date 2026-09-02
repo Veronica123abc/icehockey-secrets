@@ -48,8 +48,12 @@ def _classify_entry(event) -> str | None:
         return "pass"
     return None
 
-# Events that end the current zone possession
-_ZONE_EXIT_NAMES = frozenset({"whistle", "icing", "offside", "dumpout", "controlledbreakout"})
+# Events that end the current zone possession. "faceoff" stands in for
+# "whistle" on the compiled vocabulary, which has no whistle event -- every
+# stoppage is followed by one, so the two agree on where a possession ends.
+# On the plain vocabulary it changes nothing: the whistle already ended it.
+_ZONE_EXIT_NAMES = frozenset({"whistle", "faceoff", "icing", "offside",
+                              "dumpout", "controlledbreakout"})
 
 
 def _is_shot_on_net(name: str, type_: str) -> bool:

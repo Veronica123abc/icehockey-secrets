@@ -77,6 +77,14 @@ The filter API reads exclusively from these manifests, not from `DATA_ROOT_DIR`.
 2. Filesystem (`build_game` from JSON) — if `DATA_ROOT_DIR` is set
 3. Redirect to download prompt — fetches from SportLogIQ API, saves to `DATA_ROOT_DIR`
 
+`playsequence_source` picks the event vocabulary and both stores honour it:
+`"playsequence_compiled"` reads the `compiled_event` table (or
+playsequence_compiled.json), anything else reads `event` (or playsequence.json).
+The compiled vocabulary has ~42 event types against ~26 — the derived ones
+(controlledentry, zoneexit, scoringchance, …) the game canvas is built around.
+A DB hit that returns no event rows counts as a miss, so the filesystem
+fallback still runs for a game ingested into only one of the two tables.
+
 ### Source Mode (`source_mode.py`)
 
 `GAME_SOURCE` selects which of those backing stores are consulted:
