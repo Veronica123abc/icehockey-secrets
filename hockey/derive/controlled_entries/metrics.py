@@ -15,28 +15,24 @@ from hockey.model.game import Game
 settings = Settings.from_env(project_root=Path(__file__).resolve().parent)
 
 def oz_carry(game: Game) -> Iterable[Event]:
-    events = [e.raw for e in game.events]
-    events = [e for e in events if
-             e['name'] in ['controlledentry'] and 'carry' in e['type']]
-    return events
+    return [e for e in game.events if
+            e.name == 'controlledentry' and 'carry' in e.type]
 
 def oz_pass(game: Game) -> Iterable[Event]:
-    events = [e.raw for e in game.events]
-    events = [e for e in events if
-              e['name'] in ['controlledentry'] and 'pass' in e['type']]
-    return events
+    return [e for e in game.events if
+            e.name == 'controlledentry' and 'pass' in e.type]
 
-def _whith_play_after(events: Iterable):
-    return [e for e in events if 'withplay' in e['type']]
+def _whith_play_after(events: Iterable[Event]) -> Iterable[Event]:
+    return [e for e in events if 'withplay' in e.type]
 
-def _successul(events: Iterable):
-    return [e for e in events if e['outcome'] == 'successful']
+def _successul(events: Iterable[Event]) -> Iterable[Event]:
+    return [e for e in events if e.outcome == 'successful']
 
-def _failed(events: Iterable):
-    return [e for e in events if e['outcome'] == 'failed']
+def _failed(events: Iterable[Event]) -> Iterable[Event]:
+    return [e for e in events if e.outcome == 'failed']
 
-def _for_team(events: Iterable, team_id: int) -> Iterable:
-    return [e for e in events if e['team_id'] == str(team_id)]
+def _for_team(events: Iterable[Event], team_id: int) -> Iterable[Event]:
+    return [e for e in events if e.team_id == int(team_id)]
 
 def get_full_data(game: Game) -> dict:
     team_ids = [game.info.home_team.id, game.info.away_team.id]

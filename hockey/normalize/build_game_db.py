@@ -15,6 +15,19 @@ def _maybe_int(x) -> int | None:
         return None
 
 
+def _split_flags(s) -> list[str]:
+    """Undo the ``', '.join(flags)`` that ingest_events.py does on write.
+
+    The column is varchar(255), so a long flag list can arrive truncated; a
+    trailing partial token is dropped rather than returned as a bogus flag.
+    """
+    if not s:
+        return []
+    if isinstance(s, (list, tuple)):     # defensive: driver already gave a list
+        return [str(x).strip() for x in s if str(x).strip()]
+    return [tok.strip() for tok in str(s).split(",") if tok.strip()]
+
+
 def build_game_from_db(game_sl_id: int, conn, *, compiled: bool = False) -> Game:
     """Reconstruct a Game by querying the database (no JSON files required).
 
@@ -179,6 +192,10 @@ def build_game_from_db(game_sl_id: int, conn, *, compiled: bool = False) -> Game
                 expected_goals_all_shots=row.get('expected_goals_all_shots'),
                 expected_goals_on_net=row.get('expected_goals_on_net'),
                 expected_goals_on_net_grade=row.get('expected_goals_on_net_grade'),
+                outcome=row.get('outcome') or None,
+                flags=_split_flags(row.get('flags')),
+                current_possession=_maybe_int(row.get('current_possession')),
+                current_play_in_possession=_maybe_int(row.get('current_play_in_possession')),
                 raw=dict(row),
             )
 

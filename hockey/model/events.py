@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any, Optional, TypeVar
 
 T = TypeVar("T")
@@ -33,6 +33,18 @@ class Event:
     expected_goals_all_shots: Optional[float] = None
     expected_goals_on_net: Optional[float] = None
     expected_goals_on_net_grade: Optional[str] = None
+    # Carried by every source, so filter on these rather than reaching into
+    # ``raw`` -- the supplier spells several of them differently per vocabulary.
+    outcome: Optional[str] = None
+    # ``flags`` is a list in both playsequence files but a comma-joined
+    # varchar(255) in the DB; build_game_db splits it back so this is always a
+    # list. Empty means "no flags" and, on a truncated DB row, possibly "some
+    # flags lost" -- it is not a reliable absence signal.
+    flags: list[str] = field(default_factory=list)
+    # Possession counters. Present on every event of both playsequence files,
+    # though ~5% are null in the uncompiled one, hence Optional.
+    current_possession: Optional[int] = None
+    current_play_in_possession: Optional[int] = None
 
     @property
     def players_on_ice(self) -> list[int]:

@@ -17,65 +17,47 @@ settings = Settings.from_env(project_root=Path(__file__).resolve().parent)
 
 
 def dumpin_old(game: Game) -> Iterable[Event]:
-    events = [e.raw for e in game.events]
-    events = [e for e in events if
-             e['name'] in ['dumpin']]
-    return events
+    return [e for e in game.events if e.name == 'dumpin']
 
 
 def dumpin(game: Game) -> Iterable[Event]:
-    events = [e.raw for e in game.events]
-    events = [e for e in events if
-             e['name'] in ['dumpinentry']]
-    return events
+    return [e for e in game.events if e.name == 'dumpinentry']
 
 
 def chipin(game: Game) -> Iterable[Event]:
-    events = dumpin(game)
-    events = [e for e in events if 'chip' in e['type']]
-    return events
+    return [e for e in dumpin(game) if 'chip' in e.type]
 
 def dumpin_recovery(game: Game) -> Iterable[Event]:
-    events = [e.raw for e in game.events]
-    events = [
-        e for e in events if
-        e['name'] in ['dumpinrecovery'] and
-        'offensive' in e['type']
-    ]
-    return events
+    return [e for e in game.events if
+            e.name == 'dumpinrecovery' and 'offensive' in e.type]
 
 def dumpin_entry(game: Game) -> Iterable[Event]:
     # A successful dumpinentry <=> dumprecovery
-    events = [e.raw for e in game.events]
-    events = [
-        e for e in events if
-        e['name'] == 'dumpinentry'
-    ]
-    return events
+    return [e for e in game.events if e.name == 'dumpinentry']
 
-def _selfchipin(events: Iterable) -> Iterable[Event]:
-    return [e for e in events if 'selfchipin' in e['type']]
+def _selfchipin(events: Iterable[Event]) -> Iterable[Event]:
+    return [e for e in events if 'selfchipin' in e.type]
 
-def _with_shot(events: Iterable) -> Iterable[Event]:
-    return [e for e in events if 'withshot' in e['type']]
+def _with_shot(events: Iterable[Event]) -> Iterable[Event]:
+    return [e for e in events if 'withshot' in e.type]
 
-def _with_slotshot(events: Iterable) -> Iterable[Event]:
-    return [e for e in events if 'withslotshot' in e['flags']]
+def _with_slotshot(events: Iterable[Event]) -> Iterable[Event]:
+    return [e for e in events if 'withslotshot' in e.flags]
 
-def _with_shotonnet(events: Iterable) -> Iterable[Event]:
-    return [e for e in events if 'withshotonnet' in e['flags']]
+def _with_shotonnet(events: Iterable[Event]) -> Iterable[Event]:
+    return [e for e in events if 'withshotonnet' in e.flags]
 
-def _with_play_after(events: Iterable):
-    return [e for e in events if 'withplayafter' in e['flags']]
+def _with_play_after(events: Iterable[Event]) -> Iterable[Event]:
+    return [e for e in events if 'withplayafter' in e.flags]
 
-def _successul(events: Iterable):
-    return [e for e in events if e['outcome'] == 'successful']
+def _successul(events: Iterable[Event]) -> Iterable[Event]:
+    return [e for e in events if e.outcome == 'successful']
 
-def _failed(events: Iterable):
-    return [e for e in events if e['outcome'] == 'failed']
+def _failed(events: Iterable[Event]) -> Iterable[Event]:
+    return [e for e in events if e.outcome == 'failed']
 
-def _for_team(events: Iterable, team_id: int) -> Iterable:
-    return [e for e in events if e['team_id'] == str(team_id)]
+def _for_team(events: Iterable[Event], team_id: int) -> Iterable[Event]:
+    return [e for e in events if e.team_id == int(team_id)]
 
 
 def get_full_data(game: Game) -> dict:

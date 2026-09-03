@@ -19,125 +19,105 @@ settings = Settings.from_env(project_root=Path(__file__).resolve().parent)
 
 
 
-def expected_goals_all_shots(game: Game, team_id:int | str| None=None) -> Iterable[dict]:
-    events = [e.raw for e in game.events]
-
-    events = [
-        e for e in events if
-        e['expected_goals_all_shots_grade'] is not None
-    ]
+def expected_goals_all_shots(game: Game, team_id:int | str| None=None) -> Iterable[Event]:
+    # Event.grade is the expected_goals_all_shots_grade, kept under its old name.
+    events = [e for e in game.events if e.grade is not None]
     if team_id:
         events = _for_team(events, team_id)
     return events
 
-def expected_goals_on_net(game: Game) -> Iterable[dict]:
-    events = [e.raw for e in game.events]
-    events = [
-        e for e in events if
-        e['expected_goals_on_net_grade'] is not None
-    ]
-    return events
+def expected_goals_on_net(game: Game) -> Iterable[Event]:
+    return [e for e in game.events if e.expected_goals_on_net_grade is not None]
 
-def _xG_category(events: Iterable, category: str) -> Iterable[dict]:
-    return [e for e in events if e['grade'] == category]
+def _xG_category(events: Iterable[Event], category: str) -> Iterable[Event]:
+    # NOT Event.grade: add_raw_base_events writes the base event's grade into
+    # the raw payload under 'grade', and that injected value is what we want.
+    return [e for e in events if e.get_raw('grade') == category]
 
-def get_base_event(all_events, event):
-    base_event_id = event['event_id'].split('-')[1]
-    base_event = [e for e in all_events if e['event_id'] == base_event_id]
+def get_base_event(all_events: Iterable[Event], event: Event) -> Event | None:
+    # event_id stays on the raw payload: derived events carry a composite id
+    # ("5453663996-314651935") that Event.event_id parses to None.
+    base_event_id = event.get_raw('event_id').split('-')[1]
+    base_event = [e for e in all_events if e.get_raw('event_id') == base_event_id]
     if len(base_event) != 1:
         return None
     return(base_event[0])
 
-def scoring_chances(game: Game, raw:RawGame, team_id:int | str| None=None) -> Iterable[dict]:
-    all_events = [e.raw for e in game.events]
-    events = [
-        e for e in all_events if
-        e['name'] == "scoringchance"
-        # e['name'] == "shot"
-    ]
+def scoring_chances(game: Game, raw:RawGame, team_id:int | str| None=None) -> Iterable[Event]:
+    all_events = game.events
+    events = [e for e in all_events if e.name == "scoringchance"]
     events = add_raw_base_events(all_events, events, raw)
     if team_id:
         events = _for_team(events, team_id)
     return events
 
-def add_raw_base_events(all_events: Iterable[dict], events: Iterable[dict], raw_game:RawGame) -> Iterable[dict]:
+def add_raw_base_events(all_events: Iterable[Event], events: Iterable[Event], raw_game:RawGame) -> Iterable[Event]:
+    """Fold the base event's xG grade into each chance's raw payload.
+
+    Event is frozen, so the injected 'grade'/'xg_value' land in ``e.raw`` and
+    are read back with get_raw -- see _xG_category.
+    """
     res = []
     for e in events:
-        if '-' in e['event_id']:
-            base_event_id = e['event_id'].split('-')[1]
-            base_events = [e for e in all_events if e['event_id'] == base_event_id]
+        event_id = e.get_raw('event_id')
+        if event_id is not None and '-' in str(event_id):
+            base_event_id = str(event_id).split('-')[1]
+            base_events = [b for b in all_events if b.get_raw('event_id') == base_event_id]
             if len(base_events) != 1:
                 print("Missing base event")
                 continue
             base_event = base_events[0]
-            e['grade'] = raw_game.full_event_field(base_event['current_possession'],base_event['current_play_in_possession'], 'shot', 'expected_goals_all_shots_grade')
-            e['xg_value'] = raw_game.full_event_field(base_event['current_possession'],
-                                              base_event['current_play_in_possession'], 'shot',
-                                              'expected_goals_all_shots')
-            #e['grade'] = grade
+            e.raw['grade'] = raw_game.full_event_field(
+                base_event.current_possession, base_event.current_play_in_possession,
+                'shot', 'expected_goals_all_shots_grade')
+            e.raw['xg_value'] = raw_game.full_event_field(
+                base_event.current_possession, base_event.current_play_in_possession,
+                'shot', 'expected_goals_all_shots')
         res.append(e)
     return res
 
-def ogp_passes_otr(game, team_id=None):
-    events = [e.raw for e in game.events]
+def _successful_passes(game: Game, team_id=None) -> list[Event]:
+    events = game.events
     if team_id:
-        events = [e for e in events if e["team_id"] == str(team_id)]
-    passes = [e for e in events if e["name"] == "pass" and e["outcome"] == "successful"]
-    ogp_passes_otr = [e for e in passes if e["type"] == "rush"]
-    return ogp_passes_otr
+        events = _for_team(events, team_id)
+    return [e for e in events if e.name == "pass" and e.outcome == "successful"]
 
-def ogp_passes_1timer(game, team_id=None):
-    events = [e.raw for e in game.events]
-    if team_id:
-        events = [e for e in events if e["team_id"] == str(team_id)]
-    passes = [e for e in events if e["name"] == "pass" and e["outcome"] == "successful"]
-    ogp_passes_1timer = [e for e in passes if "1timer" in e["flags"]]
-    return ogp_passes_1timer
+def ogp_passes_otr(game, team_id=None) -> list[Event]:
+    return [e for e in _successful_passes(game, team_id) if e.type == "rush"]
 
-def ogp_passes_to_slot(game, team_id=None):
-    events = [e.raw for e in game.events]
-    if team_id:
-        events = [e for e in events if e["team_id"] == str(team_id)]
-    passes = [e for e in events if e["name"] == "pass" and e["outcome"] == "successful"]
-    ogp_passes_to_slot = [e for e in passes if e["type"] == "slot"]
-    return ogp_passes_to_slot
+def ogp_passes_1timer(game, team_id=None) -> list[Event]:
+    return [e for e in _successful_passes(game, team_id) if "1timer" in e.flags]
 
-def ogp(game, team_id=None) -> list[dict]:
-    events = [e.raw for e in game.events]
-    if team_id:
-        events = [e for e in events if e["team_id"] == str(team_id)]
+def ogp_passes_to_slot(game, team_id=None) -> list[Event]:
+    return [e for e in _successful_passes(game, team_id) if e.type == "slot"]
 
-    passes = [e for e in events if e["name"] == "pass" and e["outcome"] == "successful"]
-    ogp_passes_otr = [e for e in passes if e["type"] == "rush"]
-    ogp_passes_1timer = [e for e in passes if "1timer" in e["flags"]]
-    ogp_passes_to_slot = [e for e in passes if e["type"] == "slot"]
-    all_ogp_passes = ogp_passes_otr + ogp_passes_1timer + ogp_passes_to_slot
-    ogp_all_passes = list({item["event_id"]: item for item in all_ogp_passes}.values())
-    return ogp_all_passes
+def ogp(game, team_id=None) -> list[Event]:
+    all_ogp_passes = (ogp_passes_otr(game, team_id)
+                      + ogp_passes_1timer(game, team_id)
+                      + ogp_passes_to_slot(game, team_id))
+    # deduped on the raw event_id, which is a string on every source
+    return list({e.get_raw('event_id'): e for e in all_ogp_passes}.values())
 
+def _with_shot(events: Iterable[Event]) -> Iterable[Event]:
+    return [e for e in events if 'withshot' in e.type]
 
-    return all_ogp_passes
+def _with_slotshot(events: Iterable[Event]) -> Iterable[Event]:
+    return [e for e in events if 'withslotshot' in e.flags]
 
-def _with_shot(events: Iterable) -> Iterable[Event]:
-    return [e for e in events if 'withshot' in e['type']]
+def _with_shotonnet(events: Iterable[Event]) -> Iterable[Event]:
+    return [e for e in events if 'withshotonnet' in e.flags]
 
-def _with_slotshot(events: Iterable) -> Iterable[Event]:
-    return [e for e in events if 'withslotshot' in e['flags']]
+def _with_play_after(events: Iterable[Event]) -> Iterable[Event]:
+    return [e for e in events if 'withplayafter' in e.flags]
 
-def _with_shotonnet(events: Iterable) -> Iterable[Event]:
-    return [e for e in events if 'withshotonnet' in e['flags']]
+def _successul(events: Iterable[Event]) -> Iterable[Event]:
+    return [e for e in events if e.outcome == 'successful']
 
-def _with_play_after(events: Iterable):
-    return [e for e in events if 'withplayafter' in e['flags']]
+def _failed(events: Iterable[Event]) -> Iterable[Event]:
+    return [e for e in events if e.outcome == 'failed']
 
-def _successul(events: Iterable):
-    return [e for e in events if e['outcome'] == 'successful']
-
-def _failed(events: Iterable):
-    return [e for e in events if e['outcome'] == 'failed']
-
-def _for_team(events: Iterable, team_id: int | str) -> Iterable:
-    return [e for e in events if e['team_id'] == str(team_id)]
+def _for_team(events: Iterable[Event], team_id: int | str) -> Iterable[Event]:
+    return [e for e in events if e.team_id == int(team_id)]
 
 
 def get_full_data(game: Game, raw_game:RawGame) -> dict:
@@ -165,7 +145,7 @@ def get_full_data(game: Game, raw_game:RawGame) -> dict:
         ogp_1timer =  ogp_passes_1timer(game, team_id=team_id)
         ogp_to_slot = ogp_passes_to_slot(game, team_id=team_id)
         all_ogp_passes = ogp_otr + ogp_1timer + ogp_to_slot
-        ogp_all_passes = list({item["event_id"]: item for item in all_ogp_passes}.values())
+        ogp_all_passes = list({item.get_raw('event_id'): item for item in all_ogp_passes}.values())
 
         res[team_id] = {
 

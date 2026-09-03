@@ -60,8 +60,6 @@ class metricsHandler(object):
 
 
     # DZ EXITS
-    def controlled_exits(self):
-        return 33
 
     def controlled_exits(self):
         return controlled_exits(self.game)

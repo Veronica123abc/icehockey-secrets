@@ -16,56 +16,52 @@ settings = Settings.from_env(project_root=Path(__file__).resolve().parent)
 
 
 
-def all_shots(game: Game) -> Iterable:
-    events = [e.raw for e in game.events]
-    events = [e for e in events if
-             e['name'] in ['shot']]
-    return events
+def all_shots(game: Game) -> Iterable[Event]:
+    return [e for e in game.events if e.name == 'shot']
 
-def _deflected(events: Iterable) -> Iterable:
-    return [e for e in events if 'deflected' in e['flags']]
+def _deflected(events: Iterable[Event]) -> Iterable[Event]:
+    return [e for e in events if 'deflected' in e.flags]
 
-def _with_pressure(events: Iterable) -> Iterable:
-    return [e for e in events if 'withpressure' in e['flags']]
+def _with_pressure(events: Iterable[Event]) -> Iterable[Event]:
+    return [e for e in events if 'withpressure' in e.flags]
 
-def _slot(events: Iterable) -> Iterable:
-    return [e for e in events if 'slot' in e['type']]
+def _slot(events: Iterable[Event]) -> Iterable[Event]:
+    return [e for e in events if 'slot' in e.type]
 
-def _inner_slot(events: Iterable, raw: RawGame) -> list:
+def _inner_slot(events: Iterable[Event], raw: RawGame) -> list[Event]:
     """Filter to inner-slot events. Lazily loads playsequence.json on first call via raw."""
     events = _slot(events)
     return [
-        #e for e in events if raw.full_event_field(float(e['game_time']), e['name'], 'play_section') == 'innerSlot'
-        e for e in events if raw.full_event_field(e['current_possession'], e['current_play_in_possession'], e['name'], 'play_section') == 'innerSlot'
-        #if e.get('type') == 'slot' in e.get('ty')
-        #and raw.full_event_field(float(e['game_time']), e['name'], 'play_section') == 'innerSlot'
+        e for e in events
+        if raw.full_event_field(e.current_possession, e.current_play_in_possession,
+                                e.name, 'play_section') == 'innerSlot'
     ]
 
-def _outside(events: Iterable) -> Iterable:
-    return [e for e in events if 'outside' in e['type']]
+def _outside(events: Iterable[Event]) -> Iterable[Event]:
+    return [e for e in events if 'outside' in e.type]
 
-def _blocked(events: Iterable) -> Iterable:
-    return [e for e in events if 'blocked' in e['type']]
+def _blocked(events: Iterable[Event]) -> Iterable[Event]:
+    return [e for e in events if 'blocked' in e.type]
 
-def _missed(events: Iterable) -> Iterable:
-    return [e for e in events if 'blocked' not in e['type'] and
-            e['outcome'] == 'failed'
+def _missed(events: Iterable[Event]) -> Iterable[Event]:
+    return [e for e in events if 'blocked' not in e.type and
+            e.outcome == 'failed'
             ]
 
 
 
 
-def _onnet(events: Iterable):
+def _onnet(events: Iterable[Event]) -> Iterable[Event]:
     return _successful(events)
 
-def _successful(events: Iterable):
-    return [e for e in events if e['outcome'] == 'successful']
+def _successful(events: Iterable[Event]) -> Iterable[Event]:
+    return [e for e in events if e.outcome == 'successful']
 
-def _failed(events: Iterable):
-    return [e for e in events if e['outcome'] == 'failed']
+def _failed(events: Iterable[Event]) -> Iterable[Event]:
+    return [e for e in events if e.outcome == 'failed']
 
-def _for_team(events: Iterable, team_id: int) -> Iterable:
-    return [e for e in events if e['team_id'] == str(team_id)]
+def _for_team(events: Iterable[Event], team_id: int) -> Iterable[Event]:
+    return [e for e in events if e.team_id == int(team_id)]
 
 
 def get_full_data(game, raw_game:RawGame):

@@ -1,6 +1,5 @@
 #!/usr/bin/python
 from __future__ import annotations
-
 from pathlib import Path
 from collections.abc import Iterable
 
@@ -15,51 +14,35 @@ from hockey.model.game import Game
 settings = Settings.from_env(project_root=Path(__file__).resolve().parent)
 
 def opposition_dumpin_recoveries(game: Game) -> Iterable[Event]:
-    events = [e.raw for e in game.events]
-    exits = [e for e in events if
-             e['name'] in ['dumpinrecovery'] and
-             e['type'] == 'defensive'
-            ]
-    return exits
+    return [e for e in game.events if
+            e.name == 'dumpinrecovery' and e.type == 'defensive']
 
 def controlled_exits(game: Game) -> Iterable[Event]:
-    events = [e.raw for e in game.events]
-    exits = [e for e in events if
-             e['name'] in ['controlledexit']
-             and e['outcome'] == 'successful']
-    return exits
+    return [e for e in game.events if
+            e.name == 'controlledexit' and e.outcome == 'successful']
 
 def dz_carry_outs(game: Game) -> Iterable[Event]:
-    events = [e.raw for e in game.events]
-    exits = [e for e in events if
-             e['name'] in ['controlledexit'] and
-             'carry' in e['type']]
-    return exits
+    return [e for e in game.events if
+            e.name == 'controlledexit' and 'carry' in e.type]
 
 def exit_pass(game: Game) -> Iterable[Event]:
-    events = [e.raw for e in game.events]
-    exits = [e for e in events if
-             e['name'] in ['controlledexit'] and
-             'pass' in e['type']]
-    return exits
+    return [e for e in game.events if
+            e.name == 'controlledexit' and 'pass' in e.type]
 
 def dumpouts(game: Game) -> Iterable[Event]:
-    events = [e.raw for e in game.events]
-    exits = [e for e in events if
-             e['name'] in ['dumpout']]
-    return exits
+    return [e for e in game.events if e.name == 'dumpout']
 
-def _with_play_after(events: Iterable):
-    return [e for e in events if 'withplay' in e['type']]
+def _with_play_after(events: Iterable[Event]) -> Iterable[Event]:
+    return [e for e in events if 'withplay' in e.type]
 
-def _successful(events: Iterable):
-    return [e for e in events if e['outcome'] == 'successful']
+def _successful(events: Iterable[Event]) -> Iterable[Event]:
+    return [e for e in events if e.outcome == 'successful']
 
-def _failed(events: Iterable):
-    return [e for e in events if e['outcome'] == 'failed']
+def _failed(events: Iterable[Event]) -> Iterable[Event]:
+    return [e for e in events if e.outcome == 'failed']
 
-def _for_team(events: Iterable, team_id: int) -> Iterable:
-    return [e for e in events if e['team_id'] == str(team_id)]
+def _for_team(events: Iterable[Event], team_id: int) -> Iterable[Event]:
+    return [e for e in events if e.team_id == int(team_id)]
 
 def get_full_data(game):
     team_ids = [game.info.home_team.id, game.info.away_team.id]

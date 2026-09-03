@@ -42,6 +42,15 @@ def _int_list(xs):
     return out
 
 
+def _flag_list(xs) -> list[str]:
+    """Supplier sends a list of flag strings; missing/null means no flags."""
+    if not xs:
+        return []
+    if isinstance(xs, str):          # defensive: never seen in the JSON files
+        return [t.strip() for t in xs.split(",") if t.strip()]
+    return [str(x).strip() for x in xs if str(x).strip()]
+
+
 def _resolve_team_id(e: dict, key_name: str, key_id: str, teams: TeamResolver) -> Optional[int]:
     """
     Resolve a team ID from an event dict, handling both playsequence formats.
@@ -133,6 +142,11 @@ def normalize_playsequence(
                     e.get("expected_goals_on_net")),
                 expected_goals_on_net_grade=_maybe_str(
                     e.get("expected_goals_on_net_grade")),
+                outcome=_maybe_str(e.get("outcome")),
+                flags=_flag_list(e.get("flags")),
+                current_possession=_maybe_int(e.get("current_possession")),
+                current_play_in_possession=_maybe_int(
+                    e.get("current_play_in_possession")),
             )
         )
 
