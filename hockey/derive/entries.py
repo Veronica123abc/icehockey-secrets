@@ -40,9 +40,9 @@ _PASS_OZ_TYPES = frozenset({"ozentry", "ozentryoffboards", "ozentrystretchoffboa
 
 def _classify_entry(event) -> str | None:
     name = event.name
-    if name == "carry" and event.get_raw("zone") == "oz" and event.get_raw("outcome") == "successful":
+    if name == "carry" and event.zone == "oz" and event.outcome == "successful":
         return "carry"
-    if name == "dumpin" and event.get_raw("outcome") == "successful":
+    if name == "dumpin" and event.outcome == "successful":
         return "dumpin"
     if name == "pass" and event.type in _PASS_OZ_TYPES:
         return "pass"
@@ -94,8 +94,8 @@ def zone_entries(game: Game) -> dict[int, list[ZoneEntry]]:
         if entry_type is not None:
             team = event.team_id_in_possession or event.team_id
             if team is not None and team in result:
-                team_sk = event.get_raw("team_skaters_on_ice")
-                opp_sk = event.get_raw("opposing_team_skaters_on_ice")
+                team_sk = event.team_skaters_on_ice
+                opp_sk = event.opposing_team_skaters_on_ice
                 #if team == home_team_id:
                 #    mps = ManpowerSituation(team_skaters=team_sk, away_team_skaters=opp_sk)
                 #else:

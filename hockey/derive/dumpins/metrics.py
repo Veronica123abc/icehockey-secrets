@@ -16,9 +16,6 @@ settings = Settings.from_env(project_root=Path(__file__).resolve().parent)
 
 
 
-def dumpin_old(game: Game) -> Iterable[Event]:
-    return [e for e in game.events if e.name == 'dumpin']
-
 
 def dumpin(game: Game) -> Iterable[Event]:
     return [e for e in game.events if e.name == 'dumpinentry']
@@ -92,6 +89,7 @@ def print_res(res):
 
 if __name__ == "__main__":
     GAME_ID = 191848
+    GAME_ID = 186461
     raw = RawGame(game_id=GAME_ID, root_dir=settings.data_root_dir, playsequence_source="playsequence_compiled")
     game = build_game(raw)
     team_id=322

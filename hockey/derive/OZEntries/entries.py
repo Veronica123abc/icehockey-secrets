@@ -51,7 +51,7 @@ def _classify_entry(event, faceoff_as_entry: bool=False) -> str | None:
 
     if event.name in ["controlledentry", "dumpinentry"]:
         return event.name
-    if event.name == "faceoff" and faceoff_as_entry and event.get_raw('zone') == "oz":
+    if event.name == "faceoff" and faceoff_as_entry and event.zone == "oz":
         return event.name
 
     return None
@@ -59,7 +59,7 @@ def _classify_entry(event, faceoff_as_entry: bool=False) -> str | None:
 def _classify_exit(event):
     if event.name == "controlledentry":
         return event.name
-    if event.name == "zoneexit"  and event.get_raw('outcome') == "successful":
+    if event.name == "zoneexit"  and event.outcome == "successful":
         return event.name
 
 # Events that end the current OZ possession (a DZ exit by the defending team).
@@ -108,13 +108,13 @@ def zone_entries(game: Game, faceoff_as_entry:bool=False) -> dict[int, list[Zone
 
     for event in events:
         entry_type = _classify_entry(event, faceoff_as_entry)
-        if event.get_raw('team_skater_on_ice') != 5 and event.get_raw('opposing_team_skaters_on_ice') != 5:
+        if event.team_skaters_on_ice != 5 or event.opposing_team_skaters_on_ice != 5:
             continue
         if entry_type is not None:
             team = event.team_id_in_possession or event.team_id
             if team is not None and team in result:
-                team_sk = event.get_raw("team_skaters_on_ice")
-                opp_sk = event.get_raw("opposing_team_skaters_on_ice")
+                team_sk = event.team_skaters_on_ice
+                opp_sk = event.opposing_team_skaters_on_ice
                 mps = ManpowerSituation(team_skaters=team_sk, opposing_team_skaters=opp_sk)
                 shift_data = game.current_shift_toi(event.t)
                 opposing_id = away_team_id if team == home_team_id else home_team_id

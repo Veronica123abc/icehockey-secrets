@@ -45,6 +45,13 @@ class Event:
     # though ~5% are null in the uncompiled one, hence Optional.
     current_possession: Optional[int] = None
     current_play_in_possession: Optional[int] = None
+    # "oz" / "dz" / "nz". Present on every event of both playsequence files and
+    # a column on both event tables.
+    zone: Optional[str] = None
+    # Skater counts at the event, for manpower filters (5v5 and friends).
+    # int on all four sources; null on ~3% of uncompiled playsequence events.
+    team_skaters_on_ice: Optional[int] = None
+    opposing_team_skaters_on_ice: Optional[int] = None
 
     @property
     def players_on_ice(self) -> list[int]:

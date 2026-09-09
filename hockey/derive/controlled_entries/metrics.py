@@ -1,6 +1,5 @@
 #!/usr/bin/python
 from __future__ import annotations
-
 from pathlib import Path
 from collections.abc import Iterable
 
@@ -12,7 +11,9 @@ from hockey.data_collection.sportlogiq_api import download_complete_games
 from hockey.io.raw_game import RawGame
 from hockey.normalize.build_game import build_game
 from hockey.model.game import Game
+from hockey.derive.event_filter import EventFilter
 settings = Settings.from_env(project_root=Path(__file__).resolve().parent)
+filter = EventFilter(settings)
 
 def oz_carry(game: Game) -> Iterable[Event]:
     return [e for e in game.events if
@@ -34,6 +35,21 @@ def _failed(events: Iterable[Event]) -> Iterable[Event]:
 def _for_team(events: Iterable[Event], team_id: int) -> Iterable[Event]:
     return [e for e in events if e.team_id == int(team_id)]
 
+# Dumpin types (flags)
+def _rim(events: Iterable[Event]) -> Iterable[Event]:
+    return [e for e in events if 'rim' in e.flags]
+
+def _crossice(events: Iterable[Event]) -> Iterable[Event]:
+    return [e for e in events if 'crossice' in e.flags]
+
+def _soft(events: Iterable[Event]) -> Iterable[Event]:
+    return [e for e in events if 'soft' in e.flags]
+
+def _sameside(events: Iterable[Event]) -> Iterable[Event]:
+    return [e for e in events if 'sameside' in e.flags]
+
+
+
 def get_full_data(game: Game) -> dict:
     team_ids = [game.info.home_team.id, game.info.away_team.id]
     res = {
@@ -45,12 +61,20 @@ def get_full_data(game: Game) -> dict:
         all_carries = oz_carry(game)
         all_team_carries = _for_team(all_carries, team_id)
         all_team_carries_with_play = _whith_play_after(all_team_carries)
+        all_team_carries_with_play = filter.with_flags(all_team_carries, "withplayafter")
+        all_team_carries_with_shot_on_net = filter.with_flags(all_team_carries, "withshotonnet")
+        all_team_carries_with_slotshot = filter.with_flags(all_team_carries, "withslotshot")
+
 
         all_pass_attempts = oz_pass(game)
         all_team_pass_attempts = _for_team(all_pass_attempts, team_id)
         all_successful_team_pass = _successul(all_team_pass_attempts)
         all_failed_team_pass_attempts = _failed(all_team_pass_attempts)
         all_successful_pass_with_play = _whith_play_after(all_successful_team_pass)
+
+        all_successful_team_pass_with_play = filter.with_flags(all_successful_team_pass, "withplayafter")
+        all_successful_team_pass_with_shot_on_net = filter.with_flags(all_successful_team_pass, "withshotonnet")
+        all_successful_team_pass_with_slotshot = filter.with_flags(all_successful_team_pass, "withslotshot")
 
         res[team_id] = {
 
@@ -59,10 +83,15 @@ def get_full_data(game: Game) -> dict:
             "Total Successful OZ Entries": all_team_carries + all_successful_team_pass,
             "Successful OZ Carries": all_team_carries,
             "Carries with play after": all_team_carries_with_play,
+            "Carries with shot on net": all_team_carries_with_shot_on_net,
+            "Carries with shot from slot": all_team_carries_with_slotshot,
 
             "Attempted Entries with pass": all_team_pass_attempts,
             "Successful Entries with pass": all_successful_team_pass,
-            "Entries with pass and play after": all_successful_pass_with_play,
+            "Entries with pass and play after": all_successful_team_pass_with_play,
+            "Entries with pass and shot on net": all_successful_team_pass_with_shot_on_net,
+            "Entries with pass and slotshot": all_successful_team_pass_with_slotshot,
+
 
             "Attempted Controlled Entries": all_team_carries + all_team_pass_attempts,
             "Successful Controlled Entries": all_team_carries + all_successful_team_pass
@@ -80,6 +109,7 @@ def print_res(res):
 if __name__ == "__main__":
     GAME_ID = 191848
     GAME_ID = 191504
+    GAME_ID = 186461
     raw = RawGame(game_id=GAME_ID, root_dir=settings.data_root_dir, playsequence_source="playsequence_compiled")
     game = build_game(raw)
     team_id=308

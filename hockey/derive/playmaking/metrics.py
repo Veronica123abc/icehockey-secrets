@@ -13,6 +13,7 @@ from hockey.io.raw_game import RawGame
 from hockey.normalize.build_game import build_game
 from hockey.normalize.update_game import update_game
 from hockey.model.game import Game
+from hockey.derive.base_events import index_by_event_id, base_event
 
 settings = Settings.from_env(project_root=Path(__file__).resolve().parent)
 
@@ -34,15 +35,6 @@ def _xG_category(events: Iterable[Event], category: str) -> Iterable[Event]:
     # the raw payload under 'grade', and that injected value is what we want.
     return [e for e in events if e.get_raw('grade') == category]
 
-def get_base_event(all_events: Iterable[Event], event: Event) -> Event | None:
-    # event_id stays on the raw payload: derived events carry a composite id
-    # ("5453663996-314651935") that Event.event_id parses to None.
-    base_event_id = event.get_raw('event_id').split('-')[1]
-    base_event = [e for e in all_events if e.get_raw('event_id') == base_event_id]
-    if len(base_event) != 1:
-        return None
-    return(base_event[0])
-
 def scoring_chances(game: Game, raw:RawGame, team_id:int | str| None=None) -> Iterable[Event]:
     all_events = game.events
     events = [e for e in all_events if e.name == "scoringchance"]
@@ -57,22 +49,22 @@ def add_raw_base_events(all_events: Iterable[Event], events: Iterable[Event], ra
     Event is frozen, so the injected 'grade'/'xg_value' land in ``e.raw`` and
     are read back with get_raw -- see _xG_category.
     """
+    index = index_by_event_id(all_events)
     res = []
     for e in events:
-        event_id = e.get_raw('event_id')
-        if event_id is not None and '-' in str(event_id):
-            base_event_id = str(event_id).split('-')[1]
-            base_events = [b for b in all_events if b.get_raw('event_id') == base_event_id]
-            if len(base_events) != 1:
-                print("Missing base event")
-                continue
-            base_event = base_events[0]
+        base = base_event(e, index)
+        # ``base is e`` means e is itself a base event (they are
+        # self-referential), so there is nothing to fold in.
+        if base is not None and base is not e:
             e.raw['grade'] = raw_game.full_event_field(
-                base_event.current_possession, base_event.current_play_in_possession,
+                base.current_possession, base.current_play_in_possession,
                 'shot', 'expected_goals_all_shots_grade')
             e.raw['xg_value'] = raw_game.full_event_field(
-                base_event.current_possession, base_event.current_play_in_possession,
+                base.current_possession, base.current_play_in_possession,
                 'shot', 'expected_goals_all_shots')
+        elif base is None and e.base_event_id is not None:
+            print("Missing base event")
+            continue
         res.append(e)
     return res
 
@@ -177,4 +169,4 @@ if __name__ == "__main__":
 
     res = get_full_data(game, raw)
     print_res(res)
-    print(res)
+    #print(res)

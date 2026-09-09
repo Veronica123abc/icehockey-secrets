@@ -147,6 +147,10 @@ def normalize_playsequence(
                 current_possession=_maybe_int(e.get("current_possession")),
                 current_play_in_possession=_maybe_int(
                     e.get("current_play_in_possession")),
+                zone=_maybe_str(e.get("zone")),
+                team_skaters_on_ice=_maybe_int(e.get("team_skaters_on_ice")),
+                opposing_team_skaters_on_ice=_maybe_int(
+                    e.get("opposing_team_skaters_on_ice")),
             )
         )
 

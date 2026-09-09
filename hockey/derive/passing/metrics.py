@@ -1,0 +1,65 @@
+#!/usr/bin/python
+from __future__ import annotations
+
+from pathlib import Path
+from collections.abc import Iterable
+
+from hockey.model.events import Event
+from hockey.data_collection.sportlogiq_api import SportlogiqApi
+from hockey.config.settings import Settings
+from hockey.catalog import DataCatalog
+from hockey.data_collection.sportlogiq_api import download_complete_games
+from hockey.io.raw_game import RawGame
+from hockey.normalize.build_game import build_game
+from hockey.model.game import Game
+settings = Settings.from_env(project_root=Path(__file__).resolve().parent)
+
+
+
+def dumpin_old(game: Game) -> Iterable[Event]:
+    return [e for e in game.events if e.name == 'dumpin']
+
+
+def dumpin(game: Game) -> Iterable[Event]:
+    return [e for e in game.events if e.name == 'dumpinentry']
+
+def get_full_data(game: Game) -> dict:
+    team_ids = [game.info.home_team.id, game.info.away_team.id]
+    res = {
+        team_ids[0]:{},
+        team_ids[1]:{},
+    }
+
+    for team_id in team_ids:
+        all_dumpin_attempts = dumpin(game)
+        all_dumpin_attempts_team = _for_team(all_dumpin_attempts, team_id)
+        all_recoveries = dumpin_recovery(game)
+        recoveries_team = _for_team(all_recoveries, team_id)
+        recoveries_team_with_son = _with_shotonnet(recoveries_team)
+        recoveries_team_with_shot = _with_shot(recoveries_team)
+        recoveries_team_with_slotshot = _with_slotshot(recoveries_team)
+
+        res[team_id] = {
+            'All Attempts': all_dumpin_attempts_team,
+            'Recovered dumpins': recoveries_team,
+            #'Recovered with shot': recoveries_team_with_shot,
+            'Recovered with slot shot': recoveries_team_with_slotshot,
+            'Recovered with shot on net': recoveries_team_with_son
+        }
+    return res
+
+def print_res(res):
+    for k in list(res.keys()):
+        for key in list(res[k].keys()):
+            print(key, ' ', len(res[k][key]))
+
+
+if __name__ == "__main__":
+    GAME_ID = 191848
+    raw = RawGame(game_id=GAME_ID, root_dir=settings.data_root_dir, playsequence_source="playsequence_compiled")
+    game = build_game(raw)
+    team_id=322
+
+    res = get_full_data(game)
+    print_res(res)
+    print(res)

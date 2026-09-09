@@ -196,6 +196,9 @@ def build_game_from_db(game_sl_id: int, conn, *, compiled: bool = False) -> Game
                 flags=_split_flags(row.get('flags')),
                 current_possession=_maybe_int(row.get('current_possession')),
                 current_play_in_possession=_maybe_int(row.get('current_play_in_possession')),
+                zone=row.get('zone') or None,
+                team_skaters_on_ice=_maybe_int(row.get('team_skaters_on_ice')),
+                opposing_team_skaters_on_ice=_maybe_int(row.get('opposing_team_skaters_on_ice')),
                 raw=dict(row),
             )
 

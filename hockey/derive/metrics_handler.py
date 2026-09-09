@@ -17,7 +17,7 @@ from hockey.derive.controlled_entries.metrics import oz_carry, oz_pass
 from hockey.derive.dumpins.metrics import dumpin, dumpin_recovery, dumpin_entry, chipin
 from hockey.derive.DZExits.metrics import controlled_exits, dz_carry_outs, exit_pass, dumpouts, opposition_dumpin_recoveries
 from hockey.derive.playmaking.metrics import expected_goals_all_shots, expected_goals_on_net, ogp_passes_otr, ogp_passes_1timer, ogp_passes_to_slot, ogp, scoring_chances
-from hockey.derive.shooting.metrics_v2 import all_shots
+from hockey.derive.shooting.metrics import all_shots
 
 class metricsHandler(object):
 

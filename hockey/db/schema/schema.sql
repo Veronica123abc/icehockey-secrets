@@ -1,8 +1,3 @@
--- MySQL dump 10.13  Distrib 8.0.42, for Linux (x86_64)
---
--- Host: localhost    Database: hockeystats_ver3
--- ------------------------------------------------------
--- Server version	8.0.42-0ubuntu0.20.04.1
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -14,12 +9,6 @@
 /*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
-
---
--- Table structure for table `affiliation`
---
-
-DROP TABLE IF EXISTS `affiliation`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `affiliation` (
@@ -38,14 +27,8 @@ CREATE TABLE `affiliation` (
   CONSTRAINT `affiliation_game_id` FOREIGN KEY (`game_id`) REFERENCES `game` (`id`),
   CONSTRAINT `affiliation_player_id` FOREIGN KEY (`player_id`) REFERENCES `player` (`id`),
   CONSTRAINT `affiliation_team_id` FOREIGN KEY (`team_id`) REFERENCES `team` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=226812 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=240003 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `compiled_event`
---
-
-DROP TABLE IF EXISTS `compiled_event`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `compiled_event` (
@@ -90,12 +73,6 @@ CREATE TABLE `compiled_event` (
   CONSTRAINT `fk_compiled_event_2` FOREIGN KEY (`player_id`) REFERENCES `player` (`id`) ON UPDATE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `event`
---
-
-DROP TABLE IF EXISTS `event`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `event` (
@@ -144,7 +121,7 @@ CREATE TABLE `event` (
   `expected_goals_all_shots` float DEFAULT NULL,
   `expected_goals_on_net_grade` varchar(10) DEFAULT NULL,
   `expected_goals_all_shots_grade` varchar(10) DEFAULT NULL,
-  `opposing_team_skaters_on_ice` varchar(45) DEFAULT NULL,
+  `opposing_team_skaters_on_ice` int DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `id_UNIQUE` (`id`),
   UNIQUE KEY `game_event_UNIQUE` (`game_id`,`sl_id`),
@@ -152,14 +129,8 @@ CREATE TABLE `event` (
   KEY `fk_event_game_idx` (`game_id`),
   KEY `fk_event_player_idx` (`player_reference_id`),
   CONSTRAINT `event_game` FOREIGN KEY (`game_id`) REFERENCES `game` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=27339722 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=28306145 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `game`
---
-
-DROP TABLE IF EXISTS `game`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `game` (
@@ -189,14 +160,8 @@ CREATE TABLE `game` (
   CONSTRAINT `game_away_team_team_id` FOREIGN KEY (`away_team_id`) REFERENCES `team` (`id`),
   CONSTRAINT `game_home_team_id` FOREIGN KEY (`home_team_id`) REFERENCES `team` (`id`),
   CONSTRAINT `game_league_id` FOREIGN KEY (`league_id`) REFERENCES `league` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE=InnoDB AUTO_INCREMENT=9474 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=11104 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `league`
---
-
-DROP TABLE IF EXISTS `league`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `league` (
@@ -206,14 +171,8 @@ CREATE TABLE `league` (
   `sl_name` varchar(50) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `league_sl_id` (`sl_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=422 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=498 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `participation`
---
-
-DROP TABLE IF EXISTS `participation`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `participation` (
@@ -227,14 +186,8 @@ CREATE TABLE `participation` (
   KEY `participation_league` (`league_id`),
   CONSTRAINT `participation_league` FOREIGN KEY (`league_id`) REFERENCES `league` (`id`),
   CONSTRAINT `participation_team` FOREIGN KEY (`team_id`) REFERENCES `team` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=223 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=387 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `player`
---
-
-DROP TABLE IF EXISTS `player`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `player` (
@@ -242,16 +195,27 @@ CREATE TABLE `player` (
   `sl_id` int DEFAULT NULL,
   `first_name` varchar(255) DEFAULT NULL,
   `last_name` varchar(255) DEFAULT NULL,
+  `display_first_name` varchar(45) DEFAULT NULL,
+  `display_last_name` varchar(45) DEFAULT NULL,
+  `birthdate` datetime DEFAULT NULL,
+  `birth_city` varchar(45) DEFAULT NULL,
+  `birth_province` varchar(45) DEFAULT NULL,
+  `birth_country` varchar(45) DEFAULT NULL,
+  `nationality` varchar(45) DEFAULT NULL,
+  `picture_source` varchar(45) DEFAULT NULL,
+  `current_salary` int DEFAULT NULL,
+  `free_agent_status` varchar(45) DEFAULT NULL,
+  `future_free_agent_status` varchar(45) DEFAULT NULL,
+  `future_free_agent_year` varchar(45) DEFAULT NULL,
+  `primary_position` varchar(6) DEFAULT NULL,
+  `weight` int DEFAULT NULL,
+  `height` int DEFAULT NULL,
+  `laterality` varchar(4) DEFAULT NULL,
+  `updated_on` varchar(45) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `player_sl_id` (`sl_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=4500 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=19741 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `shift`
---
-
-DROP TABLE IF EXISTS `shift`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `shift` (
@@ -266,14 +230,8 @@ CREATE TABLE `shift` (
   KEY `fk_game_idx` (`game_id`),
   CONSTRAINT `fk_toi_shift_game` FOREIGN KEY (`game_id`) REFERENCES `game` (`id`),
   CONSTRAINT `fk_toi_shift_player` FOREIGN KEY (`player_id`) REFERENCES `player` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=746 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=263750 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `team`
---
-
-DROP TABLE IF EXISTS `team`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `team` (
@@ -291,7 +249,7 @@ CREATE TABLE `team` (
   `sl_id` int DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `sl_id_UNIQUE` (`sl_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=6353 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=17866 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
@@ -303,4 +261,3 @@ CREATE TABLE `team` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-04-21 21:53:14
