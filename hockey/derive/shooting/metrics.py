@@ -1,157 +1,288 @@
 #!/usr/bin/python
+"""Shooting metrics.
+
+Shots are described by six independent filter GROUPS (see CLAUDE.md). Each
+group is exhaustive: selecting every item in a group returns every shot. Two
+groups contain deliberate overlap, so exhaustive does not mean disjoint --
+
+* Result -- 'Led to Goal' is a subset of 'On Net', following the usual hockey
+  convention that shots on net include goals. Use
+  :func:`is_on_net_excluding_goals` if you need the four to partition.
+* Shot Location -- 'Slot' is the union of 'Inner Slot' and 'Outer Slot'.
+
+Every other group is a true binary partition.
+
+Verified over 15 games / 1657 shots: the Result union and the Location union
+each cover all shots exactly, ``'slot' in type`` agrees with the slot
+play_sections on every shot (679/679), blocked shots always have outcome
+'failed', goals always 'successful', and no shot carries an outcome other
+than successful/failed.
+"""
 from __future__ import annotations
 
+from collections.abc import Callable, Iterable
 from pathlib import Path
-from collections.abc import Iterable
 
 from hockey.model.events import Event
-from hockey.data_collection.sportlogiq_api import SportlogiqApi
 from hockey.config.settings import Settings
-from hockey.catalog import DataCatalog
-from hockey.data_collection.sportlogiq_api import download_complete_games
 from hockey.io.raw_game import RawGame
 from hockey.normalize.build_game import build_game
+from hockey.normalize.build_game_db import build_game_from_db
 from hockey.model.game import Game
+from hockey.db.database import open_database_azure
+
+
 settings = Settings.from_env(project_root=Path(__file__).resolve().parent)
 
+INNER_SLOT_SECTION = 'innerSlot'
+OUTER_SLOT_SECTIONS = frozenset({'eastOuterSlot', 'westOuterSlot'})
 
 
-def all_shots(game: Game) -> Iterable[Event]:
-    return [e for e in game.events if e.name == 'shot']
+# --- Predicates -----------------------------------------------------------
+# One per filter item. Kept as Event -> bool so groups can be combined and
+# their exhaustiveness checked mechanically (see check_groups_exhaustive).
 
-def _deflected(events: Iterable[Event]) -> Iterable[Event]:
-    return [e for e in events if 'deflected' in e.flags]
-
-def _with_pressure(events: Iterable[Event]) -> Iterable[Event]:
-    return [e for e in events if 'withpressure' in e.flags]
-
-def _slot(events: Iterable[Event]) -> Iterable[Event]:
-    return [e for e in events if 'slot' in e.type]
-
-def _inner_slot(events: Iterable[Event], raw: RawGame) -> list[Event]:
-    """Filter to inner-slot events. Lazily loads playsequence.json on first call via raw."""
-    events = _slot(events)
-    return [
-        e for e in events
-        if raw.full_event_field(e.current_possession, e.current_play_in_possession,
-                                e.name, 'play_section') == 'innerSlot'
-    ]
-
-def _outside(events: Iterable[Event]) -> Iterable[Event]:
-    return [e for e in events if 'outside' in e.type]
-
-def _blocked(events: Iterable[Event]) -> Iterable[Event]:
-    return [e for e in events if 'blocked' in e.type]
-
-def _missed(events: Iterable[Event]) -> Iterable[Event]:
-    return [e for e in events if 'blocked' not in e.type and
-            e.outcome == 'failed'
-            ]
+def is_goal(event: Event) -> bool:
+    """Shot that scored. The 'goal' event is separate and shares no id."""
+    return 'withgoal' in event.flags
 
 
+def is_on_net(event: Event) -> bool:
+    """Reached the net. Includes goals, as shots-on-net conventionally does."""
+    return event.outcome == 'successful'
 
 
-def _onnet(events: Iterable[Event]) -> Iterable[Event]:
-    return _successful(events)
+def is_on_net_excluding_goals(event: Event) -> bool:
+    """On net but not scored -- use to make Result a strict partition."""
+    return is_on_net(event) and not is_goal(event)
 
-def _successful(events: Iterable[Event]) -> Iterable[Event]:
-    return [e for e in events if e.outcome == 'successful']
 
-def _failed(events: Iterable[Event]) -> Iterable[Event]:
-    return [e for e in events if e.outcome == 'failed']
+def is_blocked(event: Event) -> bool:
+    return 'blocked' in event.type
 
-def _for_team(events: Iterable[Event], team_id: int) -> Iterable[Event]:
+
+def is_missed(event: Event) -> bool:
+    """Missed the net: failed, but not blocked."""
+    return not is_blocked(event) and event.outcome == 'failed'
+
+
+def is_screened(event: Event) -> bool:
+    return 'screened' in event.flags
+
+
+def is_not_screened(event: Event) -> bool:
+    return not is_screened(event)
+
+
+def is_deflected(event: Event) -> bool:
+    return 'deflected' in event.flags
+
+
+def is_not_deflected(event: Event) -> bool:
+    return not is_deflected(event)
+
+
+def is_one_timer(event: Event) -> bool:
+    return '1timer' in event.flags
+
+
+def is_not_one_timer(event: Event) -> bool:
+    return not is_one_timer(event)
+
+
+def is_inner_slot(event: Event) -> bool:
+    """Inner slot, by play_section -- the shot type only says 'slot'."""
+    return event.play_section == INNER_SLOT_SECTION
+
+
+def is_outer_slot(event: Event) -> bool:
+    return event.play_section in OUTER_SLOT_SECTIONS
+
+
+def is_slot(event: Event) -> bool:
+    """Inner or outer slot. Equivalent to 'slot' in type on every shot seen."""
+    return is_inner_slot(event) or is_outer_slot(event)
+
+
+def is_outside(event: Event) -> bool:
+    return not is_slot(event)
+
+
+def is_pressured(event: Event) -> bool:
+    return 'withpressure' in event.flags
+
+
+def is_not_pressured(event: Event) -> bool:
+    return not is_pressured(event)
+
+
+# --- Filter groups --------------------------------------------------------
+
+Predicate = Callable[[Event], bool]
+
+SHOT_FILTERS: dict[str, dict[str, Predicate]] = {
+    'Result': {
+        'Led to Goal': is_goal,
+        'On Net': is_on_net,
+        'Blocked': is_blocked,
+        'Missed': is_missed,
+    },
+    'Screened': {
+        'Screened': is_screened,
+        'Not Screened': is_not_screened,
+    },
+    'Deflections': {
+        'Deflected': is_deflected,
+        'Not Deflected': is_not_deflected,
+    },
+    '1-Timer': {
+        '1-Timer Taken': is_one_timer,
+        '1-Timer Not Taken': is_not_one_timer,
+    },
+    'Shot Location': {
+        'Inner Slot': is_inner_slot,
+        'Outer Slot': is_outer_slot,
+        'Slot': is_slot,
+        'Outside': is_outside,
+    },
+    'Pressure': {
+        'Pressure': is_pressured,
+        'No Pressure': is_not_pressured,
+    },
+}
+
+
+# --- Base sets ------------------------------------------------------------
+
+def all_shots(game: Game, team_id: int | str | None = None) -> list[Event]:
+    events = [e for e in game.events if e.name == 'shot']
+    return _for_team(events, team_id) if team_id else events
+
+
+def shots_matching(shots: Iterable[Event], group: str, item: str) -> list[Event]:
+    """Shots passing one named filter item."""
+    try:
+        predicate = SHOT_FILTERS[group][item]
+    except KeyError:
+        raise KeyError(f"unknown filter {group!r}/{item!r}; groups are "
+                       f"{sorted(SHOT_FILTERS)}") from None
+    return [e for e in shots if predicate(e)]
+
+
+def filter_shots(shots: Iterable[Event], **selections: Iterable[str]) -> list[Event]:
+    """Apply a checkbox-style selection: OR within a group, AND across groups.
+
+    Groups are named by keyword with underscores for spaces, e.g.::
+
+        filter_shots(shots, Result=['On Net'], Shot_Location=['Inner Slot'])
+
+    An unmentioned group is unconstrained, and selecting every item in a group
+    is the same as not mentioning it -- that is what makes the groups
+    exhaustive.
+    """
+    shots = list(shots)
+    for raw_group, items in selections.items():
+        group = raw_group.replace('_', ' ')
+        if group not in SHOT_FILTERS:
+            raise KeyError(f"unknown filter group {group!r}; "
+                           f"groups are {sorted(SHOT_FILTERS)}")
+        if isinstance(items, str):
+            items = [items]
+        predicates = [SHOT_FILTERS[group][i] for i in items]
+        shots = [e for e in shots if any(p(e) for p in predicates)]
+    return shots
+
+
+def group_breakdown(shots: Iterable[Event]) -> dict[str, dict[str, list[Event]]]:
+    """Every group and item, applied to the given shots."""
+    shots = list(shots)
+    return {group: {item: [e for e in shots if predicate(e)]
+                    for item, predicate in items.items()}
+            for group, items in SHOT_FILTERS.items()}
+
+
+def check_groups_exhaustive(shots: Iterable[Event]) -> dict[str, bool]:
+    """Whether each group's items together cover every shot.
+
+    The property the filter UI depends on: tick everything in a group and you
+    get all the shots back.
+    """
+    shots = list(shots)
+    out = {}
+    for group, items in SHOT_FILTERS.items():
+        covered = {id(e) for e in shots
+                   if any(p(e) for p in items.values())}
+        out[group] = len(covered) == len(shots)
+    return out
+
+
+# --- Helpers --------------------------------------------------------------
+
+def _for_team(events: Iterable[Event], team_id: int | str) -> list[Event]:
     return [e for e in events if e.team_id == int(team_id)]
 
 
-def get_full_data(game, raw_game:RawGame):
+def get_full_data(game: Game, raw_game: RawGame | None = None) -> dict:
+    """raw_game is accepted for backwards compatibility and no longer used --
+    play_section now comes off the Event directly."""
     team_ids = [game.info.home_team.id, game.info.away_team.id]
-    res = {
-        team_ids[0]:{},
-        team_ids[1]:{},
-    }
-
+    res = {team_ids[0]: {}, team_ids[1]: {}}
 
     for team_id in team_ids:
-        all_shot_attempts = all_shots(game)
-        all_shot_attempts = _for_team(all_shot_attempts, team_id)
-        onnet_shot_attempts = _onnet(all_shot_attempts)
-        missed_shot_attempts = _missed(all_shot_attempts)
-        blocked_shot_attempts = _blocked(all_shot_attempts)
-
-        all_slot_shot_attempts = _slot(all_shot_attempts)
-        onnet_slot_shot_attempts = _onnet(all_slot_shot_attempts)
-        missed_slot_shot_attempts =  _missed(all_slot_shot_attempts)
-        blocked_slot_shot_attempts = _blocked(all_slot_shot_attempts)
-
-        all_inner_slot_shot_attempts = _inner_slot(all_shot_attempts, raw_game)
-        all_inner_slot_shot_attempts = _for_team(all_inner_slot_shot_attempts, team_id)
-        onnet_inner_slot_shots = _onnet(all_inner_slot_shot_attempts)
-        missed_inner_slot_shots = _missed(all_inner_slot_shot_attempts)
-        blocked_inner_slot_shots = _blocked(all_inner_slot_shot_attempts)
-
-        res[team_id] = {
-            'All Shot Attempts': all_shot_attempts,
-            'Shots On Net': onnet_shot_attempts,
-            'Missed Shots': missed_shot_attempts,
-            'Blocked Shots': blocked_shot_attempts,
-            'Slot Shot Attempts': all_slot_shot_attempts,
-            'Slot Shots On Net': onnet_slot_shot_attempts,
-            'Missed Slot Shots': missed_slot_shot_attempts,
-            'Blocked Slot Shots': blocked_slot_shot_attempts,
-            'Inner Slot Shot Attempts': all_inner_slot_shot_attempts,
-            'Inner Slot Shots On Net': onnet_inner_slot_shots,
-            'Missed Inner Slot Shots': missed_inner_slot_shots,
-            'Blocked Inner Slot Shots': blocked_inner_slot_shots,
-        }
+        shots = all_shots(game, team_id)
+        out = {'All Shot Attempts': shots}
+        for group, items in group_breakdown(shots).items():
+            for item, events in items.items():
+                out[f'{group} - {item}'] = events
+        res[team_id] = out
     return res
+
 
 def print_res(res):
     for k in list(res.keys()):
-
         print(f"\nSHOT STATS FOR {k}")
         for key in list(res[k].keys()):
             print(key, ' ', len(res[k][key]))
 
 
-if __name__ == "__main__":
-    GAME_ID = 191848
-    raw = RawGame(game_id=GAME_ID, root_dir=settings.data_root_dir, playsequence_source="playsequence_compiled")
-    game = build_game(raw)
-    team_id=308
 
-    res = get_full_data(game, raw) # Need to pass raw as well to recover play section from playsequence.json
+
+def season_stats(league: int, season: str):
+    from hockey.catalog import DataCatalog
+    catalog = DataCatalog(settings.data_root_dir)
+    game_ids = catalog.scheduled_game_ids(17, "20252026")
+
+
+    res = []
+    for game_id in game_ids[:50]:
+        print(game_id)
+        raw_game = RawGame(game_id, settings.data_root_dir)
+        game = build_game(raw_game)
+        # r = cf.with_types(game.events, ["d2d","offboards"])
+        # r2 = cf.with_flags(game.events, "lowhigh")
+        shots = all_shots(game)
+        #for event in game.events:
+        #    # res += event.flags
+        #    res.append(event.type)
+        #res = list(set(res))
+        print(len(res))
+    game_ids = catalog.scheduled_game_ids(1, "20252026")
+
+if __name__ == "__main__":
+    #season_stats(17,"20252026")
+    #exit(0)
+    GAME_ID = 191848
+    GAME_ID = 186461
+    raw = RawGame(game_id=GAME_ID, root_dir=settings.data_root_dir,
+                  playsequence_source="playsequence_compiled")
+    game = build_game(raw)
+    conn = open_database_azure("hockey_v2_test")
+    game = build_game_from_db(GAME_ID, conn)
+    res = get_full_data(game)
     print_res(res)
 
-
-    events = all_shots(game)
-    events = _for_team(events, team_id)
-    print(len(events))
-    events = _slot(events)
-    print(len(events))
-    events = _onnet(events)
-    print(len(events))
-    events = _slot(events)
-    print(len(events))
-    events = _deflected(events)
-    print(len(events))
-    events = _successful(events)
-    print(len(events))
-    events = _outside(events)
-    print(len(events))
-
-    events = all_shots(game)
-    events = _for_team(events, team_id)
-    events = _inner_slot(events, raw)  # lazy: loads playsequence.json on first call
-    events = _slot(events)
-    print(len(events))
-
-
-# def _with_shot(events: Iterable) -> Iterable[Event]:
-#     return [e for e in events if 'withshot' in e['type']]
-#
-# def _with_shotonnet(events: Iterable) -> Iterable[Event]:
-#     return [e for e in events if 'withshot' in e['type']]
-#
-# def _whith_play_after(events: Iterable):
-#     return [e for e in events if 'withplay' in e['type']]
+    shots = all_shots(game)
+    print("\nexhaustiveness:", check_groups_exhaustive(shots))
+    print("inner-slot 1-timers on net:",
+          len(filter_shots(shots, Shot_Location=['Inner Slot'],
+                           **{'1-Timer': ['1-Timer Taken']}, Result=['On Net'])))

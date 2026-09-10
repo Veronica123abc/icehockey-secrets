@@ -43,7 +43,8 @@ class DataCatalog:
 
     # ── Game data ────────────────────────────────────────────────────────────
 
-    def raw_game(self, game_id: int, playsequence_source: str = "playsequence") -> RawGame:
+    def raw_game(self, game_id: int,
+                 playsequence_source: str = "playsequence_compiled") -> RawGame:
         return RawGame(
             game_id=game_id,
             root_dir=self._root,

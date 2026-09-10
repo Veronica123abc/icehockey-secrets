@@ -214,18 +214,21 @@ def _game_exists(game_id: int) -> bool:
     return game_dir.is_dir() and (game_dir / "game-info.json").exists()
 
 
-def _load_game(game_id: int, playsequence_source: str | None = None):
+def _load_game(game_id: int, playsequence_source: str = "playsequence_compiled"):
     """Load a Game, cached per (game_id, playsequence source, source mode).
 
     Follows the active GAME_SOURCE mode: database first, then the filesystem,
     with either half skipped under db_only / data_root_only.
 
-    The source names a vocabulary, not just a file: playsequence_compiled.json
-    adds the ~19 derived types (controlledentry, zoneexit, scoringchance, ...)
-    the game canvas is built around, while only the plain file has "whistle".
-    Both halves honour it -- the database keeps the same split across its two
-    event tables, so "playsequence_compiled" reads `compiled_event` and
-    anything else reads `event`.
+    The source names a vocabulary, and only the filesystem half still has a
+    choice: "playsequence_compiled" (the default) is the merged stream, with
+    the playsequence.json-only fields linked across; "playsequence" is the
+    plain vocabulary, kept for comparison and as a fallback for a game that
+    exists only there.
+
+    The database half has no such split -- the v2 schema holds one merged
+    `event` table -- so it ignores the source and returns the same stream
+    either way.
     """
     cache_key = (game_id, playsequence_source, game_source())
     cached = _cache_get(_game_cache, cache_key)
@@ -233,18 +236,16 @@ def _load_game(game_id: int, playsequence_source: str | None = None):
         app.logger.warning("game %s: cache hit (%s)", game_id, playsequence_source or "default")
         return cached
 
-    compiled = playsequence_source == "playsequence_compiled"
     conn = _db_conn()
     if conn is not None:
         try:
             from hockey.normalize.build_game_db import build_game_from_db
-            game = build_game_from_db(game_id, conn, compiled=compiled)
+            game = build_game_from_db(game_id, conn)
             if not game.events:
-                raise ValueError(
-                    f"no rows in {'compiled_event' if compiled else 'event'}")
+                raise ValueError("no rows in event")
             _cache_put(_game_cache, cache_key, game, _GAME_CACHE_SIZE)
             app.logger.warning("game %s: loaded from database (%s)", game_id,
-                               "compiled_event" if compiled else "event")
+                               "event")
             return game
         except Exception as e:
             app.logger.warning("game %s: db load failed (%s), falling back to filesystem", game_id, e)
@@ -259,8 +260,8 @@ def _load_game(game_id: int, playsequence_source: str | None = None):
     try:
         from hockey.io.raw_game import RawGame
         from hockey.normalize.build_game import build_game
-        kwargs = {} if playsequence_source is None else {"playsequence_source": playsequence_source}
-        raw = RawGame(game_id=game_id, root_dir=root, **kwargs)
+        raw = RawGame(game_id=game_id, root_dir=root,
+                      playsequence_source=playsequence_source)
         game = build_game(raw)
         _cache_put(_game_cache, cache_key, game, _GAME_CACHE_SIZE)
         app.logger.warning("game %s: loaded from filesystem (%s)", game_id,
@@ -395,7 +396,7 @@ def game_view(game_id: int):
     # to the plain source for a game that only exists there.
     game = _load_game(game_id, playsequence_source="playsequence_compiled")
     if game is None:
-        game = _load_game(game_id)
+        game = _load_game(game_id, playsequence_source="playsequence")
     if game is None:
         abort(404, description=f"Game {game_id} could not be loaded.")
 
@@ -427,7 +428,7 @@ def game_canvas_view(game_id: int):
         app.logger.warning(
             "game %s: compiled playsequence unavailable, falling back to the "
             "default source -- the canvas will show fewer event types", game_id)
-        game = _load_game(game_id)
+        game = _load_game(game_id, playsequence_source="playsequence")
     if game is None:
         abort(404, description=f"Game {game_id} could not be loaded.")
     # A whole page of its own, so it is returned as-is rather than rendered

@@ -1,0 +1,75 @@
+In table 'event' the relevant columns are: name, outcome, type, shorthand, playsection, flags
+
+
+There are four main categories of shots:
+A Shot Attempt has 'name'='shot'
+A Regular Goal has 'name'='shot' and 'withgoal' in flags
+A 1 Timers Shot has 'name'='shot' and '1timer' in flags
+A Shot With Pressure has 'name'='shot' and 'pressure' in flags
+A Shot With No Pressure has 'name'='shot' but not 'pressure' in flags
+A Deflected Shot has 'name'='shot' and 'deflected' in flags
+
+A shot can be taken from one of three locations:
+Outside Slot has type='outside'
+Slot has type='slot'
+Inner Slot has type='slot' and play_section='innerSlot'
+
+A successful shot has 'outcome'='successful'
+A failed shot has 'outcome'='failed'
+Failed shots are either blocked or missed
+A blocked shot from Outside Slot has 'type'='outsideblocked'
+A blocked shot from Slot has 'type'='slotblocked'
+A blocked shot from Inner Slot has 'type'='slotblocked' and 'play_section'='innerSlot'
+A Missed Shot (of any type) has outcome='failed'
+The number of failed shots is always the number of blocked shots + the number of missed shots
+
+
+From these definitions, the following metrics can be derived:
+
+ 'Total Successful Shot From Slot Attempts',
+ 'Failed Shot From Slot Attempts - Blocked',
+ 'Failed Shot From Slot Attempts - Missed',
+ 'Total Shot From Slot Attempts',
+ '1 Timers Shot from Slot',
+ 'Total Regular Goals From Slot',
+ 'Total Successful Deflected Shot Attempts',
+ 'Failed Deflected Shot Attempts - Blocked',
+ 'Failed Deflected Shot Attempts - Missed',
+ 'Total Deflected Shot Attempts',
+ 'Total Regular Goals From Deflected Shots',
+ 'Total Successful Shots Taken From Inner Slot',
+ '1 Timers Shot from Inner Slot',
+ 'Total Regular Goals From Inner Slot',
+ 'Total Successful Outside Shot Attempts',
+ 'Failed Outside Shot Attempts - Blocked',
+ 'Failed Outside Shot Attempts - Missed',
+ 'Total Outside Shot Attempts',
+ '1 Timers Shot from Outside Slot',
+ 'Total Regular Goals From Outside Slot',
+ 'Total Shots Taken',
+ 'Total Successful Shots Taken',
+ 'Failed Shots Taken - Blocked',
+ 'Failed Shots Taken - Missed',
+ '1 Timers Shot',
+ 'Total Regular Goals',
+ 'Shots From Slot Success Rate',
+ '1 Timers Shot% from Slot',
+ 'Deflected Shots Success Rate',
+ '1 Timers Shot% from Inner Slot',
+ 'Outside Shots Success Rate',
+ '1 Timers Shot% from Outside Slot',
+ 'Shots From Slot Percentage',
+ 'Total Shots Success Rate',
+ '1 Timers Shot% Total'
+
+ 'Shot Attempts From Inner Slot With Pressure',
+ 'Shots On Net From Inner Slot With Pressure',
+ 'Shot Attempts From Inner Slot With No Pressure',
+ 'Shots On Net From Inner Slot With No Pressure',
+ 'Percentage of Shots From Inner Slot With Pressure On Net',
+ 'Percentage of All Shot Attempts That Are From Inner Slot With Pressure',
+ 'True Shooting Percentage From Inner Slot With Pressure',
+ 'Percentage of Shots From Inner Slot With No Pressure On Net',
+ 'Percentage of All Shot Attempts That Are From Inner Slot With No Pressure',
+ 'True Shooting Percentage From Inner Slot With No Pressure',
+ 'Average Press Distance On Pressed Inner Slot Shot Attempts'

@@ -7,7 +7,7 @@ from hockey.helpers.pretty_print import *
 from sqlalchemy import create_engine
 
 
-def open_database(db_name="hockeystats_ver3"):
+def open_database(db_name="hockeystats_v2"):
     stats_db = mysql.connector.connect(
         host="localhost",
         user="apa",

@@ -1,52 +1,33 @@
 from __future__ import annotations
 
-from hockey.model.events import Event
 from hockey.model.game import Game
 from hockey.model.game_info import GameInfo, TeamInfo
 from hockey.model.roster import Player, Roster
 from hockey.model.toi import ToIInterval
+from hockey.normalize.event_rows import IdMaps, event_from_row, maybe_int
+from hockey.normalize.on_ice_from_shifts import (on_ice_at_times,
+                                                 own_team_for_event,
+                                                 split_by_team_and_position)
+
+# Back-compat alias; the v1 helper of this name lived here.
+_maybe_int = maybe_int
 
 
-def _maybe_int(x) -> int | None:
-    """The supplier's event ids are strings, and derived ones are not numeric."""
-    try:
-        return int(str(x).strip())
-    except (TypeError, ValueError):
-        return None
+def build_game_from_db(game_sl_id: int, conn) -> Game:
+    """Reconstruct a Game by querying the v2 schema (no JSON files required).
 
-
-def _split_flags(s) -> list[str]:
-    """Undo the ``', '.join(flags)`` that ingest_events.py does on write.
-
-    The column is varchar(255), so a long flag list can arrive truncated; a
-    trailing partial token is dropped rather than returned as a bogus flag.
-    """
-    if not s:
-        return []
-    if isinstance(s, (list, tuple)):     # defensive: driver already gave a list
-        return [str(x).strip() for x in s if str(x).strip()]
-    return [tok.strip() for tok in str(s).split(",") if tok.strip()]
-
-
-def build_game_from_db(game_sl_id: int, conn, *, compiled: bool = False) -> Game:
-    """Reconstruct a Game by querying the database (no JSON files required).
-
-    ``compiled`` selects which event table to read, mirroring the two
-    playsequence files on the JSON path:
-
-      False → `event`, the playsequence.json vocabulary (~26 event types)
-      True  → `compiled_event`, the playsequence_compiled.json vocabulary
-              (~42 types: controlledentry, zoneexit, scoringchance, …) with
-              the on-ice rosters and expected goals folded in by the ingest
+    There is no ``compiled`` switch any more: the v2 `event` table holds one
+    merged vocabulary, the same stream build_game produces from the two
+    playsequence files.
 
     IDs on the returned model objects use SportLogIQ sl_ids (not DB PKs),
-    matching the convention established by build_game() from JSON.
+    matching build_game() from JSON.
 
-    e.raw is populated with the full event row (all columns), mirroring the
-    JSON path where e.raw is the complete supplier payload. Note that FK
-    columns (team_in_possession, team, player_reference_id, etc.) contain
-    integer DB PKs in raw rather than sl_ids or display strings — use the
-    structured Event fields (e.team_id, e.player_id, …) for identity lookups.
+    ``e.raw`` mirrors the supplier payload rather than the row: the two id
+    columns are re-keyed to ``event_id``/``base_event_id``, flags arrive as a
+    list, and the on-ice refs -- which the schema does not store -- are
+    reconstructed from `shift` joined to `affiliation` for position. An Event
+    from here should be indistinguishable from one built off the files.
     """
     cursor = conn.cursor()
     try:
@@ -76,14 +57,13 @@ def build_game_from_db(game_sl_id: int, conn, *, compiled: bool = False) -> Game
             game_id=game_id,
             home_team=TeamInfo(id=home_sl, location=home_loc or "", name=home_name or ""),
             away_team=TeamInfo(id=away_sl, location=away_loc or "", name=away_name or ""),
-            # The JSON path carries an ISO date string; the column is a datetime.
             date=scheduled_time.date().isoformat() if scheduled_time else None,
             stage=stage,
             home_final_score=home_goals,
             away_final_score=away_goals,
         )
 
-        # --- 2. Reverse maps: DB pk → sl_id for players/teams in this game ---
+        # --- 2. Reverse maps: DB pk -> sl_id -----------------------------
         cursor.execute(
             """
             SELECT p.id, p.sl_id
@@ -93,7 +73,7 @@ def build_game_from_db(game_sl_id: int, conn, *, compiled: bool = False) -> Game
             """,
             (game_db_id,),
         )
-        player_db_to_sl: dict[int, int] = {r[0]: r[1] for r in cursor.fetchall()}
+        player_db_to_sl: dict[int, int] = dict(cursor.fetchall())
 
         cursor.execute(
             """
@@ -104,7 +84,8 @@ def build_game_from_db(game_sl_id: int, conn, *, compiled: bool = False) -> Game
             """,
             (game_db_id,),
         )
-        team_db_to_sl: dict[int, int] = {r[0]: r[1] for r in cursor.fetchall()}
+        team_db_to_sl: dict[int, int] = dict(cursor.fetchall())
+        ids = IdMaps(player_db_to_sl=player_db_to_sl, team_db_to_sl=team_db_to_sl)
 
         # --- 3. Roster ---------------------------------------------------
         cursor.execute(
@@ -118,12 +99,15 @@ def build_game_from_db(game_sl_id: int, conn, *, compiled: bool = False) -> Game
             (game_db_id,),
         )
         players = {
-            p_sl: Player(player_id=p_sl, team_id=t_sl, first_name=fn, last_name=ln, position=pos)
+            p_sl: Player(player_id=p_sl, team_id=t_sl,
+                         first_name=fn, last_name=ln, position=pos)
             for p_sl, t_sl, fn, ln, pos in cursor.fetchall()
         }
         roster = Roster(game_id=game_id, players=players)
 
-        # --- 4. TOI (shifts) ---------------------------------------------
+        # --- 4. Shifts ----------------------------------------------------
+        # Team comes via affiliation: shift does not carry it, because the
+        # player's team for a game is affiliation's business, not a shift's.
         cursor.execute(
             """
             SELECT p.sl_id, t.sl_id, s.in_time, s.out_time
@@ -146,83 +130,49 @@ def build_game_from_db(game_sl_id: int, conn, *, compiled: bool = False) -> Game
             for p_sl, t_sl, in_t, out_t in cursor.fetchall()
         ]
 
-        # --- 5. Events ---------------------------------------------------
-        table = "compiled_event" if compiled else "event"
+        # --- 5. Events, flags, on-ice -------------------------------------
         dict_cursor = conn.cursor(dictionary=True)
         try:
             dict_cursor.execute(
-                f"SELECT * FROM {table} WHERE game_id = %s ORDER BY game_time",
+                "SELECT * FROM event WHERE game_id = %s ORDER BY game_time",
                 (game_db_id,),
             )
             rows = dict_cursor.fetchall()
         finally:
             dict_cursor.close()
 
-        def _parse_refs(s: str | None) -> list[int] | None:
-            if not s:
-                return None
-            result = []
-            for tok in s.split(","):
-                tok = tok.strip()
-                if tok and tok != "None":
-                    try:
-                        sl = player_db_to_sl.get(int(tok))
-                        if sl is not None:
-                            result.append(sl)
-                    except ValueError:
-                        pass
-            return result or None
+        cursor.execute(
+            """
+            SELECT ef.event_id, f.name
+            FROM event_flag ef
+            JOIN flag f ON f.id = ef.flag_id
+            JOIN event e ON e.id = ef.event_id
+            WHERE e.game_id = %s
+            """,
+            (game_db_id,),
+        )
+        flags_by_event: dict[int, list[str]] = {}
+        for event_db_id, flag_name in cursor.fetchall():
+            flags_by_event.setdefault(event_db_id, []).append(flag_name)
 
-        def _common(row: dict, team_col: str, player_col: str) -> dict:
-            """The fields both tables spell the same way, minus their id columns."""
-            return dict(
-                game_id=game_id,
-                t=float(row['game_time']),
-                type=row.get('type') or "",
-                name=row.get('name') or "",
-                team_id_in_possession=team_db_to_sl.get(row['team_in_possession']) if row.get('team_in_possession') else None,
-                team_id=team_db_to_sl.get(row[team_col]) if row.get(team_col) else None,
-                player_id=player_db_to_sl.get(row[player_col]) if row.get(player_col) else None,
-                team_defencemen_on_ice_refs=_parse_refs(row.get('team_defencemen_on_ice_refs')),
-                team_forwards_on_ice_refs=_parse_refs(row.get('team_forwards_on_ice_refs')),
-                opposing_team_forwards_on_ice_refs=_parse_refs(row.get('opposing_team_forwards_on_ice_refs')),
-                opposing_team_defencemen_on_ice_refs=_parse_refs(row.get('opposing_team_defencemen_on_ice_refs')),
-                grade=row.get('expected_goals_all_shots_grade'),
-                play_section=row.get('play_section'),
-                expected_goals_all_shots=row.get('expected_goals_all_shots'),
-                expected_goals_on_net=row.get('expected_goals_on_net'),
-                expected_goals_on_net_grade=row.get('expected_goals_on_net_grade'),
-                outcome=row.get('outcome') or None,
-                flags=_split_flags(row.get('flags')),
-                current_possession=_maybe_int(row.get('current_possession')),
-                current_play_in_possession=_maybe_int(row.get('current_play_in_possession')),
-                zone=row.get('zone') or None,
-                team_skaters_on_ice=_maybe_int(row.get('team_skaters_on_ice')),
-                opposing_team_skaters_on_ice=_maybe_int(row.get('opposing_team_skaters_on_ice')),
-                raw=dict(row),
+        on_ice_sets = on_ice_at_times(toi, [float(r['game_time']) for r in rows])
+        events = []
+        for r, on_ice in zip(rows, on_ice_sets):
+            event_team = team_db_to_sl.get(r.get('team_id'))
+            credited = players.get(player_db_to_sl.get(r.get('player_id')))
+            own_team = own_team_for_event(
+                name=r.get('name') or "",
+                outcome=r.get('outcome'),
+                event_team_id=event_team,
+                credited_position=credited.position if credited else None,
+                home_team_id=info.home_team.id,
+                away_team_id=info.away_team.id,
             )
-
-        if compiled:
-            events = [
-                Event(
-                    **_common(row, 'team_id', 'player_id'),
-                    # sl_event_id is the supplier's id; derived events carry a
-                    # composite one ("5453663996-314651935") that isn't an int,
-                    # exactly as normalize_playsequence leaves it.
-                    event_id=_maybe_int(row.get('sl_event_id')),
-                    base_event_id=_maybe_int(row.get('sl_base_event_id')),
-                )
-                for row in rows
-            ]
-        else:
-            events = [
-                Event(
-                    **_common(row, 'team', 'player_reference_id'),
-                    team_goalie_on_ice_ref=player_db_to_sl.get(row['team_goalie_on_ice_ref']) if row.get('team_goalie_on_ice_ref') else None,
-                    opposing_team_goalie_on_ice_ref=player_db_to_sl.get(row['opposing_team_goalie_on_ice_ref']) if row.get('opposing_team_goalie_on_ice_ref') else None,
-                )
-                for row in rows
-            ]
+            events.append(event_from_row(
+                r, game_id=game_id, ids=ids,
+                flags=flags_by_event.get(r['id'], []),
+                on_ice=split_by_team_and_position(on_ice, roster, own_team),
+            ))
 
         return Game(info=info, events=events, toi=toi, roster=roster)
 

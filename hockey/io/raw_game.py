@@ -19,7 +19,13 @@ class RawGame:
     game_id: int
     root_dir: Path  # points to directory that contains folders per game_id, or directly files (see _path_for)
     auto_download: bool = False  # prompt and download from Sportlogiq API if files are missing
-    playsequence_source: str = "playsequence"  # stem of the playsequence file: "playsequence" or "playsequence_compiled"
+    # The compiled file is the default event stream: it carries every event
+    # name the plain one does except "whistle" (which is recoverable from
+    # faceoff times plus period boundaries), adds ~18 derived types, and
+    # build_game links LINKED_FIELDS across from playsequence.json, so the
+    # result is the union of the two files. "playsequence" remains selectable
+    # for comparing the vocabularies.
+    playsequence_source: str = "playsequence_compiled"
     _cache: dict[str, Any] = field(default_factory=dict, init=False, repr=False)
 
     def _path_for(self, stem: str) -> Path:
@@ -176,7 +182,32 @@ class RawGame:
         "expected_goals_on_net",
         "expected_goals_on_net_grade",
     )
-    LINKED_FIELDS = ON_ICE_FIELDS + METRIC_FIELDS
+    # Possession semantics. The compiled vocabulary encodes most of this
+    # structurally (as child events), but these stay useful for metrics the
+    # child events do not spell out -- takeaways being the motivating case.
+    POSSESSION_FIELDS = (
+        "is_possession_event",
+        "is_last_play_of_possession",
+        "is_possession_breaking",
+        "is_defensive_event",
+    )
+    # Game context, for filtering metrics by situation.
+    #
+    # manpower_situation is the one field here compiled DOES carry, under the
+    # unpunctuated name "manpowersituation" (they agree on 2998/3000 events).
+    # Linking it means the merged payload always has the underscore spelling,
+    # so callers need not know about the alias.
+    #
+    # Not listed, because compiled already has them: x_adj_coord/y_adj_coord.
+    # Only the UNadjusted x_coord/y_coord are playsequence-only, and the
+    # adjusted pair is what callers want.
+    CONTEXT_FIELDS = (
+        "score_differential",
+        "manpower_situation",
+        "play_zone",
+    )
+    LINKED_FIELDS = (ON_ICE_FIELDS + METRIC_FIELDS
+                     + POSSESSION_FIELDS + CONTEXT_FIELDS)
 
     def linked_fields_for(self, compiled_event: dict) -> dict:
         """Every playsequence.json-only field for a compiled event.

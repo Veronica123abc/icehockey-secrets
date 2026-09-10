@@ -82,7 +82,7 @@ class metricsHandler(object):
     #     return expected_goals_on_net(game, raw_game)
 
     def scoring_chances(self):
-        return scoring_chances(self.game, self.raw_game)
+        return scoring_chances(self.game)
 
     def ogp_passes_otr(self):
         return ogp_passes_otr(self.game)

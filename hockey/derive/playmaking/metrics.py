@@ -31,14 +31,18 @@ def expected_goals_on_net(game: Game) -> Iterable[Event]:
     return [e for e in game.events if e.expected_goals_on_net_grade is not None]
 
 def _xG_category(events: Iterable[Event], category: str) -> Iterable[Event]:
-    # NOT Event.grade: add_raw_base_events writes the base event's grade into
-    # the raw payload under 'grade', and that injected value is what we want.
-    return [e for e in events if e.get_raw('grade') == category]
+    """Chances of one expected-goals grade ('A', 'B', 'C')."""
+    return [e for e in events if e.grade == category]
 
-def scoring_chances(game: Game, raw:RawGame, team_id:int | str| None=None) -> Iterable[Event]:
-    all_events = game.events
-    events = [e for e in all_events if e.name == "scoringchance"]
-    events = add_raw_base_events(all_events, events, raw)
+def scoring_chances(game: Game, team_id:int | str| None=None) -> Iterable[Event]:
+    """Scoring chances, with their expected-goals grade already on the Event.
+
+    RawGame used to be needed here to fetch the base shot's grade out of
+    playsequence.json. It is not any more: build_game links the two
+    playsequence files, so ``Event.grade`` and
+    ``Event.expected_goals_all_shots`` are populated on the chance itself.
+    """
+    events = [e for e in game.events if e.name == "scoringchance"]
     if team_id:
         events = _for_team(events, team_id)
     return events
@@ -87,31 +91,6 @@ def scoring_chances_goals(game: Game, chances: Iterable[Event]) -> list[Event]:
             out.append(e)
     return out
 
-
-def add_raw_base_events(all_events: Iterable[Event], events: Iterable[Event], raw_game:RawGame) -> Iterable[Event]:
-    """Fold the base event's xG grade into each chance's raw payload.
-
-    Event is frozen, so the injected 'grade'/'xg_value' land in ``e.raw`` and
-    are read back with get_raw -- see _xG_category.
-    """
-    index = index_by_event_id(all_events)
-    res = []
-    for e in events:
-        base = base_event(e, index)
-        # ``base is e`` means e is itself a base event (they are
-        # self-referential), so there is nothing to fold in.
-        if base is not None and base is not e:
-            e.raw['grade'] = raw_game.full_event_field(
-                base.current_possession, base.current_play_in_possession,
-                'shot', 'expected_goals_all_shots_grade')
-            e.raw['xg_value'] = raw_game.full_event_field(
-                base.current_possession, base.current_play_in_possession,
-                'shot', 'expected_goals_all_shots')
-        elif base is None and e.base_event_id is not None:
-            print("Missing base event")
-            continue
-        res.append(e)
-    return res
 
 def _successful_passes(game: Game, team_id=None) -> list[Event]:
     events = game.events
@@ -252,7 +231,7 @@ def _for_team(events: Iterable[Event], team_id: int | str) -> Iterable[Event]:
     return [e for e in events if e.team_id == int(team_id)]
 
 
-def get_full_data(game: Game, raw_game:RawGame) -> dict:
+def get_full_data(game: Game) -> dict:
     columns_to_add = [
         'expected_goals_all_shots_grade',
         'expected_goals_all_shots',
@@ -265,8 +244,7 @@ def get_full_data(game: Game, raw_game:RawGame) -> dict:
     }
 
     for team_id in team_ids:
-        all_expected_goals = scoring_chances(game, raw_game, team_id=team_id)
-        #add_raw_base_events(all_expected_goals, raw_game)
+        all_expected_goals = scoring_chances(game, team_id=team_id)
 
         all_expected_goals_A = _xG_category(all_expected_goals, 'A')
         all_expected_goals_B = _xG_category(all_expected_goals, 'B')
@@ -304,7 +282,7 @@ def print_res(res):
 
 if __name__ == "__main__":
     GAME_ID = 191848
-    GAME_ID = 186461
+    #GAME_ID = 186461
     raw = RawGame(game_id=GAME_ID, root_dir=settings.data_root_dir, playsequence_source="playsequence_compiled")
     raw2 = RawGame(game_id=GAME_ID, root_dir=settings.data_root_dir, playsequence_source="playsequence")
     game = build_game(raw)
@@ -312,6 +290,6 @@ if __name__ == "__main__":
     team_id=322
     # a=ogp(game)
 
-    res = get_full_data(game, raw)
+    res = get_full_data(game)
     print_res(res)
     #print(res)

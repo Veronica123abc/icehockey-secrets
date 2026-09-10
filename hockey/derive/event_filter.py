@@ -3,7 +3,6 @@ from __future__ import annotations
 
 from pathlib import Path
 from collections.abc import Iterable
-from xxlimited import Str
 
 from hockey.model.events import Event
 from hockey.data_collection.sportlogiq_api import SportlogiqApi
