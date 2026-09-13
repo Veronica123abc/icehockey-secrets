@@ -7,23 +7,29 @@ pass, and an optional "offboards" SUFFIX. So "ozentrystretchoffboards" is a
 stretch entry pass played off the boards. :func:`pass_components` unpacks it,
 and every filter here is built on that rather than on string matching.
 
-Combined with ``Event.zone`` this reproduces exactly the thirteen pass types
-in CLAUDE.md: across 12 games they account for 10103 of 10114 passes, the
-remaining 11 being untyped ('none') passes the supplier never classified.
+Two populations, each with its own filter dictionary: ``pass`` and
+``reception``. On top of the pass groups, :data:`PASS_TYPES` names the
+thirteen zone x type combinations from CLAUDE.md; those are a cross-product of
+two groups rather than a group of their own, so they stay a separate lookup.
 
 Two things the spec does not mention, both confirmed over 25 games:
 
-* Pass outcome is NOT binary. Besides 'successful' (16229) and 'failed'
-  (5045) there is 'undetermined' (21) -- so successful + failed does not
-  exhaust the passes, and neither filter is the complement of the other.
-  Nearly all of these are the same untyped passes counted by
-  :func:`unclassified_passes`.
+* Pass outcome is NOT binary. Besides 'successful' and 'failed' there is
+  'undetermined' -- so successful + failed does not exhaust the passes, and
+  neither filter is the complement of the other. 'Undetermined' is therefore
+  an item in the Outcome group rather than an omission.
 * Receptions in this data are only 'successful' or 'failed'.
+
+Group exhaustiveness, verified over games 186461 + 191848 (1746 passes, 1394
+receptions): Outcome 1368+376+2, Zone 657+190+899 and the nine base Types
+(291+82+283+405+356+141+140+30+18) each total 1746; Delivery and Entry are
+exhaustive by construction. Reception Outcome 1368+26, Zone 447+228+719 and
+Type 16+1378 each total 1394.
 """
 from __future__ import annotations
 
 from pathlib import Path
-from collections.abc import Iterable
+from collections.abc import Callable, Iterable
 
 from hockey.model.events import Event
 from hockey.config.settings import Settings
@@ -58,6 +64,173 @@ def pass_components(event: Event) -> tuple[str, bool, bool]:
     return kind, is_entry, is_offboards
 
 
+def _base_kind(event: Event) -> str:
+    return pass_components(event)[0]
+
+
+# --- Predicates -----------------------------------------------------------
+# One per filter item. Kept as Event -> bool so groups can be combined and
+# their exhaustiveness checked mechanically (see check_groups_exhaustive).
+
+def is_successful(event: Event) -> bool:
+    return event.outcome == 'successful'
+
+
+def is_failed(event: Event) -> bool:
+    return event.outcome == 'failed'
+
+
+def is_undetermined(event: Event) -> bool:
+    """Neither successful nor failed -- rare, and almost always an untyped
+    pass the supplier never classified."""
+    return event.outcome not in ('successful', 'failed')
+
+
+def in_dz(event: Event) -> bool:
+    return event.zone == 'dz'
+
+
+def in_nz(event: Event) -> bool:
+    return event.zone == 'nz'
+
+
+def in_oz(event: Event) -> bool:
+    return event.zone == 'oz'
+
+
+# Base direction. Matched on the unpacked base type, so each of these covers
+# both the direct and the off-the-boards spelling.
+def is_outlet(event: Event) -> bool:
+    return _base_kind(event) == 'outlet'
+
+
+def is_stretch(event: Event) -> bool:
+    return _base_kind(event) == 'stretch'
+
+
+def is_d2d(event: Event) -> bool:
+    return _base_kind(event) == 'd2d'
+
+
+def is_north(event: Event) -> bool:
+    return _base_kind(event) == 'north'
+
+
+def is_south(event: Event) -> bool:
+    return _base_kind(event) == 'south'
+
+
+def is_eastwest(event: Event) -> bool:
+    return _base_kind(event) == 'eastwest'
+
+
+def is_off_the_rush(event: Event) -> bool:
+    return _base_kind(event) == 'rush'
+
+
+def is_to_the_slot(event: Event) -> bool:
+    return _base_kind(event) == 'slot'
+
+
+def is_untyped(event: Event) -> bool:
+    """No base direction: a bare entry pass, or one the supplier left 'none'.
+    Keeps the Type group exhaustive."""
+    return _base_kind(event) in ('', 'none')
+
+
+def is_entry_pass(event: Event) -> bool:
+    return pass_components(event)[1]
+
+
+def is_not_entry_pass(event: Event) -> bool:
+    return not is_entry_pass(event)
+
+
+def is_offboards(event: Event) -> bool:
+    return pass_components(event)[2]
+
+
+def is_direct(event: Event) -> bool:
+    """Not played off the boards."""
+    return not is_offboards(event)
+
+
+# --- Reception predicates -------------------------------------------------
+
+def is_oz_entry_reception(event: Event) -> bool:
+    return event.type == 'ozentry'
+
+
+def is_not_oz_entry_reception(event: Event) -> bool:
+    return event.type != 'ozentry'
+
+
+def is_in_slot(event: Event) -> bool:
+    """In the offensive-zone slot, by play_section."""
+    return event.play_section in OZ_SLOT_SECTIONS
+
+
+def is_not_in_slot(event: Event) -> bool:
+    return not is_in_slot(event)
+
+
+# --- Filter groups --------------------------------------------------------
+
+Predicate = Callable[[Event], bool]
+
+PASS_FILTERS: dict[str, dict[str, Predicate]] = {
+    'Outcome': {
+        'Successful': is_successful,
+        'Failed': is_failed,
+        'Undetermined': is_undetermined,
+    },
+    'Zone': {
+        'DZ': in_dz,
+        'NZ': in_nz,
+        'OZ': in_oz,
+    },
+    'Type': {
+        'Outlet': is_outlet,
+        'Stretch': is_stretch,
+        'D2D': is_d2d,
+        'North': is_north,
+        'South': is_south,
+        'East-West': is_eastwest,
+        'Off the Rush': is_off_the_rush,
+        'Slot': is_to_the_slot,
+        'Untyped': is_untyped,
+    },
+    'Entry': {
+        'Entry Pass': is_entry_pass,
+        'Not Entry Pass': is_not_entry_pass,
+    },
+    'Delivery': {
+        'Off the Boards': is_offboards,
+        'Direct': is_direct,
+    },
+}
+
+RECEPTION_FILTERS: dict[str, dict[str, Predicate]] = {
+    'Outcome': {
+        'Successful': is_successful,
+        'Failed': is_failed,
+    },
+    'Zone': {
+        'DZ': in_dz,
+        'NZ': in_nz,
+        'OZ': in_oz,
+    },
+    'Type': {
+        'OZ Entry': is_oz_entry_reception,
+        'Not OZ Entry': is_not_oz_entry_reception,
+    },
+    'Location': {
+        'Slot': is_in_slot,
+        'Not Slot': is_not_in_slot,
+    },
+}
+
+
 # label -> (zone, base_type, is_entry), in CLAUDE.md order.
 PASS_TYPES: dict[str, tuple[str, str, bool]] = {
     'DZ D2D pass':             ('dz', 'd2d',      False),
@@ -88,37 +261,90 @@ def receptions(game: Game, team_id: int | str | None = None) -> list[Event]:
     return _for_team(events, team_id) if team_id else events
 
 
-# --- Generic filters ------------------------------------------------------
+# --- Filtering ------------------------------------------------------------
 
-def successful(events: Iterable[Event]) -> list[Event]:
-    return [e for e in events if e.outcome == 'successful']
-
-
-def failed(events: Iterable[Event]) -> list[Event]:
-    return [e for e in events if e.outcome == 'failed']
-
-
-def in_zone(events: Iterable[Event], zone: str) -> list[Event]:
-    """zone is 'dz', 'nz' or 'oz'."""
-    return [e for e in events if e.zone == zone]
+def _matching(events: Iterable[Event], filters: dict, group: str, item: str) -> list[Event]:
+    try:
+        predicate = filters[group][item]
+    except KeyError:
+        raise KeyError(f"unknown filter {group!r}/{item!r}; groups are "
+                       f"{sorted(filters)}") from None
+    return [e for e in events if predicate(e)]
 
 
-def in_slot(events: Iterable[Event]) -> list[Event]:
-    """Events located in the offensive-zone slot, by play_section."""
-    return [e for e in events if e.play_section in OZ_SLOT_SECTIONS]
+def _apply(events: Iterable[Event], filters: dict, **selections: Iterable[str]) -> list[Event]:
+    events = list(events)
+    for raw_group, items in selections.items():
+        group = raw_group.replace('_', ' ')
+        if group not in filters:
+            raise KeyError(f"unknown filter group {group!r}; "
+                           f"groups are {sorted(filters)}")
+        if isinstance(items, str):
+            items = [items]
+        predicates = [filters[group][i] for i in items]
+        events = [e for e in events if any(p(e) for p in predicates)]
+    return events
 
 
-def entry_passes(events: Iterable[Event]) -> list[Event]:
-    return [e for e in events if pass_components(e)[1]]
+def _breakdown(events: Iterable[Event], filters: dict) -> dict[str, dict[str, list[Event]]]:
+    events = list(events)
+    return {group: {item: [e for e in events if predicate(e)]
+                    for item, predicate in items.items()}
+            for group, items in filters.items()}
 
 
-def offboards_passes(events: Iterable[Event]) -> list[Event]:
-    return [e for e in events if pass_components(e)[2]]
+def _exhaustive(events: Iterable[Event], filters: dict) -> dict[str, bool]:
+    events = list(events)
+    out = {}
+    for group, items in filters.items():
+        covered = {id(e) for e in events if any(p(e) for p in items.values())}
+        out[group] = len(covered) == len(events)
+    return out
 
 
-def direct_passes(events: Iterable[Event]) -> list[Event]:
-    """Passes not played off the boards."""
-    return [e for e in events if not pass_components(e)[2]]
+def passes_matching(events: Iterable[Event], group: str, item: str) -> list[Event]:
+    """Passes passing one named filter item."""
+    return _matching(events, PASS_FILTERS, group, item)
+
+
+def filter_passes(events: Iterable[Event], **selections: Iterable[str]) -> list[Event]:
+    """Apply a checkbox-style selection: OR within a group, AND across groups.
+
+    Groups are named by keyword with underscores for spaces, e.g.::
+
+        filter_passes(passes, Outcome=['Successful'], Zone=['OZ'])
+
+    An unmentioned group is unconstrained, and selecting every item in a group
+    is the same as not mentioning it -- that is what makes the groups
+    exhaustive.
+    """
+    return _apply(events, PASS_FILTERS, **selections)
+
+
+def group_breakdown(events: Iterable[Event]) -> dict[str, dict[str, list[Event]]]:
+    """Every group and item, applied to the given passes."""
+    return _breakdown(events, PASS_FILTERS)
+
+
+def check_groups_exhaustive(events: Iterable[Event]) -> dict[str, bool]:
+    """Whether each group's items together cover every pass."""
+    return _exhaustive(events, PASS_FILTERS)
+
+
+def receptions_matching(events: Iterable[Event], group: str, item: str) -> list[Event]:
+    return _matching(events, RECEPTION_FILTERS, group, item)
+
+
+def filter_receptions(events: Iterable[Event], **selections: Iterable[str]) -> list[Event]:
+    return _apply(events, RECEPTION_FILTERS, **selections)
+
+
+def reception_group_breakdown(events: Iterable[Event]) -> dict[str, dict[str, list[Event]]]:
+    return _breakdown(events, RECEPTION_FILTERS)
+
+
+def check_reception_groups_exhaustive(events: Iterable[Event]) -> dict[str, bool]:
+    return _exhaustive(events, RECEPTION_FILTERS)
 
 
 # --- The thirteen named pass types ---------------------------------------
@@ -127,8 +353,8 @@ def passes_of_type(game: Game, label: str, team_id: int | str | None = None) -> 
     """One of the thirteen types in :data:`PASS_TYPES`, by label.
 
     Matches on (zone, base type, entry flag), so both the direct and the
-    off-the-boards variant are included -- use :func:`direct_passes` or
-    :func:`offboards_passes` to split them.
+    off-the-boards variant are included -- use the Delivery group to split
+    them.
     """
     try:
         zone, base, is_entry = PASS_TYPES[label]
@@ -156,16 +382,43 @@ def unclassified_passes(game: Game, team_id: int | str | None = None) -> list[Ev
     return [e for e in passes(game, team_id) if id(e) not in claimed]
 
 
-# --- Receptions -----------------------------------------------------------
+# --- Named sets kept for existing callers ---------------------------------
+
+def successful(events: Iterable[Event]) -> list[Event]:
+    return [e for e in events if is_successful(e)]
+
+
+def failed(events: Iterable[Event]) -> list[Event]:
+    return [e for e in events if is_failed(e)]
+
+
+def in_zone(events: Iterable[Event], zone: str) -> list[Event]:
+    """zone is 'dz', 'nz' or 'oz'."""
+    return [e for e in events if e.zone == zone]
+
+
+def in_slot(events: Iterable[Event]) -> list[Event]:
+    return [e for e in events if is_in_slot(e)]
+
+
+def entry_passes(events: Iterable[Event]) -> list[Event]:
+    return [e for e in events if is_entry_pass(e)]
+
+
+def offboards_passes(events: Iterable[Event]) -> list[Event]:
+    return [e for e in events if is_offboards(e)]
+
+
+def direct_passes(events: Iterable[Event]) -> list[Event]:
+    return [e for e in events if is_direct(e)]
+
 
 def oz_entry_receptions(events: Iterable[Event]) -> list[Event]:
-    """Receptions completing an OZ entry (type 'ozentry')."""
-    return [e for e in events if e.type == 'ozentry']
+    return [e for e in events if is_oz_entry_reception(e)]
 
 
 def non_oz_entry_receptions(events: Iterable[Event]) -> list[Event]:
-    """Every other reception (type 'regular')."""
-    return [e for e in events if e.type != 'ozentry']
+    return [e for e in events if is_not_oz_entry_reception(e)]
 
 
 # --- Helpers --------------------------------------------------------------
@@ -181,32 +434,24 @@ def get_full_data(game: Game) -> dict:
     for team_id in team_ids:
         team_passes = passes(game, team_id)
         team_receptions = receptions(game, team_id)
-        breakdown = pass_type_breakdown(game, team_id)
 
-        out = {
-            'All passes': team_passes,
-            'All passes - successful': successful(team_passes),
-            'All passes - failed': failed(team_passes),
-        }
-        for zone in ('dz', 'nz', 'oz'):
-            out[f'{zone.upper()} passes'] = in_zone(team_passes, zone)
-        for label, events in breakdown.items():
+        out = {'All Passes': team_passes}
+        for group, items in group_breakdown(team_passes).items():
+            for item, events in items.items():
+                out[f'{group} - {item}'] = events
+
+        # The thirteen zone x type combinations, which are a cross-product of
+        # two groups rather than a group of their own.
+        for label, events in pass_type_breakdown(game, team_id).items():
             out[label] = events
             out[f'  {label} - successful'] = successful(events)
             out[f'  {label} - failed'] = failed(events)
         out['Unclassified passes'] = unclassified_passes(game, team_id)
-        out['Entry passes'] = entry_passes(team_passes)
-        out['Off-boards passes'] = offboards_passes(team_passes)
-        out['Direct passes'] = direct_passes(team_passes)
 
-        out['All receptions'] = team_receptions
-        out['Receptions - successful'] = successful(team_receptions)
-        out['Receptions - failed'] = failed(team_receptions)
-        for zone in ('dz', 'nz', 'oz'):
-            out[f'Receptions - {zone.upper()}'] = in_zone(team_receptions, zone)
-        out['Receptions - slot'] = in_slot(team_receptions)
-        out['Receptions - OZ entry'] = oz_entry_receptions(team_receptions)
-        out['Receptions - not OZ entry'] = non_oz_entry_receptions(team_receptions)
+        out['All Receptions'] = team_receptions
+        for group, items in reception_group_breakdown(team_receptions).items():
+            for item, events in items.items():
+                out[f'Reception {group} - {item}'] = events
 
         res[team_id] = out
     return res
@@ -228,3 +473,11 @@ if __name__ == "__main__":
 
     res = get_full_data(game)
     print_res(res)
+
+    team_passes = passes(game)
+    print("\nexhaustiveness:", check_groups_exhaustive(team_passes))
+    print("reception exhaustiveness:",
+          check_reception_groups_exhaustive(receptions(game)))
+    print("successful OZ slot passes:",
+          len(filter_passes(team_passes, Outcome=['Successful'], Zone=['OZ'],
+                            Type=['Slot'])))

@@ -1,40 +1,144 @@
 #!/usr/bin/python
+"""Playmaking metrics.
+
+Two distinct shapes live here, deliberately:
+
+* SCORING CHANCES are one population filtered by :data:`SCORING_CHANCE_FILTERS`
+  -- grade, result and how the chance was generated.
+* OFFENCE GENERATING PLAYS are a CATEGORY LIST, not a filter group: the eight
+  categories in CLAUDE.md are drawn from different event names (passes,
+  carries, lprs, shots), so no single population can be filtered into them.
+  They stay as :func:`ogp_categories`, deduped by :func:`ogp`.
+
+Every scoring chance hangs off a base 'shot' event (94/94 over two games), and
+the chance mirrors that shot: its own outcome equals the shot's, and 'blocked'
+appears in its own ``type`` exactly when the base shot is 'slotblocked'. So
+blocked / on net / missed are read off the chance itself -- no base lookup
+needed, and the three are a true partition (52+28+14 = 94). Goals are a SUBSET
+of on net; the goal marker is the 'withgoal' flag on the BASE shot, so
+:func:`scoring_chances_goals` needs the game and cannot be a predicate.
+
+Group exhaustiveness, verified over games 186461 + 191848 (94 chances): Grade
+29+23+31+11 and Result 52+28+14 each total 94. Chance Type overlaps by
+construction -- 'otfcotc' is both off the forecheck and off the cycle, the
+same deliberate overlap shooting's 'Slot' has -- so it carries an explicit
+'Unclassified' item for the 18 chances typed 'none' or bare 'blocked'.
+"""
 from __future__ import annotations
 
 from pathlib import Path
-from collections.abc import Iterable
+from collections.abc import Callable, Iterable
 
 from hockey.model.events import Event
-from hockey.data_collection.sportlogiq_api import SportlogiqApi
 from hockey.config.settings import Settings
-from hockey.catalog import DataCatalog
-from hockey.data_collection.sportlogiq_api import download_complete_games
 from hockey.io.raw_game import RawGame
 from hockey.normalize.build_game import build_game
-from hockey.normalize.update_game import update_game
 from hockey.model.game import Game
 from hockey.derive.base_events import index_by_event_id, base_event
 
 settings = Settings.from_env(project_root=Path(__file__).resolve().parent)
 
+# The slot as SportLogIQ sections it. The three OZ sections below are exactly
+# the shots typed 'slot'/'slotblocked' (54 == 49+5 in game 186461), which is
+# what makes them the right definition of "in the slot"; the *DZ twins are the
+# defensive-zone mirror and are deliberately excluded from offensive plays.
+OZ_SLOT_SECTIONS = frozenset({'innerSlot', 'eastOuterSlot', 'westOuterSlot'})
 
 
+# --- Predicates -----------------------------------------------------------
+# One per filter item. Kept as Event -> bool so groups can be combined and
+# their exhaustiveness checked mechanically (see check_groups_exhaustive).
 
-def expected_goals_all_shots(game: Game, team_id:int | str| None=None) -> Iterable[Event]:
-    # Event.grade is the expected_goals_all_shots_grade, kept under its old name.
-    events = [e for e in game.events if e.grade is not None]
-    if team_id:
-        events = _for_team(events, team_id)
-    return events
+def is_grade_a(event: Event) -> bool:
+    return event.grade == 'A'
 
-def expected_goals_on_net(game: Game) -> Iterable[Event]:
-    return [e for e in game.events if e.expected_goals_on_net_grade is not None]
 
-def _xG_category(events: Iterable[Event], category: str) -> Iterable[Event]:
-    """Chances of one expected-goals grade ('A', 'B', 'C')."""
-    return [e for e in events if e.grade == category]
+def is_grade_b(event: Event) -> bool:
+    return event.grade == 'B'
 
-def scoring_chances(game: Game, team_id:int | str| None=None) -> Iterable[Event]:
+
+def is_grade_c(event: Event) -> bool:
+    return event.grade == 'C'
+
+
+def is_ungraded(event: Event) -> bool:
+    """No expected-goals grade. Keeps the Grade group exhaustive -- 11 of 94
+    chances in the sample games carry none."""
+    return event.grade not in ('A', 'B', 'C')
+
+
+def is_blocked(event: Event) -> bool:
+    return 'blocked' in (event.type or '')
+
+
+def is_on_net(event: Event) -> bool:
+    """Reached the net. Includes goals, as shots-on-net conventionally does."""
+    return event.outcome == 'successful'
+
+
+def is_missed(event: Event) -> bool:
+    """Missed the net: failed, but not blocked."""
+    return not is_blocked(event) and event.outcome == 'failed'
+
+
+def is_off_the_rush(event: Event) -> bool:
+    return 'otr' in (event.type or '')
+
+
+def is_off_the_cycle(event: Event) -> bool:
+    return 'otc' in (event.type or '')
+
+
+def is_off_the_forecheck(event: Event) -> bool:
+    return 'otfc' in (event.type or '')
+
+
+def is_unclassified_chance(event: Event) -> bool:
+    """None of the three generation types -- type 'none' or bare 'blocked'."""
+    kind = event.type or ''
+    return not ('otr' in kind or 'otc' in kind or 'otfc' in kind)
+
+
+def is_second_chance(event: Event) -> bool:
+    return '2ndchance' in (event.type or '')
+
+
+def is_not_second_chance(event: Event) -> bool:
+    return not is_second_chance(event)
+
+
+# --- Filter groups --------------------------------------------------------
+
+Predicate = Callable[[Event], bool]
+
+SCORING_CHANCE_FILTERS: dict[str, dict[str, Predicate]] = {
+    'Grade': {
+        'A': is_grade_a,
+        'B': is_grade_b,
+        'C': is_grade_c,
+        'Ungraded': is_ungraded,
+    },
+    'Result': {
+        'On Net': is_on_net,
+        'Missed': is_missed,
+        'Blocked': is_blocked,
+    },
+    'Chance Type': {
+        'Off the Rush': is_off_the_rush,
+        'Off the Cycle': is_off_the_cycle,
+        'Off the Forecheck': is_off_the_forecheck,
+        'Unclassified': is_unclassified_chance,
+    },
+    '2nd Chance': {
+        '2nd Chance': is_second_chance,
+        'Not 2nd Chance': is_not_second_chance,
+    },
+}
+
+
+# --- Base sets ------------------------------------------------------------
+
+def scoring_chances(game: Game, team_id: int | str | None = None) -> list[Event]:
     """Scoring chances, with their expected-goals grade already on the Event.
 
     RawGame used to be needed here to fetch the base shot's grade out of
@@ -43,45 +147,107 @@ def scoring_chances(game: Game, team_id:int | str| None=None) -> Iterable[Event]
     ``Event.expected_goals_all_shots`` are populated on the chance itself.
     """
     events = [e for e in game.events if e.name == "scoringchance"]
-    if team_id:
-        events = _for_team(events, team_id)
+    return _for_team(events, team_id) if team_id else events
+
+
+def expected_goals_all_shots(game: Game, team_id: int | str | None = None) -> list[Event]:
+    # Event.grade is the expected_goals_all_shots_grade, kept under its old name.
+    events = [e for e in game.events if e.grade is not None]
+    return _for_team(events, team_id) if team_id else events
+
+
+def expected_goals_on_net(game: Game) -> list[Event]:
+    return [e for e in game.events if e.expected_goals_on_net_grade is not None]
+
+
+# --- Filtering ------------------------------------------------------------
+
+def _matching(events: Iterable[Event], filters: dict, group: str, item: str) -> list[Event]:
+    try:
+        predicate = filters[group][item]
+    except KeyError:
+        raise KeyError(f"unknown filter {group!r}/{item!r}; groups are "
+                       f"{sorted(filters)}") from None
+    return [e for e in events if predicate(e)]
+
+
+def _apply(events: Iterable[Event], filters: dict, **selections: Iterable[str]) -> list[Event]:
+    events = list(events)
+    for raw_group, items in selections.items():
+        group = raw_group.replace('_', ' ')
+        if group not in filters:
+            raise KeyError(f"unknown filter group {group!r}; "
+                           f"groups are {sorted(filters)}")
+        if isinstance(items, str):
+            items = [items]
+        predicates = [filters[group][i] for i in items]
+        events = [e for e in events if any(p(e) for p in predicates)]
     return events
 
-# --- Scoring chance outcome subclasses ------------------------------------
-#
-# Every scoring chance hangs off a base 'shot' event (40/40, 54/54, 40/40 in
-# the sample games), and the chance mirrors that shot: its own outcome equals
-# the shot's, and 'blocked' appears in its own ``type`` exactly when the base
-# shot is 'slotblocked' (agreement 100% across three games). So blocked /
-# on net / missed are read off the chance itself -- no base lookup needed.
-#
-# blocked | missed | on net is a true partition: the three sum to the chance
-# total in every game checked, and every blocked chance has outcome 'failed'.
-# Goals are a SUBSET of on net, not a fourth bucket.
+
+def chances_matching(chances: Iterable[Event], group: str, item: str) -> list[Event]:
+    """Scoring chances passing one named filter item."""
+    return _matching(chances, SCORING_CHANCE_FILTERS, group, item)
+
+
+def filter_chances(chances: Iterable[Event], **selections: Iterable[str]) -> list[Event]:
+    """Apply a checkbox-style selection: OR within a group, AND across groups.
+
+    Groups are named by keyword with underscores for spaces, e.g.::
+
+        filter_chances(chances, Grade=['A'], Chance_Type=['Off the Rush'])
+
+    An unmentioned group is unconstrained, and selecting every item in a group
+    is the same as not mentioning it -- that is what makes the groups
+    exhaustive.
+    """
+    return _apply(chances, SCORING_CHANCE_FILTERS, **selections)
+
+
+def group_breakdown(chances: Iterable[Event]) -> dict[str, dict[str, list[Event]]]:
+    """Every group and item, applied to the given chances."""
+    chances = list(chances)
+    return {group: {item: [e for e in chances if predicate(e)]
+                    for item, predicate in items.items()}
+            for group, items in SCORING_CHANCE_FILTERS.items()}
+
+
+def check_groups_exhaustive(chances: Iterable[Event]) -> dict[str, bool]:
+    """Whether each group's items together cover every chance."""
+    chances = list(chances)
+    out = {}
+    for group, items in SCORING_CHANCE_FILTERS.items():
+        covered = {id(e) for e in chances if any(p(e) for p in items.values())}
+        out[group] = len(covered) == len(chances)
+    return out
+
+
+# --- Named sets kept for existing callers ---------------------------------
+
+def _xG_category(events: Iterable[Event], category: str) -> list[Event]:
+    """Chances of one expected-goals grade ('A', 'B', 'C')."""
+    return [e for e in events if e.grade == category]
 
 
 def scoring_chances_blocked(chances: Iterable[Event]) -> list[Event]:
-    """Chances whose shot was blocked ('blocked' in the chance type)."""
-    return [e for e in chances if 'blocked' in e.type]
+    return [e for e in chances if is_blocked(e)]
 
 
 def scoring_chances_on_net(chances: Iterable[Event]) -> list[Event]:
-    """Chances whose shot reached the net. Includes goals."""
-    return [e for e in chances if e.outcome == 'successful']
+    return [e for e in chances if is_on_net(e)]
 
 
 def scoring_chances_missed(chances: Iterable[Event]) -> list[Event]:
-    """Chances that missed the net -- failed, but not blocked."""
-    return [e for e in chances if 'blocked' not in e.type and e.outcome == 'failed']
+    return [e for e in chances if is_missed(e)]
 
 
 def scoring_chances_goals(game: Game, chances: Iterable[Event]) -> list[Event]:
     """Chances that were scored.
 
     Needs ``game`` because the goal marker is the 'withgoal' flag on the base
-    shot event -- the scoring chance itself carries no flags at all. Always a
-    subset of :func:`scoring_chances_on_net`; fewer than the game's total
-    goals, since not every goal comes from a scoring chance.
+    shot event -- the scoring chance itself carries no flags at all, which is
+    why this is a function rather than an item in the Result group. Always a
+    subset of :func:`scoring_chances_on_net`.
     """
     index = index_by_event_id(game.events)
     out = []
@@ -92,26 +258,27 @@ def scoring_chances_goals(game: Game, chances: Iterable[Event]) -> list[Event]:
     return out
 
 
+# --- Offence generating plays --------------------------------------------
+# A category list, not a filter group: each category is drawn from a different
+# event name, so there is no single population to filter.
+
 def _successful_passes(game: Game, team_id=None) -> list[Event]:
     events = game.events
     if team_id:
         events = _for_team(events, team_id)
     return [e for e in events if e.name == "pass" and e.outcome == "successful"]
 
+
 def ogp_passes_otr(game, team_id=None) -> list[Event]:
     return [e for e in _successful_passes(game, team_id) if e.type == "rush"]
+
 
 def ogp_passes_1timer(game, team_id=None) -> list[Event]:
     return [e for e in _successful_passes(game, team_id) if "1timer" in e.flags]
 
+
 def ogp_passes_to_slot(game, team_id=None) -> list[Event]:
     return [e for e in _successful_passes(game, team_id) if e.type == "slot"]
-
-# The slot as SportLogIQ sections it. The three OZ sections below are exactly
-# the shots typed 'slot'/'slotblocked' (54 == 49+5 in game 186461), which is
-# what makes them the right definition of "in the slot"; the *DZ twins are the
-# defensive-zone mirror and are deliberately excluded from offensive plays.
-OZ_SLOT_SECTIONS = frozenset({'innerSlot', 'eastOuterSlot', 'westOuterSlot'})
 
 
 def ogp_carries_to_slot(game, team_id=None) -> list[Event]:
@@ -209,87 +376,54 @@ def ogp(game, team_id=None) -> list[Event]:
     # deduped on the raw event_id, which is a string on every source
     return list({e.get_raw('event_id'): e for e in all_plays}.values())
 
-def _with_shot(events: Iterable[Event]) -> Iterable[Event]:
-    return [e for e in events if 'withshot' in e.type]
 
-def _with_slotshot(events: Iterable[Event]) -> Iterable[Event]:
-    return [e for e in events if 'withslotshot' in e.flags]
+# --- Helpers --------------------------------------------------------------
 
-def _with_shotonnet(events: Iterable[Event]) -> Iterable[Event]:
-    return [e for e in events if 'withshotonnet' in e.flags]
-
-def _with_play_after(events: Iterable[Event]) -> Iterable[Event]:
-    return [e for e in events if 'withplayafter' in e.flags]
-
-def _successul(events: Iterable[Event]) -> Iterable[Event]:
-    return [e for e in events if e.outcome == 'successful']
-
-def _failed(events: Iterable[Event]) -> Iterable[Event]:
-    return [e for e in events if e.outcome == 'failed']
-
-def _for_team(events: Iterable[Event], team_id: int | str) -> Iterable[Event]:
+def _for_team(events: Iterable[Event], team_id: int | str) -> list[Event]:
     return [e for e in events if e.team_id == int(team_id)]
 
 
 def get_full_data(game: Game) -> dict:
-    columns_to_add = [
-        'expected_goals_all_shots_grade',
-        'expected_goals_all_shots',
-    ]
-    # game = update_game(game, raw, columns_to_add)
     team_ids = [game.info.home_team.id, game.info.away_team.id]
-    res = {
-        team_ids[0]:{},
-        team_ids[1]:{},
-    }
+    res = {team_ids[0]: {}, team_ids[1]: {}}
 
     for team_id in team_ids:
-        all_expected_goals = scoring_chances(game, team_id=team_id)
+        chances = scoring_chances(game, team_id=team_id)
 
-        all_expected_goals_A = _xG_category(all_expected_goals, 'A')
-        all_expected_goals_B = _xG_category(all_expected_goals, 'B')
-        all_expected_goals_C = _xG_category(all_expected_goals, 'C')
-
-        chances_goal = scoring_chances_goals(game, all_expected_goals)
-        chances_on_net = scoring_chances_on_net(all_expected_goals)
-        chances_missed = scoring_chances_missed(all_expected_goals)
-        chances_blocked = scoring_chances_blocked(all_expected_goals)
-
+        out = {'All Scoring Chances': chances}
+        for group, items in group_breakdown(chances).items():
+            for item, events in items.items():
+                out[f'{group} - {item}'] = events
+        # Not a Result item: needs the base shot's 'withgoal' flag.
+        out['Result - Goals'] = scoring_chances_goals(game, chances)
 
         categories = ogp_categories(game, team_id=team_id)
+        out.update({f'OGP - {label}': events for label, events in categories.items()})
+        out['OGP - goals not otherwise counted'] = ogp_goals_not_otherwise_counted(
+            game, team_id=team_id)
+        out['OGP total (deduped)'] = ogp(game, team_id=team_id)
 
-        res[team_id] = {
-
-            'All scoring chances': all_expected_goals,
-            'A chances': all_expected_goals_A,
-            'B chances': all_expected_goals_B,
-            'C chances': all_expected_goals_C,
-            'Chances - goals': chances_goal,
-            'Chances - on net (incl. goals)': chances_on_net,
-            'Chances - missed': chances_missed,
-            'Chances - blocked': chances_blocked,
-            **{f'OGP - {label}': events for label, events in categories.items()},
-            'OGP - goals not otherwise counted': ogp_goals_not_otherwise_counted(game, team_id=team_id),
-            'OGP total (deduped)': ogp(game, team_id=team_id),
-        }
+        res[team_id] = out
     return res
+
 
 def print_res(res):
     for k in list(res.keys()):
-        print(f"\nOffensive Generating Plays FOR {k}")
+        print(f"\nPLAYMAKING STATS FOR {k}")
         for key in list(res[k].keys()):
             print(key, ' ', len(res[k][key]))
 
+
 if __name__ == "__main__":
     GAME_ID = 191848
-    #GAME_ID = 186461
-    raw = RawGame(game_id=GAME_ID, root_dir=settings.data_root_dir, playsequence_source="playsequence_compiled")
-    raw2 = RawGame(game_id=GAME_ID, root_dir=settings.data_root_dir, playsequence_source="playsequence")
+    raw = RawGame(game_id=GAME_ID, root_dir=settings.data_root_dir,
+                  playsequence_source="playsequence_compiled")
     game = build_game(raw)
-    game2 = build_game(raw2)
-    team_id=322
-    # a=ogp(game)
 
     res = get_full_data(game)
     print_res(res)
-    #print(res)
+
+    chances = scoring_chances(game)
+    print("\nexhaustiveness:", check_groups_exhaustive(chances))
+    print("A chances off the rush:",
+          len(filter_chances(chances, Grade=['A'], Chance_Type=['Off the Rush'])))

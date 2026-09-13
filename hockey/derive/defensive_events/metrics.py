@@ -214,6 +214,12 @@ def _conceded_by(events: Iterable[Event], team_id: int) -> Iterable[Event]:
     return [e for e in events if e.team_id is not None and e.team_id != int(team_id)]
 
 
+
+
+
+
+
+
 def get_full_data(game: Game) -> dict:
     team_ids = [game.info.home_team.id, game.info.away_team.id]
     res = {team_ids[0]: {}, team_ids[1]: {}}

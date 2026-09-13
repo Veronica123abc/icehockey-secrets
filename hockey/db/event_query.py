@@ -26,16 +26,18 @@ actually reads them.
 from __future__ import annotations
 
 from collections.abc import Iterable, Sequence
+from pathlib import Path
 
 from hockey.model.events import Event
 from hockey.model.roster import Player, Roster
 from hockey.model.toi import ToIInterval
 from hockey.normalize.event_rows import IdMaps, event_from_row
+from hockey.config.settings import Settings
 
 # event_flag lookups are chunked so a season-wide result does not build a
 # single IN clause with a million placeholders.
 _CHUNK = 5000
-
+settings = Settings.from_env(project_root=Path(__file__).resolve().parent)
 
 def _placeholders(values: Sequence) -> str:
     return ', '.join(['%s'] * len(values))
@@ -245,3 +247,69 @@ def query_events(conn, *,
         ]
     finally:
         cursor.close()
+
+
+
+
+if __name__ == "__main__":
+    # Hardcoded so this runs from the IDE's run/debug button with no arguments.
+    # Edit these, set a breakpoint anywhere below, and step in.
+    #
+    # The connection honours the DATABASE_*_AZURE variables in .env, so point
+    # those at localhost to query a local database instead of Azure.
+    LEAGUE_SL_ID = 17
+    SEASON = "20252026"
+    PLAYER_SL_ID = 24417        # None for every player
+    TEAM_SL_ID = None
+    ON_ICE_PLAYER_SL_ID = 24417   # events while this player was on the ice
+    NAMES = ["shot"]            # None for every event type
+    OUTCOMES = None             # e.g. ["successful"]
+    ZONES = None                # e.g. ["oz"]
+    WITH_ON_ICE = False
+    LIMIT = None
+
+    import time
+    from collections import Counter
+
+    from hockey.db import database
+
+    conn = database.open_database_azure()
+    try:
+        started = time.perf_counter()
+        events = query_events(
+            conn,
+            league_sl_id=LEAGUE_SL_ID,
+            season=SEASON,
+            player_sl_id=PLAYER_SL_ID,
+            team_sl_id=TEAM_SL_ID,
+            on_ice_player_sl_id=ON_ICE_PLAYER_SL_ID,
+            names=NAMES,
+            outcomes=OUTCOMES,
+            zones=ZONES,
+            with_on_ice=WITH_ON_ICE,
+            limit=LIMIT,
+        )
+        elapsed = time.perf_counter() - started
+
+        print(f"{len(events):,} events in {elapsed*1000:.0f} ms "
+              f"across {len({e.game_id for e in events})} games")
+        print(f"  names    : {dict(Counter(e.name for e in events).most_common(6))}")
+        print(f"  outcomes : {dict(Counter(e.outcome for e in events))}")
+        print(f"  types    : {dict(Counter(e.type for e in events).most_common(6))}")
+        print(f"  zones    : {dict(Counter(e.zone for e in events))}")
+
+        print("\nfirst few:")
+        for e in events[:5]:
+            print(f"   game {e.game_id}  t={e.t:8.2f}  {e.name:12s} {e.type or '-':16s} "
+                  f"{e.outcome or '-':12s} player={e.player_id} flags={e.flags}")
+
+        # The point of returning Events: the derive predicates work unchanged.
+        from hockey.derive.shooting.metrics import is_slot, is_one_timer, is_on_net
+        shots = [e for e in events if e.name == "shot"]
+        if shots:
+            print(f"\nof {len(shots):,} shots: "
+                  f"slot {sum(1 for e in shots if is_slot(e))}, "
+                  f"1-timers {sum(1 for e in shots if is_one_timer(e))}, "
+                  f"on net {sum(1 for e in shots if is_on_net(e))}")
+    finally:
+        conn.close()

@@ -32,6 +32,7 @@ from hockey.model.game import Game
 from hockey.db.database import open_database_azure
 
 
+
 settings = Settings.from_env(project_root=Path(__file__).resolve().parent)
 
 INNER_SLOT_SECTION = 'innerSlot'
@@ -273,15 +274,16 @@ if __name__ == "__main__":
     #exit(0)
     GAME_ID = 191848
     GAME_ID = 186461
-    raw = RawGame(game_id=GAME_ID, root_dir=settings.data_root_dir,
-                  playsequence_source="playsequence_compiled")
-    game = build_game(raw)
+    # raw = RawGame(game_id=GAME_ID, root_dir=settings.data_root_dir,
+    #               playsequence_source="playsequence_compiled")
+    # game = build_game(raw)
     conn = open_database_azure("hockey_v2_test")
     game = build_game_from_db(GAME_ID, conn)
-    res = get_full_data(game)
-    print_res(res)
+    # res = get_full_data(game)
+    # print_res(res)
 
     shots = all_shots(game)
+    p = shots_matching(shots,"Shot Location", "Inner Slot")
     print("\nexhaustiveness:", check_groups_exhaustive(shots))
     print("inner-slot 1-timers on net:",
           len(filter_shots(shots, Shot_Location=['Inner Slot'],
