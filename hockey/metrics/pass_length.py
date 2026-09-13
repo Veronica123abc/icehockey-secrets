@@ -2,7 +2,6 @@ from __future__ import annotations
 from hockey.model.game import Game
 import numpy as  np
 import pandas as pd
-from collections import defaultdict
 
 def _successful_pass_reception_pairs(df: pd.DataFrame, team_id: int) -> tuple[pd.DataFrame, pd.DataFrame]:
     team_events = df.loc[df["team_id"] == team_id]

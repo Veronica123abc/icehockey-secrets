@@ -5,8 +5,6 @@ from pathlib import Path
 
 from hockey.data_collection.sportlogiq_api import SportlogiqApi
 from hockey.config.settings import Settings
-from hockey.catalog import DataCatalog
-from hockey.data_collection.sportlogiq_api import download_complete_games
 
 settings = Settings.from_env(project_root=Path(__file__).resolve().parent)
 

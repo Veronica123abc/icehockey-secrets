@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 import anthropic
 
-from hockey.chat.claude_client import _SCHEMA, _SYSTEM_SQL, _SYSTEM_ANSWER
+from hockey.chat.claude_client import _SYSTEM_SQL, _SYSTEM_ANSWER
 
 _MODEL = "claude-sonnet-4-6"
 #_MODEL = "claude-haiku-4-5-20251001"

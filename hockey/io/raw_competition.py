@@ -4,7 +4,6 @@ from dataclasses import dataclass, field
 import json
 from pathlib import Path
 from typing import Any
-from hockey.model.competition import Season, Stage
 
 
 @dataclass

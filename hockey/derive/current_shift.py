@@ -4,7 +4,6 @@ from typing import Any, Optional, TYPE_CHECKING
 
 
 
-from hockey.model.toi import ToIInterval, CurrentShiftTOI, PlayerCurrentShiftToi
 
 if TYPE_CHECKING:
     from hockey.model.game import Game

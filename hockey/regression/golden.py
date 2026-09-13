@@ -37,7 +37,6 @@ import argparse
 import hashlib
 import json
 import time
-import traceback
 from collections.abc import Iterable
 from pathlib import Path
 

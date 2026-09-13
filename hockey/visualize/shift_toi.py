@@ -1,19 +1,13 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
 from typing import Optional
 
 import numpy as np
 import plotly.graph_objects as go
-import time
 from hockey.model.game import Game
-from hockey.model.toi import ToIInterval
 from hockey.config.settings import Settings
 from hockey.io.raw_game import RawGame
-from collections import defaultdict
-from hockey.io.raw_competition import RawCompetition
 from hockey.normalize.build_game import  build_game
-from hockey.normalize.build_competition import build_competition
 from hockey.model.game import Game
 from pathlib import Path
 # from hockey.derive.current_shift_series import find_intervals, find_intervals, current_shift_toi_series

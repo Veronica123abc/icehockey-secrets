@@ -2,12 +2,8 @@
 from __future__ import annotations
 
 import json
-import os
-import time
-from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from hockey.catalog import DataCatalog
-import requests
 from hockey.config.settings import Settings
 from hockey.data_collection.sportlogiq_api_v3 import SportlogiqApi
 settings = Settings.from_env(project_root=Path(__file__).resolve().parent)

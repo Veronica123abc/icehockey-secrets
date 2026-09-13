@@ -25,17 +25,20 @@ receptions): Outcome 1368+376+2, Zone 657+190+899 and the nine base Types
 (291+82+283+405+356+141+140+30+18) each total 1746; Delivery and Entry are
 exhaustive by construction. Reception Outcome 1368+26, Zone 447+228+719 and
 Type 16+1378 each total 1394.
+
+The group machinery itself lives in ``hockey.derive.filter_group``.
 """
 from __future__ import annotations
 
 from pathlib import Path
-from collections.abc import Callable, Iterable
+from collections.abc import Iterable
 
 from hockey.model.events import Event
 from hockey.config.settings import Settings
 from hockey.io.raw_game import RawGame
 from hockey.normalize.build_game import build_game
 from hockey.model.game import Game
+from hockey.derive.filter_group import FilterGroups, Predicate, for_team
 
 settings = Settings.from_env(project_root=Path(__file__).resolve().parent)
 
@@ -176,8 +179,6 @@ def is_not_in_slot(event: Event) -> bool:
 
 # --- Filter groups --------------------------------------------------------
 
-Predicate = Callable[[Event], bool]
-
 PASS_FILTERS: dict[str, dict[str, Predicate]] = {
     'Outcome': {
         'Successful': is_successful,
@@ -230,6 +231,9 @@ RECEPTION_FILTERS: dict[str, dict[str, Predicate]] = {
     },
 }
 
+PASSES = FilterGroups('pass', PASS_FILTERS)
+RECEPTIONS = FilterGroups('reception', RECEPTION_FILTERS)
+
 
 # label -> (zone, base_type, is_entry), in CLAUDE.md order.
 PASS_TYPES: dict[str, tuple[str, str, bool]] = {
@@ -253,58 +257,19 @@ PASS_TYPES: dict[str, tuple[str, str, bool]] = {
 
 def passes(game: Game, team_id: int | str | None = None) -> list[Event]:
     events = [e for e in game.events if e.name == 'pass']
-    return _for_team(events, team_id) if team_id else events
+    return for_team(events, team_id) if team_id else events
 
 
 def receptions(game: Game, team_id: int | str | None = None) -> list[Event]:
     events = [e for e in game.events if e.name == 'reception']
-    return _for_team(events, team_id) if team_id else events
+    return for_team(events, team_id) if team_id else events
 
 
 # --- Filtering ------------------------------------------------------------
 
-def _matching(events: Iterable[Event], filters: dict, group: str, item: str) -> list[Event]:
-    try:
-        predicate = filters[group][item]
-    except KeyError:
-        raise KeyError(f"unknown filter {group!r}/{item!r}; groups are "
-                       f"{sorted(filters)}") from None
-    return [e for e in events if predicate(e)]
-
-
-def _apply(events: Iterable[Event], filters: dict, **selections: Iterable[str]) -> list[Event]:
-    events = list(events)
-    for raw_group, items in selections.items():
-        group = raw_group.replace('_', ' ')
-        if group not in filters:
-            raise KeyError(f"unknown filter group {group!r}; "
-                           f"groups are {sorted(filters)}")
-        if isinstance(items, str):
-            items = [items]
-        predicates = [filters[group][i] for i in items]
-        events = [e for e in events if any(p(e) for p in predicates)]
-    return events
-
-
-def _breakdown(events: Iterable[Event], filters: dict) -> dict[str, dict[str, list[Event]]]:
-    events = list(events)
-    return {group: {item: [e for e in events if predicate(e)]
-                    for item, predicate in items.items()}
-            for group, items in filters.items()}
-
-
-def _exhaustive(events: Iterable[Event], filters: dict) -> dict[str, bool]:
-    events = list(events)
-    out = {}
-    for group, items in filters.items():
-        covered = {id(e) for e in events if any(p(e) for p in items.values())}
-        out[group] = len(covered) == len(events)
-    return out
-
-
 def passes_matching(events: Iterable[Event], group: str, item: str) -> list[Event]:
     """Passes passing one named filter item."""
-    return _matching(events, PASS_FILTERS, group, item)
+    return PASSES.matching(events, group, item)
 
 
 def filter_passes(events: Iterable[Event], **selections: Iterable[str]) -> list[Event]:
@@ -318,33 +283,33 @@ def filter_passes(events: Iterable[Event], **selections: Iterable[str]) -> list[
     is the same as not mentioning it -- that is what makes the groups
     exhaustive.
     """
-    return _apply(events, PASS_FILTERS, **selections)
+    return PASSES.filter(events, **selections)
 
 
 def group_breakdown(events: Iterable[Event]) -> dict[str, dict[str, list[Event]]]:
     """Every group and item, applied to the given passes."""
-    return _breakdown(events, PASS_FILTERS)
+    return PASSES.breakdown(events)
 
 
 def check_groups_exhaustive(events: Iterable[Event]) -> dict[str, bool]:
     """Whether each group's items together cover every pass."""
-    return _exhaustive(events, PASS_FILTERS)
+    return PASSES.check_exhaustive(events)
 
 
 def receptions_matching(events: Iterable[Event], group: str, item: str) -> list[Event]:
-    return _matching(events, RECEPTION_FILTERS, group, item)
+    return RECEPTIONS.matching(events, group, item)
 
 
 def filter_receptions(events: Iterable[Event], **selections: Iterable[str]) -> list[Event]:
-    return _apply(events, RECEPTION_FILTERS, **selections)
+    return RECEPTIONS.filter(events, **selections)
 
 
 def reception_group_breakdown(events: Iterable[Event]) -> dict[str, dict[str, list[Event]]]:
-    return _breakdown(events, RECEPTION_FILTERS)
+    return RECEPTIONS.breakdown(events)
 
 
 def check_reception_groups_exhaustive(events: Iterable[Event]) -> dict[str, bool]:
-    return _exhaustive(events, RECEPTION_FILTERS)
+    return RECEPTIONS.check_exhaustive(events)
 
 
 # --- The thirteen named pass types ---------------------------------------
@@ -423,8 +388,7 @@ def non_oz_entry_receptions(events: Iterable[Event]) -> list[Event]:
 
 # --- Helpers --------------------------------------------------------------
 
-def _for_team(events: Iterable[Event], team_id: int | str) -> list[Event]:
-    return [e for e in events if e.team_id == int(team_id)]
+_for_team = for_team
 
 
 def get_full_data(game: Game) -> dict:
@@ -435,10 +399,7 @@ def get_full_data(game: Game) -> dict:
         team_passes = passes(game, team_id)
         team_receptions = receptions(game, team_id)
 
-        out = {'All Passes': team_passes}
-        for group, items in group_breakdown(team_passes).items():
-            for item, events in items.items():
-                out[f'{group} - {item}'] = events
+        out = {'All Passes': team_passes, **PASSES.rows(team_passes)}
 
         # The thirteen zone x type combinations, which are a cross-product of
         # two groups rather than a group of their own.
@@ -449,9 +410,7 @@ def get_full_data(game: Game) -> dict:
         out['Unclassified passes'] = unclassified_passes(game, team_id)
 
         out['All Receptions'] = team_receptions
-        for group, items in reception_group_breakdown(team_receptions).items():
-            for item, events in items.items():
-                out[f'Reception {group} - {item}'] = events
+        out.update(RECEPTIONS.rows(team_receptions, 'Reception '))
 
         res[team_id] = out
     return res

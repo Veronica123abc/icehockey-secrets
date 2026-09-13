@@ -20,11 +20,13 @@ the base event, which an ``Event -> bool`` predicate cannot reach:
 
 Group exhaustiveness, verified over the same two games (2475 possessions):
 Result 2134+341 and Zone 835+371+1269 each total 2475.
+
+The group machinery itself lives in ``hockey.derive.filter_group``.
 """
 from __future__ import annotations
 
 from pathlib import Path
-from collections.abc import Callable, Iterable
+from collections.abc import Iterable
 
 from hockey.model.events import Event
 from hockey.config.settings import Settings
@@ -32,6 +34,7 @@ from hockey.io.raw_game import RawGame
 from hockey.normalize.build_game import build_game
 from hockey.model.game import Game
 from hockey.derive.base_events import index_by_event_id, base_event
+from hockey.derive.filter_group import FilterGroups, Predicate, for_team
 
 settings = Settings.from_env(project_root=Path(__file__).resolve().parent)
 
@@ -64,8 +67,6 @@ def in_oz(event: Event) -> bool:
 
 # --- Filter groups --------------------------------------------------------
 
-Predicate = Callable[[Event], bool]
-
 POSSESSION_FILTERS: dict[str, dict[str, Predicate]] = {
     'Result': {
         'Successful': is_successful,
@@ -78,24 +79,21 @@ POSSESSION_FILTERS: dict[str, dict[str, Predicate]] = {
     },
 }
 
+POSSESSIONS = FilterGroups('possession', POSSESSION_FILTERS)
+
 
 # --- Base sets ------------------------------------------------------------
 
 def possessions(game: Game, team_id: int | str | None = None) -> list[Event]:
     events = [e for e in game.events if e.name == 'possession']
-    return _for_team(events, team_id) if team_id else events
+    return for_team(events, team_id) if team_id else events
 
 
 # --- Filtering ------------------------------------------------------------
 
 def possessions_matching(events: Iterable[Event], group: str, item: str) -> list[Event]:
     """Possessions passing one named filter item."""
-    try:
-        predicate = POSSESSION_FILTERS[group][item]
-    except KeyError:
-        raise KeyError(f"unknown filter {group!r}/{item!r}; groups are "
-                       f"{sorted(POSSESSION_FILTERS)}") from None
-    return [e for e in events if predicate(e)]
+    return POSSESSIONS.matching(events, group, item)
 
 
 def filter_possessions(events: Iterable[Event], **selections: Iterable[str]) -> list[Event]:
@@ -109,35 +107,17 @@ def filter_possessions(events: Iterable[Event], **selections: Iterable[str]) -> 
     is the same as not mentioning it -- that is what makes the groups
     exhaustive.
     """
-    events = list(events)
-    for raw_group, items in selections.items():
-        group = raw_group.replace('_', ' ')
-        if group not in POSSESSION_FILTERS:
-            raise KeyError(f"unknown filter group {group!r}; "
-                           f"groups are {sorted(POSSESSION_FILTERS)}")
-        if isinstance(items, str):
-            items = [items]
-        predicates = [POSSESSION_FILTERS[group][i] for i in items]
-        events = [e for e in events if any(p(e) for p in predicates)]
-    return events
+    return POSSESSIONS.filter(events, **selections)
 
 
 def group_breakdown(events: Iterable[Event]) -> dict[str, dict[str, list[Event]]]:
     """Every group and item, applied to the given possessions."""
-    events = list(events)
-    return {group: {item: [e for e in events if predicate(e)]
-                    for item, predicate in items.items()}
-            for group, items in POSSESSION_FILTERS.items()}
+    return POSSESSIONS.breakdown(events)
 
 
 def check_groups_exhaustive(events: Iterable[Event]) -> dict[str, bool]:
     """Whether each group's items together cover every possession."""
-    events = list(events)
-    out = {}
-    for group, items in POSSESSION_FILTERS.items():
-        covered = {id(e) for e in events if any(p(e) for p in items.values())}
-        out[group] = len(covered) == len(events)
-    return out
+    return POSSESSIONS.check_exhaustive(events)
 
 
 # --- Base-event-dependent sets -------------------------------------------
@@ -187,8 +167,7 @@ def base_event_breakdown(game: Game, team_id: int | str | None = None) -> dict[s
 
 # --- Helpers --------------------------------------------------------------
 
-def _for_team(events: Iterable[Event], team_id: int | str) -> list[Event]:
-    return [e for e in events if e.team_id == int(team_id)]
+_for_team = for_team
 
 
 def get_full_data(game: Game) -> dict:
@@ -201,21 +180,18 @@ def get_full_data(game: Game) -> dict:
     all_turnovers = turnovers(game)
 
     for team_id in team_ids:
-        team_possessions = _for_team(all_possessions, team_id)
+        team_possessions = for_team(all_possessions, team_id)
 
-        out = {'All Possessions': team_possessions}
-        for group, items in group_breakdown(team_possessions).items():
-            for item, events in items.items():
-                out[f'{group} - {item}'] = events
-
-        # SportLogIQ's definition: possession AND base event both successful.
-        out['Successful Possessions'] = _for_team(successful, team_id)
-        out['Failed Possessions'] = _for_team(failed, team_id)
-        out['Turnovers'] = _for_team(all_turnovers, team_id)
-        for name, events in base_event_breakdown(game, team_id).items():
-            out[f'Base Event - {name}'] = events
-
-        res[team_id] = out
+        res[team_id] = {
+            'All Possessions': team_possessions,
+            **POSSESSIONS.rows(team_possessions),
+            # SportLogIQ's definition: possession AND base event both successful.
+            'Successful Possessions': for_team(successful, team_id),
+            'Failed Possessions': for_team(failed, team_id),
+            'Turnovers': for_team(all_turnovers, team_id),
+            **{f'Base Event - {name}': events
+               for name, events in base_event_breakdown(game, team_id).items()},
+        }
 
     res[team_ids[0]]['Takeovers'] = res[team_ids[1]]['Turnovers']
     res[team_ids[1]]['Takeovers'] = res[team_ids[0]]['Turnovers']

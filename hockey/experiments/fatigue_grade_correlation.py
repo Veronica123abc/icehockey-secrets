@@ -1,6 +1,5 @@
 from __future__ import annotations
-import os, psutil
-import sys
+import os
 import pathlib
 from pathlib import Path
 import pandas as pd
@@ -8,12 +7,11 @@ from typing import Callable
 from functools import partial
 import json
 from tqdm import tqdm
-from typing import Any, Optional, TYPE_CHECKING
+from typing import Optional
 from hockey.config.settings import Settings
 from hockey.io.raw_game import RawGame
 from collections import defaultdict
 from hockey.normalize.build_game import  build_game
-import hockey.db
 from hockey.catalog import DataCatalog
 DFFilter = Callable[[pd.DataFrame], pd.DataFrame]
 import time

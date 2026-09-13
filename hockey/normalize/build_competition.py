@@ -1,9 +1,6 @@
 from __future__ import annotations
 from hockey.io.raw_competition import RawCompetition
 from hockey.model.competition import Competition, Season, Stage
-from hockey.config.settings import Settings
-import json
-from pathlib import Path
 
 def build_competition(raw_competition: RawCompetition) -> Competition:
 

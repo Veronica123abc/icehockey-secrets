@@ -18,17 +18,20 @@ the recovery filters.
 Group exhaustiveness, verified over games 186461 + 191848: for controlled
 exits Result 269+95, Type 146+218 and With Play After 218+146 each total 364;
 for dump-outs Result 72+53 and Type 67+42+16 each total 125.
+
+The group machinery itself lives in ``hockey.derive.filter_group``.
 """
 from __future__ import annotations
 
 from pathlib import Path
-from collections.abc import Callable, Iterable
+from collections.abc import Iterable
 
 from hockey.model.events import Event
 from hockey.config.settings import Settings
 from hockey.io.raw_game import RawGame
 from hockey.normalize.build_game import build_game
 from hockey.model.game import Game
+from hockey.derive.filter_group import FilterGroups, Predicate, for_team
 
 settings = Settings.from_env(project_root=Path(__file__).resolve().parent)
 
@@ -77,8 +80,6 @@ def is_flip(event: Event) -> bool:
 
 # --- Filter groups --------------------------------------------------------
 
-Predicate = Callable[[Event], bool]
-
 EXIT_FILTERS: dict[str, dict[str, Predicate]] = {
     'Result': {
         'Successful': is_successful,
@@ -106,64 +107,28 @@ DUMPOUT_FILTERS: dict[str, dict[str, Predicate]] = {
     },
 }
 
+EXITS = FilterGroups('controlledexit', EXIT_FILTERS)
+DUMPOUTS = FilterGroups('dumpout', DUMPOUT_FILTERS)
+
 
 # --- Base sets ------------------------------------------------------------
 
 def all_controlled_exits(game: Game, team_id: int | str | None = None) -> list[Event]:
     """Every controlled exit attempt, successful or not."""
     events = [e for e in game.events if e.name == 'controlledexit']
-    return _for_team(events, team_id) if team_id else events
+    return for_team(events, team_id) if team_id else events
 
 
 def all_dumpouts(game: Game, team_id: int | str | None = None) -> list[Event]:
     events = [e for e in game.events if e.name == 'dumpout']
-    return _for_team(events, team_id) if team_id else events
+    return for_team(events, team_id) if team_id else events
 
 
 # --- Filtering ------------------------------------------------------------
 
-def _matching(events: Iterable[Event], filters: dict, group: str, item: str) -> list[Event]:
-    try:
-        predicate = filters[group][item]
-    except KeyError:
-        raise KeyError(f"unknown filter {group!r}/{item!r}; groups are "
-                       f"{sorted(filters)}") from None
-    return [e for e in events if predicate(e)]
-
-
-def _apply(events: Iterable[Event], filters: dict, **selections: Iterable[str]) -> list[Event]:
-    events = list(events)
-    for raw_group, items in selections.items():
-        group = raw_group.replace('_', ' ')
-        if group not in filters:
-            raise KeyError(f"unknown filter group {group!r}; "
-                           f"groups are {sorted(filters)}")
-        if isinstance(items, str):
-            items = [items]
-        predicates = [filters[group][i] for i in items]
-        events = [e for e in events if any(p(e) for p in predicates)]
-    return events
-
-
-def _breakdown(events: Iterable[Event], filters: dict) -> dict[str, dict[str, list[Event]]]:
-    events = list(events)
-    return {group: {item: [e for e in events if predicate(e)]
-                    for item, predicate in items.items()}
-            for group, items in filters.items()}
-
-
-def _exhaustive(events: Iterable[Event], filters: dict) -> dict[str, bool]:
-    events = list(events)
-    out = {}
-    for group, items in filters.items():
-        covered = {id(e) for e in events if any(p(e) for p in items.values())}
-        out[group] = len(covered) == len(events)
-    return out
-
-
 def exits_matching(exits: Iterable[Event], group: str, item: str) -> list[Event]:
     """Controlled exits passing one named filter item."""
-    return _matching(exits, EXIT_FILTERS, group, item)
+    return EXITS.matching(exits, group, item)
 
 
 def filter_exits(exits: Iterable[Event], **selections: Iterable[str]) -> list[Event]:
@@ -177,33 +142,33 @@ def filter_exits(exits: Iterable[Event], **selections: Iterable[str]) -> list[Ev
     is the same as not mentioning it -- that is what makes the groups
     exhaustive.
     """
-    return _apply(exits, EXIT_FILTERS, **selections)
+    return EXITS.filter(exits, **selections)
 
 
 def group_breakdown(exits: Iterable[Event]) -> dict[str, dict[str, list[Event]]]:
     """Every group and item, applied to the given exits."""
-    return _breakdown(exits, EXIT_FILTERS)
+    return EXITS.breakdown(exits)
 
 
 def check_groups_exhaustive(exits: Iterable[Event]) -> dict[str, bool]:
     """Whether each group's items together cover every exit."""
-    return _exhaustive(exits, EXIT_FILTERS)
+    return EXITS.check_exhaustive(exits)
 
 
 def dumpouts_matching(dumpouts: Iterable[Event], group: str, item: str) -> list[Event]:
-    return _matching(dumpouts, DUMPOUT_FILTERS, group, item)
+    return DUMPOUTS.matching(dumpouts, group, item)
 
 
 def filter_dumpouts(dumpouts: Iterable[Event], **selections: Iterable[str]) -> list[Event]:
-    return _apply(dumpouts, DUMPOUT_FILTERS, **selections)
+    return DUMPOUTS.filter(dumpouts, **selections)
 
 
 def dumpout_group_breakdown(dumpouts: Iterable[Event]) -> dict[str, dict[str, list[Event]]]:
-    return _breakdown(dumpouts, DUMPOUT_FILTERS)
+    return DUMPOUTS.breakdown(dumpouts)
 
 
 def check_dumpout_groups_exhaustive(dumpouts: Iterable[Event]) -> dict[str, bool]:
-    return _exhaustive(dumpouts, DUMPOUT_FILTERS)
+    return DUMPOUTS.check_exhaustive(dumpouts)
 
 
 # --- Named sets kept for existing callers ---------------------------------
@@ -235,8 +200,7 @@ def opposition_dumpin_recoveries(game: Game) -> Iterable[Event]:
 
 # --- Helpers --------------------------------------------------------------
 
-def _for_team(events: Iterable[Event], team_id: int | str) -> list[Event]:
-    return [e for e in events if e.team_id == int(team_id)]
+_for_team = for_team
 
 
 def get_full_data(game: Game) -> dict:
@@ -246,23 +210,17 @@ def get_full_data(game: Game) -> dict:
     for team_id in team_ids:
         exits = all_controlled_exits(game, team_id)
         outs = all_dumpouts(game, team_id)
-        recoveries = _for_team(opposition_dumpin_recoveries(game), team_id)
+        recoveries = for_team(opposition_dumpin_recoveries(game), team_id)
 
-        out = {'All Controlled Exits': exits}
-        for group, items in group_breakdown(exits).items():
-            for item, events in items.items():
-                out[f'{group} - {item}'] = events
-
-        out['All Dump-Outs'] = outs
-        for group, items in dumpout_group_breakdown(outs).items():
-            for item, events in items.items():
-                out[f'Dump-Out {group} - {item}'] = events
-
-        out['Opposition Dumpin Recoveries'] = recoveries
-        out['Successful Opposition Dumpin Recoveries'] = [
-            e for e in recoveries if is_successful(e)]
-
-        res[team_id] = out
+        res[team_id] = {
+            'All Controlled Exits': exits,
+            **EXITS.rows(exits),
+            'All Dump-Outs': outs,
+            **DUMPOUTS.rows(outs, 'Dump-Out '),
+            'Opposition Dumpin Recoveries': recoveries,
+            'Successful Opposition Dumpin Recoveries': [
+                e for e in recoveries if is_successful(e)],
+        }
     return res
 
 

@@ -4,7 +4,6 @@ from typing import Callable, Optional
 
 from hockey.model.events import Event
 from hockey.normalize.team_resolution import TeamResolver
-from hockey.derive.current_shift import current_shift_toi
 
 
 def _maybe_int(x) -> Optional[int]:

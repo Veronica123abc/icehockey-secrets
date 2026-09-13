@@ -23,11 +23,13 @@ Group exhaustiveness, verified over games 186461 + 191848 (94 chances): Grade
 construction -- 'otfcotc' is both off the forecheck and off the cycle, the
 same deliberate overlap shooting's 'Slot' has -- so it carries an explicit
 'Unclassified' item for the 18 chances typed 'none' or bare 'blocked'.
+
+The group machinery itself lives in ``hockey.derive.filter_group``.
 """
 from __future__ import annotations
 
 from pathlib import Path
-from collections.abc import Callable, Iterable
+from collections.abc import Iterable
 
 from hockey.model.events import Event
 from hockey.config.settings import Settings
@@ -35,6 +37,7 @@ from hockey.io.raw_game import RawGame
 from hockey.normalize.build_game import build_game
 from hockey.model.game import Game
 from hockey.derive.base_events import index_by_event_id, base_event
+from hockey.derive.filter_group import FilterGroups, Predicate, for_team
 
 settings = Settings.from_env(project_root=Path(__file__).resolve().parent)
 
@@ -109,8 +112,6 @@ def is_not_second_chance(event: Event) -> bool:
 
 # --- Filter groups --------------------------------------------------------
 
-Predicate = Callable[[Event], bool]
-
 SCORING_CHANCE_FILTERS: dict[str, dict[str, Predicate]] = {
     'Grade': {
         'A': is_grade_a,
@@ -135,6 +136,8 @@ SCORING_CHANCE_FILTERS: dict[str, dict[str, Predicate]] = {
     },
 }
 
+CHANCES = FilterGroups('scoringchance', SCORING_CHANCE_FILTERS)
+
 
 # --- Base sets ------------------------------------------------------------
 
@@ -147,13 +150,13 @@ def scoring_chances(game: Game, team_id: int | str | None = None) -> list[Event]
     ``Event.expected_goals_all_shots`` are populated on the chance itself.
     """
     events = [e for e in game.events if e.name == "scoringchance"]
-    return _for_team(events, team_id) if team_id else events
+    return for_team(events, team_id) if team_id else events
 
 
 def expected_goals_all_shots(game: Game, team_id: int | str | None = None) -> list[Event]:
     # Event.grade is the expected_goals_all_shots_grade, kept under its old name.
     events = [e for e in game.events if e.grade is not None]
-    return _for_team(events, team_id) if team_id else events
+    return for_team(events, team_id) if team_id else events
 
 
 def expected_goals_on_net(game: Game) -> list[Event]:
@@ -162,32 +165,9 @@ def expected_goals_on_net(game: Game) -> list[Event]:
 
 # --- Filtering ------------------------------------------------------------
 
-def _matching(events: Iterable[Event], filters: dict, group: str, item: str) -> list[Event]:
-    try:
-        predicate = filters[group][item]
-    except KeyError:
-        raise KeyError(f"unknown filter {group!r}/{item!r}; groups are "
-                       f"{sorted(filters)}") from None
-    return [e for e in events if predicate(e)]
-
-
-def _apply(events: Iterable[Event], filters: dict, **selections: Iterable[str]) -> list[Event]:
-    events = list(events)
-    for raw_group, items in selections.items():
-        group = raw_group.replace('_', ' ')
-        if group not in filters:
-            raise KeyError(f"unknown filter group {group!r}; "
-                           f"groups are {sorted(filters)}")
-        if isinstance(items, str):
-            items = [items]
-        predicates = [filters[group][i] for i in items]
-        events = [e for e in events if any(p(e) for p in predicates)]
-    return events
-
-
 def chances_matching(chances: Iterable[Event], group: str, item: str) -> list[Event]:
     """Scoring chances passing one named filter item."""
-    return _matching(chances, SCORING_CHANCE_FILTERS, group, item)
+    return CHANCES.matching(chances, group, item)
 
 
 def filter_chances(chances: Iterable[Event], **selections: Iterable[str]) -> list[Event]:
@@ -201,25 +181,17 @@ def filter_chances(chances: Iterable[Event], **selections: Iterable[str]) -> lis
     is the same as not mentioning it -- that is what makes the groups
     exhaustive.
     """
-    return _apply(chances, SCORING_CHANCE_FILTERS, **selections)
+    return CHANCES.filter(chances, **selections)
 
 
 def group_breakdown(chances: Iterable[Event]) -> dict[str, dict[str, list[Event]]]:
     """Every group and item, applied to the given chances."""
-    chances = list(chances)
-    return {group: {item: [e for e in chances if predicate(e)]
-                    for item, predicate in items.items()}
-            for group, items in SCORING_CHANCE_FILTERS.items()}
+    return CHANCES.breakdown(chances)
 
 
 def check_groups_exhaustive(chances: Iterable[Event]) -> dict[str, bool]:
     """Whether each group's items together cover every chance."""
-    chances = list(chances)
-    out = {}
-    for group, items in SCORING_CHANCE_FILTERS.items():
-        covered = {id(e) for e in chances if any(p(e) for p in items.values())}
-        out[group] = len(covered) == len(chances)
-    return out
+    return CHANCES.check_exhaustive(chances)
 
 
 # --- Named sets kept for existing callers ---------------------------------
@@ -265,7 +237,7 @@ def scoring_chances_goals(game: Game, chances: Iterable[Event]) -> list[Event]:
 def _successful_passes(game: Game, team_id=None) -> list[Event]:
     events = game.events
     if team_id:
-        events = _for_team(events, team_id)
+        events = for_team(events, team_id)
     return [e for e in events if e.name == "pass" and e.outcome == "successful"]
 
 
@@ -288,7 +260,7 @@ def ogp_carries_to_slot(game, team_id=None) -> list[Event]:
     never carry a slot play_section, so they cannot answer this. The supplier
     emits 'carrytoslot' instead: always OZ, always successful.
     """
-    events = _for_team(game.events, team_id) if team_id else game.events
+    events = for_team(game.events, team_id) if team_id else game.events
     return [e for e in events if e.name == 'carrytoslot']
 
 
@@ -299,7 +271,7 @@ def ogp_lpr_in_slot(game, team_id=None) -> list[Event]:
     sections are excluded -- recovering a puck in your own slot is not an
     offence-generating play.
     """
-    events = _for_team(game.events, team_id) if team_id else game.events
+    events = for_team(game.events, team_id) if team_id else game.events
     return [e for e in events
             if e.name == 'lpr' and e.play_section in OZ_SLOT_SECTIONS]
 
@@ -310,7 +282,7 @@ def ogp_shots_on_net_from_slot(game, team_id=None) -> list[Event]:
     Type 'slot' excludes 'slotblocked' by construction, and a successful
     outcome is 'on net' as used throughout ``shooting/``.
     """
-    events = _for_team(game.events, team_id) if team_id else game.events
+    events = for_team(game.events, team_id) if team_id else game.events
     return [e for e in events
             if e.name == 'shot' and e.type == 'slot' and e.outcome == 'successful']
 
@@ -321,7 +293,7 @@ def ogp_outside_shots_with_rebound(game, team_id=None) -> list[Event]:
     Covers 'outside' and 'outsideblocked' alike -- a blocked shot can still
     produce a rebound, and the supplier flags it the same way.
     """
-    events = _for_team(game.events, team_id) if team_id else game.events
+    events = for_team(game.events, team_id) if team_id else game.events
     return [e for e in events
             if e.name == 'shot' and 'outside' in e.type and 'withrebound' in e.flags]
 
@@ -335,7 +307,7 @@ def ogp_goals(game, team_id=None) -> list[Event]:
     shot also lets :func:`ogp` dedupe goals against the other categories,
     which is what "any goal not also one of the above" asks for.
     """
-    events = _for_team(game.events, team_id) if team_id else game.events
+    events = for_team(game.events, team_id) if team_id else game.events
     return [e for e in events if e.name == 'shot' and 'withgoal' in e.flags]
 
 
@@ -379,8 +351,7 @@ def ogp(game, team_id=None) -> list[Event]:
 
 # --- Helpers --------------------------------------------------------------
 
-def _for_team(events: Iterable[Event], team_id: int | str) -> list[Event]:
-    return [e for e in events if e.team_id == int(team_id)]
+_for_team = for_team
 
 
 def get_full_data(game: Game) -> dict:
@@ -389,21 +360,18 @@ def get_full_data(game: Game) -> dict:
 
     for team_id in team_ids:
         chances = scoring_chances(game, team_id=team_id)
-
-        out = {'All Scoring Chances': chances}
-        for group, items in group_breakdown(chances).items():
-            for item, events in items.items():
-                out[f'{group} - {item}'] = events
-        # Not a Result item: needs the base shot's 'withgoal' flag.
-        out['Result - Goals'] = scoring_chances_goals(game, chances)
-
         categories = ogp_categories(game, team_id=team_id)
-        out.update({f'OGP - {label}': events for label, events in categories.items()})
-        out['OGP - goals not otherwise counted'] = ogp_goals_not_otherwise_counted(
-            game, team_id=team_id)
-        out['OGP total (deduped)'] = ogp(game, team_id=team_id)
 
-        res[team_id] = out
+        res[team_id] = {
+            'All Scoring Chances': chances,
+            **CHANCES.rows(chances),
+            # Not a Result item: needs the base shot's 'withgoal' flag.
+            'Result - Goals': scoring_chances_goals(game, chances),
+            **{f'OGP - {label}': events for label, events in categories.items()},
+            'OGP - goals not otherwise counted': ogp_goals_not_otherwise_counted(
+                game, team_id=team_id),
+            'OGP total (deduped)': ogp(game, team_id=team_id),
+        }
     return res
 
 

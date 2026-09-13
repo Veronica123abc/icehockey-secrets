@@ -1,6 +1,5 @@
 # replace ##### placeholders below with real IDs from the API (see comments in each section)
 import requests
-import pandas as pd
 
 
 def test():

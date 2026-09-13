@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-from sqlalchemy import true
 
 from hockey.model.game import Game
 from hockey.model.events import Event

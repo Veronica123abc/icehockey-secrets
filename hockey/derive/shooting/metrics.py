@@ -17,10 +17,12 @@ each cover all shots exactly, ``'slot' in type`` agrees with the slot
 play_sections on every shot (679/679), blocked shots always have outcome
 'failed', goals always 'successful', and no shot carries an outcome other
 than successful/failed.
+
+The group machinery itself lives in ``hockey.derive.filter_group``.
 """
 from __future__ import annotations
 
-from collections.abc import Callable, Iterable
+from collections.abc import Iterable
 from pathlib import Path
 
 from hockey.model.events import Event
@@ -30,6 +32,7 @@ from hockey.normalize.build_game import build_game
 from hockey.normalize.build_game_db import build_game_from_db
 from hockey.model.game import Game
 from hockey.db.database import open_database_azure
+from hockey.derive.filter_group import FilterGroups, Predicate, for_team
 
 
 
@@ -119,8 +122,6 @@ def is_not_pressured(event: Event) -> bool:
 
 # --- Filter groups --------------------------------------------------------
 
-Predicate = Callable[[Event], bool]
-
 SHOT_FILTERS: dict[str, dict[str, Predicate]] = {
     'Result': {
         'Led to Goal': is_goal,
@@ -152,22 +153,21 @@ SHOT_FILTERS: dict[str, dict[str, Predicate]] = {
     },
 }
 
+SHOTS = FilterGroups('shot', SHOT_FILTERS)
+
 
 # --- Base sets ------------------------------------------------------------
 
 def all_shots(game: Game, team_id: int | str | None = None) -> list[Event]:
     events = [e for e in game.events if e.name == 'shot']
-    return _for_team(events, team_id) if team_id else events
+    return for_team(events, team_id) if team_id else events
 
+
+# --- Filtering ------------------------------------------------------------
 
 def shots_matching(shots: Iterable[Event], group: str, item: str) -> list[Event]:
     """Shots passing one named filter item."""
-    try:
-        predicate = SHOT_FILTERS[group][item]
-    except KeyError:
-        raise KeyError(f"unknown filter {group!r}/{item!r}; groups are "
-                       f"{sorted(SHOT_FILTERS)}") from None
-    return [e for e in shots if predicate(e)]
+    return SHOTS.matching(shots, group, item)
 
 
 def filter_shots(shots: Iterable[Event], **selections: Iterable[str]) -> list[Event]:
@@ -181,25 +181,12 @@ def filter_shots(shots: Iterable[Event], **selections: Iterable[str]) -> list[Ev
     is the same as not mentioning it -- that is what makes the groups
     exhaustive.
     """
-    shots = list(shots)
-    for raw_group, items in selections.items():
-        group = raw_group.replace('_', ' ')
-        if group not in SHOT_FILTERS:
-            raise KeyError(f"unknown filter group {group!r}; "
-                           f"groups are {sorted(SHOT_FILTERS)}")
-        if isinstance(items, str):
-            items = [items]
-        predicates = [SHOT_FILTERS[group][i] for i in items]
-        shots = [e for e in shots if any(p(e) for p in predicates)]
-    return shots
+    return SHOTS.filter(shots, **selections)
 
 
 def group_breakdown(shots: Iterable[Event]) -> dict[str, dict[str, list[Event]]]:
     """Every group and item, applied to the given shots."""
-    shots = list(shots)
-    return {group: {item: [e for e in shots if predicate(e)]
-                    for item, predicate in items.items()}
-            for group, items in SHOT_FILTERS.items()}
+    return SHOTS.breakdown(shots)
 
 
 def check_groups_exhaustive(shots: Iterable[Event]) -> dict[str, bool]:
@@ -208,19 +195,12 @@ def check_groups_exhaustive(shots: Iterable[Event]) -> dict[str, bool]:
     The property the filter UI depends on: tick everything in a group and you
     get all the shots back.
     """
-    shots = list(shots)
-    out = {}
-    for group, items in SHOT_FILTERS.items():
-        covered = {id(e) for e in shots
-                   if any(p(e) for p in items.values())}
-        out[group] = len(covered) == len(shots)
-    return out
+    return SHOTS.check_exhaustive(shots)
 
 
 # --- Helpers --------------------------------------------------------------
 
-def _for_team(events: Iterable[Event], team_id: int | str) -> list[Event]:
-    return [e for e in events if e.team_id == int(team_id)]
+_for_team = for_team
 
 
 def get_full_data(game: Game, raw_game: RawGame | None = None) -> dict:
@@ -231,11 +211,7 @@ def get_full_data(game: Game, raw_game: RawGame | None = None) -> dict:
 
     for team_id in team_ids:
         shots = all_shots(game, team_id)
-        out = {'All Shot Attempts': shots}
-        for group, items in group_breakdown(shots).items():
-            for item, events in items.items():
-                out[f'{group} - {item}'] = events
-        res[team_id] = out
+        res[team_id] = {'All Shot Attempts': shots, **SHOTS.rows(shots)}
     return res
 
 

@@ -6,7 +6,6 @@ from hockey.normalize.playsequence import normalize_playsequence
 from hockey.normalize.player_toi import normalize_player_toi
 from hockey.normalize.roster import normalize_roster
 from hockey.normalize.team_resolution import TeamResolver
-import time
 import warnings
 
 def _opt_int(value) -> int | None:

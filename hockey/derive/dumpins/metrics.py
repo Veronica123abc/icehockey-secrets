@@ -20,17 +20,20 @@ Group exhaustiveness, verified over games 186461 + 191848 (150 dump-ins):
 Type 129+21, Location 65+31+54 and Result 122+28 each total 150 exactly.
 Technique covers only 122 -- 28 attempts carry no technique flag -- so that
 group has an explicit 'Untagged' item to keep it exhaustive.
+
+The group machinery itself lives in ``hockey.derive.filter_group``.
 """
 from __future__ import annotations
 
 from pathlib import Path
-from collections.abc import Callable, Iterable
+from collections.abc import Iterable
 
 from hockey.model.events import Event
 from hockey.config.settings import Settings
 from hockey.io.raw_game import RawGame
 from hockey.normalize.build_game import build_game
 from hockey.model.game import Game
+from hockey.derive.filter_group import FilterGroups, Predicate, for_team
 
 settings = Settings.from_env(project_root=Path(__file__).resolve().parent)
 
@@ -153,8 +156,6 @@ def without_pressure(event: Event) -> bool:
 
 # --- Filter groups --------------------------------------------------------
 
-Predicate = Callable[[Event], bool]
-
 DUMPIN_FILTERS: dict[str, dict[str, Predicate]] = {
     'Result': {
         'Successful': is_successful,
@@ -207,65 +208,29 @@ DUMPIN_RECOVERY_FILTERS: dict[str, dict[str, Predicate]] = {
     },
 }
 
+DUMPINS = FilterGroups('dumpin', DUMPIN_FILTERS)
+RECOVERIES = FilterGroups('dumpinrecovery', DUMPIN_RECOVERY_FILTERS)
+
 
 # --- Base sets ------------------------------------------------------------
 
 def all_dumpins(game: Game, team_id: int | str | None = None) -> list[Event]:
     """Every dump-in attempt, one per puck event."""
     events = [e for e in game.events if e.name == 'dumpin']
-    return _for_team(events, team_id) if team_id else events
+    return for_team(events, team_id) if team_id else events
 
 
 def all_dumpin_recoveries(game: Game, team_id: int | str | None = None) -> list[Event]:
     """Every dump-in recovery, by either team."""
     events = [e for e in game.events if e.name == 'dumpinrecovery']
-    return _for_team(events, team_id) if team_id else events
+    return for_team(events, team_id) if team_id else events
 
 
 # --- Filtering ------------------------------------------------------------
 
-def _matching(events: Iterable[Event], filters: dict, group: str, item: str) -> list[Event]:
-    try:
-        predicate = filters[group][item]
-    except KeyError:
-        raise KeyError(f"unknown filter {group!r}/{item!r}; groups are "
-                       f"{sorted(filters)}") from None
-    return [e for e in events if predicate(e)]
-
-
-def _apply(events: Iterable[Event], filters: dict, **selections: Iterable[str]) -> list[Event]:
-    events = list(events)
-    for raw_group, items in selections.items():
-        group = raw_group.replace('_', ' ')
-        if group not in filters:
-            raise KeyError(f"unknown filter group {group!r}; "
-                           f"groups are {sorted(filters)}")
-        if isinstance(items, str):
-            items = [items]
-        predicates = [filters[group][i] for i in items]
-        events = [e for e in events if any(p(e) for p in predicates)]
-    return events
-
-
-def _breakdown(events: Iterable[Event], filters: dict) -> dict[str, dict[str, list[Event]]]:
-    events = list(events)
-    return {group: {item: [e for e in events if predicate(e)]
-                    for item, predicate in items.items()}
-            for group, items in filters.items()}
-
-
-def _exhaustive(events: Iterable[Event], filters: dict) -> dict[str, bool]:
-    events = list(events)
-    out = {}
-    for group, items in filters.items():
-        covered = {id(e) for e in events if any(p(e) for p in items.values())}
-        out[group] = len(covered) == len(events)
-    return out
-
-
 def dumpins_matching(dumpins: Iterable[Event], group: str, item: str) -> list[Event]:
     """Dump-ins passing one named filter item."""
-    return _matching(dumpins, DUMPIN_FILTERS, group, item)
+    return DUMPINS.matching(dumpins, group, item)
 
 
 def filter_dumpins(dumpins: Iterable[Event], **selections: Iterable[str]) -> list[Event]:
@@ -279,33 +244,33 @@ def filter_dumpins(dumpins: Iterable[Event], **selections: Iterable[str]) -> lis
     is the same as not mentioning it -- that is what makes the groups
     exhaustive.
     """
-    return _apply(dumpins, DUMPIN_FILTERS, **selections)
+    return DUMPINS.filter(dumpins, **selections)
 
 
 def group_breakdown(dumpins: Iterable[Event]) -> dict[str, dict[str, list[Event]]]:
     """Every group and item, applied to the given dump-ins."""
-    return _breakdown(dumpins, DUMPIN_FILTERS)
+    return DUMPINS.breakdown(dumpins)
 
 
 def check_groups_exhaustive(dumpins: Iterable[Event]) -> dict[str, bool]:
     """Whether each group's items together cover every dump-in."""
-    return _exhaustive(dumpins, DUMPIN_FILTERS)
+    return DUMPINS.check_exhaustive(dumpins)
 
 
 def recoveries_matching(recoveries: Iterable[Event], group: str, item: str) -> list[Event]:
-    return _matching(recoveries, DUMPIN_RECOVERY_FILTERS, group, item)
+    return RECOVERIES.matching(recoveries, group, item)
 
 
 def filter_recoveries(recoveries: Iterable[Event], **selections: Iterable[str]) -> list[Event]:
-    return _apply(recoveries, DUMPIN_RECOVERY_FILTERS, **selections)
+    return RECOVERIES.filter(recoveries, **selections)
 
 
 def recovery_group_breakdown(recoveries: Iterable[Event]) -> dict[str, dict[str, list[Event]]]:
-    return _breakdown(recoveries, DUMPIN_RECOVERY_FILTERS)
+    return RECOVERIES.breakdown(recoveries)
 
 
 def check_recovery_groups_exhaustive(recoveries: Iterable[Event]) -> dict[str, bool]:
-    return _exhaustive(recoveries, DUMPIN_RECOVERY_FILTERS)
+    return RECOVERIES.check_exhaustive(recoveries)
 
 
 # --- Named sets kept for existing callers ---------------------------------
@@ -334,8 +299,7 @@ def dumpin_recovery(game: Game) -> Iterable[Event]:
 
 # --- Helpers --------------------------------------------------------------
 
-def _for_team(events: Iterable[Event], team_id: int | str) -> list[Event]:
-    return [e for e in events if e.team_id == int(team_id)]
+_for_team = for_team
 
 
 def get_full_data(game: Game) -> dict:
@@ -345,18 +309,12 @@ def get_full_data(game: Game) -> dict:
     for team_id in team_ids:
         dumpins = all_dumpins(game, team_id)
         recoveries = all_dumpin_recoveries(game, team_id)
-
-        out = {'All Dump-Ins': dumpins}
-        for group, items in group_breakdown(dumpins).items():
-            for item, events in items.items():
-                out[f'{group} - {item}'] = events
-
-        out['All Dump-In Recoveries'] = recoveries
-        for group, items in recovery_group_breakdown(recoveries).items():
-            for item, events in items.items():
-                out[f'Recovery {group} - {item}'] = events
-
-        res[team_id] = out
+        res[team_id] = {
+            'All Dump-Ins': dumpins,
+            **DUMPINS.rows(dumpins),
+            'All Dump-In Recoveries': recoveries,
+            **RECOVERIES.rows(recoveries, 'Recovery '),
+        }
     return res
 
 

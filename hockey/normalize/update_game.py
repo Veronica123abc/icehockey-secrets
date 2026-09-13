@@ -1,12 +1,6 @@
 from __future__ import annotations
 from hockey.io.raw_game import RawGame
 from hockey.model.game import Game
-from hockey.model.game_info import GameInfo, TeamInfo
-from hockey.normalize.playsequence import normalize_playsequence
-from hockey.normalize.player_toi import normalize_player_toi
-from hockey.normalize.roster import normalize_roster
-from hockey.normalize.team_resolution import TeamResolver
-import time
 
 def update_game(game: Game, raw_game: RawGame, columns: list[str]) -> Game:
     raw_events = raw_game.playsequence_raw

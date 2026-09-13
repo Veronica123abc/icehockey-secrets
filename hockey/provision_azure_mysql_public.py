@@ -26,7 +26,6 @@ import sys
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Optional
 
 # ── Colour helpers ────────────────────────────────────────────────────────────
 GREEN  = "\033[92m"
