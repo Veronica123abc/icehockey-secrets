@@ -1,31 +1,49 @@
 #!/usr/bin/python
-"""The metric tree, assembled from the eight ``derive/`` metric modules.
+"""The metric tree, assembled from the ``derive/`` metric modules.
 
 Each module describes one or more POPULATIONS of events with a ``*_FILTERS``
 dictionary of exhaustive groups, bound to a :class:`~hockey.derive.filter_group
 .FilterGroups` (see that module for the contract). This is the single place
-that says which modules exist, what each population is called in the UI, and
-which supplier event name it draws from -- so a consumer like the game canvas
-builds its selector FROM the metric layer instead of keeping a second,
+that says which populations exist, what each is called in the UI, and which
+supplier event name it draws from -- so a consumer like the game canvas builds
+its selector FROM the metric layer instead of keeping a second,
 hand-maintained copy of the same definitions that drifts out of step.
 
 WHAT A LANE IS. One leaf of the tree: a population plus one filter item, e.g.
 "Passes · Slot". Every population also gets an unfiltered ``All`` lane. A lane
 key is ``"<population> · <item>"`` and is unique across the whole tree --
-:func:`lanes` asserts that at import, so adding a colliding item name fails
-loudly here rather than silently merging two lanes in the UI.
+:func:`flatten` asserts that at import, so a colliding item name fails loudly
+here rather than silently merging two lanes in the UI.
+
+SECTIONS SPAN MODULES. A section is the top level of the tree, and it is a
+DISPLAY grouping, not an import path: each population names its own module, so
+one section can gather populations from several modules. "Entries" below is
+the worked example -- it holds ``controlled_entries`` and ``dumpins`` side by
+side, and neither module knows about the other. Nothing in ``hockey/derive/``
+was merged to make that work: ``FilterGroups`` carries no module identity, so
+it is simply looked up in a different file.
+
+Because a lane key is ``population · item`` and carries no section, regrouping
+sections changes only :attr:`Lane.section`. Every lane key, and so the chart,
+the report columns and the CSV headers, is unaffected by how sections are
+arranged -- only the selector's grouping moves.
+
+The one rule: within a single registry a population must appear in exactly one
+section. Listing the same population twice collides on its keys --
+deliberately, because two checkboxes sharing a key would not stay in sync.
 
 WHAT IS NOT HERE. The population base sets are exactly ``event.name ==
-<FilterGroups.name>`` for all thirteen populations, which is what lets this be
-a lookup rather than a call into each module. Anything a module computes that
-is NOT an event-level predicate over one population -- playmaking's OGP
-categories, possession's base-event breakdown, the goal marker that lives on a
-scoring chance's base shot -- has no lane, because the canvas can only draw
-events it can test one at a time.
+<FilterGroups.name>`` for every population, which is what lets this be a lookup
+rather than a call into each module. Anything a module computes that is NOT an
+event-level predicate over one population -- playmaking's OGP categories,
+possession's base-event breakdown, the goal marker that lives on a scoring
+chance's base shot -- has no lane, because a consumer can only draw events it
+can test one at a time. ``OZEntries`` is absent for the same reason: it returns
+``ZoneEntry`` dataclasses, not ``Event -> bool`` predicates.
 
-Event names the eight modules do not cover (goal, assist, faceoff, penalty,
-icing, offside, lpr, carry, ...) contribute no lane at all: roughly a third of
-a game's events. That is the intended scope of the tree, not an omission.
+Event names no module covers (goal, assist, faceoff, penalty, icing, offside,
+lpr, carry, ...) contribute no lane at all: roughly a third of a game's events.
+That is the intended scope of the tree, not an omission.
 
 Importing this module must not touch the filesystem -- the canvas depends on
 it, and the canvas has to work in ``db_only`` deployments where DATA_ROOT_DIR
@@ -47,38 +65,68 @@ SEP = " · "
 #: The lane that carries a whole population, unfiltered.
 ALL_ITEM = "All"
 
-# (module label, dotted module, ((population label, supplier event name), ...))
-# The event name is also the FilterGroups name each module binds, which is how
-# a population is located inside its module.
-_REGISTRY: tuple[tuple[str, str, tuple[tuple[str, str], ...]], ...] = (
-    ("Shooting", "hockey.derive.shooting.metrics", (
-        ("Shots", "shot"),
+# Module paths, named so a registry entry reads as prose and a typo is a
+# NameError at import rather than a LookupError halfway through a build.
+SHOOTING = "hockey.derive.shooting.metrics"
+CONTROLLED_ENTRIES = "hockey.derive.controlled_entries.metrics"
+DUMPINS = "hockey.derive.dumpins.metrics"
+DZ_EXITS = "hockey.derive.DZExits.metrics"
+PASSING = "hockey.derive.passing.metrics"
+PLAYMAKING = "hockey.derive.playmaking.metrics"
+POSSESSION = "hockey.derive.possession.metrics"
+DEFENSIVE_EVENTS = "hockey.derive.defensive_events.metrics"
+
+
+@dataclass(frozen=True)
+class PopulationSpec:
+    """One population: where to find it, and what to call it.
+
+    ``module`` is the dotted path of the metric module that binds the
+    FilterGroups; ``event_name`` is both the supplier event name and the name
+    that FilterGroups was bound under.
+    """
+    label: str
+    module: str
+    event_name: str
+
+
+@dataclass(frozen=True)
+class SectionSpec:
+    """A display grouping of populations, which may come from several modules."""
+    label: str
+    populations: tuple[PopulationSpec, ...]
+
+
+#: The live tree. "Entries" gathers populations from two modules; the other
+#: sections happen to line up one-to-one with a module, which is a convenience
+#: rather than a constraint.
+_REGISTRY: tuple[SectionSpec, ...] = (
+    SectionSpec("Shooting", (
+        PopulationSpec("Shots", SHOOTING, "shot"),
     )),
-    ("Controlled entries", "hockey.derive.controlled_entries.metrics", (
-        ("Controlled entries", "controlledentry"),
+    SectionSpec("Entries", (
+        PopulationSpec("Controlled entries", CONTROLLED_ENTRIES, "controlledentry"),
+        PopulationSpec("Dump-ins", DUMPINS, "dumpin"),
+        PopulationSpec("Dump-in recoveries", DUMPINS, "dumpinrecovery"),
     )),
-    ("Dump-ins", "hockey.derive.dumpins.metrics", (
-        ("Dump-ins", "dumpin"),
-        ("Dump-in recoveries", "dumpinrecovery"),
+    SectionSpec("DZ exits", (
+        PopulationSpec("Controlled exits", DZ_EXITS, "controlledexit"),
+        PopulationSpec("Dump-outs", DZ_EXITS, "dumpout"),
     )),
-    ("DZ exits", "hockey.derive.DZExits.metrics", (
-        ("Controlled exits", "controlledexit"),
-        ("Dump-outs", "dumpout"),
+    SectionSpec("Passing", (
+        PopulationSpec("Passes", PASSING, "pass"),
+        PopulationSpec("Receptions", PASSING, "reception"),
     )),
-    ("Passing", "hockey.derive.passing.metrics", (
-        ("Passes", "pass"),
-        ("Receptions", "reception"),
+    SectionSpec("Playmaking", (
+        PopulationSpec("Scoring chances", PLAYMAKING, "scoringchance"),
     )),
-    ("Playmaking", "hockey.derive.playmaking.metrics", (
-        ("Scoring chances", "scoringchance"),
+    SectionSpec("Possession", (
+        PopulationSpec("Possessions", POSSESSION, "possession"),
     )),
-    ("Possession", "hockey.derive.possession.metrics", (
-        ("Possessions", "possession"),
-    )),
-    ("Defensive events", "hockey.derive.defensive_events.metrics", (
-        ("Entries against", "controlledentryagainst"),
-        ("Blocks", "block"),
-        ("Checks", "check"),
+    SectionSpec("Defensive events", (
+        PopulationSpec("Entries against", DEFENSIVE_EVENTS, "controlledentryagainst"),
+        PopulationSpec("Blocks", DEFENSIVE_EVENTS, "block"),
+        PopulationSpec("Checks", DEFENSIVE_EVENTS, "check"),
     )),
 )
 
@@ -87,7 +135,7 @@ _REGISTRY: tuple[tuple[str, str, tuple[tuple[str, str], ...]], ...] = (
 class Lane:
     """One leaf: a population, optionally narrowed to a single filter item."""
     key: str                      # "Passes · Slot" -- unique across the tree
-    module: str                   # "Passing"
+    section: str                  # "Passing" -- the display grouping
     population: str               # "Passes"
     event_name: str               # "pass"
     group: str | None             # "Type"; None on the All lane
@@ -102,6 +150,7 @@ class Lane:
 class PopulationTree:
     label: str
     event_name: str
+    module: str
     all_lane: Lane
     groups: tuple[tuple[str, tuple[Lane, ...]], ...]
 
@@ -112,14 +161,18 @@ class PopulationTree:
 
 
 @dataclass(frozen=True)
-class ModuleTree:
+class SectionTree:
     label: str
-    dotted: str
     populations: tuple[PopulationTree, ...]
 
     @property
     def lanes(self) -> tuple[Lane, ...]:
         return tuple(lane for pop in self.populations for lane in pop.lanes)
+
+    @property
+    def modules(self) -> tuple[str, ...]:
+        """The distinct modules this section draws on, in first-seen order."""
+        return tuple(dict.fromkeys(pop.module for pop in self.populations))
 
 
 def _find_groups(module, event_name: str) -> FilterGroups:
@@ -132,51 +185,57 @@ def _find_groups(module, event_name: str) -> FilterGroups:
         f"found {[v.name for v in vars(module).values() if isinstance(v, FilterGroups)]}")
 
 
-def _build() -> tuple[ModuleTree, ...]:
-    out: list[ModuleTree] = []
-    for module_label, dotted, popspecs in _REGISTRY:
-        module = importlib.import_module(dotted)
+def build_tree(registry: tuple[SectionSpec, ...]) -> tuple[SectionTree, ...]:
+    """Resolve a registry into the tree, importing each population's module.
+
+    Parameterised rather than hard-wired to :data:`_REGISTRY` so an alternative
+    grouping can be built and inspected without disturbing the live one.
+    """
+    out: list[SectionTree] = []
+    for section in registry:
         pops: list[PopulationTree] = []
-        for pop_label, event_name in popspecs:
-            groups = _find_groups(module, event_name)
-            all_lane = Lane(key=f"{pop_label}{SEP}{ALL_ITEM}", module=module_label,
-                            population=pop_label, event_name=event_name,
+        for spec in section.populations:
+            module = importlib.import_module(spec.module)   # importlib caches
+            groups = _find_groups(module, spec.event_name)
+            all_lane = Lane(key=f"{spec.label}{SEP}{ALL_ITEM}", section=section.label,
+                            population=spec.label, event_name=spec.event_name,
                             group=None, item=ALL_ITEM, predicate=None)
             grouped = tuple(
                 (group, tuple(
-                    Lane(key=f"{pop_label}{SEP}{item}", module=module_label,
-                         population=pop_label, event_name=event_name,
+                    Lane(key=f"{spec.label}{SEP}{item}", section=section.label,
+                         population=spec.label, event_name=spec.event_name,
                          group=group, item=item, predicate=predicate)
                     for item, predicate in items.items()))
                 for group, items in groups.filters.items()
             )
-            pops.append(PopulationTree(label=pop_label, event_name=event_name,
-                                       all_lane=all_lane, groups=grouped))
-        out.append(ModuleTree(label=module_label, dotted=dotted,
-                              populations=tuple(pops)))
+            pops.append(PopulationTree(label=spec.label, event_name=spec.event_name,
+                                       module=spec.module, all_lane=all_lane,
+                                       groups=grouped))
+        out.append(SectionTree(label=section.label, populations=tuple(pops)))
     return tuple(out)
 
 
-TREE: tuple[ModuleTree, ...] = _build()
-
-
-def _flatten() -> tuple[Lane, ...]:
-    flat = tuple(lane for mod in TREE for lane in mod.lanes)
+def flatten(tree: tuple[SectionTree, ...]) -> tuple[Lane, ...]:
+    """Every lane in tree order, asserting that lane keys are unique."""
+    flat = tuple(lane for section in tree for lane in section.lanes)
     seen: dict[str, Lane] = {}
     for lane in flat:
         clash = seen.get(lane.key)
         if clash is not None:
             raise ValueError(
                 f"duplicate lane key {lane.key!r}: "
-                f"{clash.population}/{clash.group}/{clash.item} and "
-                f"{lane.population}/{lane.group}/{lane.item}. Lane keys must be "
-                f"unique -- rename one item, or the two will merge in the UI.")
+                f"{clash.section}/{clash.population}/{clash.item} and "
+                f"{lane.section}/{lane.population}/{lane.item}. Lane keys must "
+                f"be unique -- a population belongs to exactly one section, or "
+                f"the two would merge in the UI.")
         seen[lane.key] = lane
     return flat
 
 
+TREE: tuple[SectionTree, ...] = build_tree(_REGISTRY)
+
 #: Every lane, in tree order. The UI's reading order, and so its lane order.
-LANES: tuple[Lane, ...] = _flatten()
+LANES: tuple[Lane, ...] = flatten(TREE)
 
 #: Lane lookup by key.
 BY_KEY: dict[str, Lane] = {lane.key: lane for lane in LANES}
@@ -204,19 +263,29 @@ def lanes_for_event(event: Event) -> tuple[str, ...]:
 
 
 def population_labels() -> tuple[str, ...]:
-    return tuple(pop.label for mod in TREE for pop in mod.populations)
+    return tuple(pop.label for section in TREE for pop in section.populations)
 
 
-if __name__ == "__main__":
+def print_tree(tree: tuple[SectionTree, ...]) -> int:
     total = 0
-    for mod in TREE:
-        print(f"\n{mod.label}")
-        for pop in mod.populations:
+    for section in tree:
+        modules = section.modules
+        suffix = f"   [{len(modules)} modules]" if len(modules) > 1 else ""
+        print(f"\n{section.label}{suffix}")
+        for pop in section.populations:
             n = len(pop.lanes)
             total += n
-            print(f"   {pop.label}  (event '{pop.event_name}', {n} lanes)")
+            print(f"   {pop.label}  (event '{pop.event_name}', {n} lanes, "
+                  f"{pop.module.rsplit('.', 2)[-2]})")
             print(f"      {ALL_ITEM}")
             for group, lanes in pop.groups:
                 print(f"      {group}: " + ", ".join(lane.item for lane in lanes))
-    print(f"\n{len(TREE)} modules · {len(population_labels())} populations · "
+    return total
+
+
+if __name__ == "__main__":
+    total = print_tree(TREE)
+    print(f"\n{len(TREE)} sections · {len(population_labels())} populations · "
           f"{total} lanes")
+    spanning = [f"{s.label} ({len(s.modules)})" for s in TREE if len(s.modules) > 1]
+    print(f"sections drawing on more than one module: {spanning or 'none'}")

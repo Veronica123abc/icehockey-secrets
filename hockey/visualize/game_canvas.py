@@ -28,7 +28,10 @@ _DIV_ID = "timeline"
 # 5: the metric rail is built from hockey/derive/metric_catalog.py instead of
 #    a table kept in this file, so every lane label changed. A warm worker
 #    would otherwise keep serving the old rail from _plotly_cache.
-CANVAS_VERSION = 5
+# 6: "Controlled entries" and "Dump-ins" merged into one "Entries" section.
+#    Lane keys are unchanged -- only the rail's grouping moved -- but the
+#    cached HTML still holds the old headings.
+CANVAS_VERSION = 6
 
 
 def _default_props(game: Game) -> dict:
