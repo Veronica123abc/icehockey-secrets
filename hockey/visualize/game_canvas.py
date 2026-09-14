@@ -4,7 +4,6 @@ import json
 import tempfile
 import webbrowser
 from collections import Counter, defaultdict
-from dataclasses import dataclass
 from datetime import datetime
 from html import escape
 from pathlib import Path
@@ -25,7 +24,11 @@ _DIV_ID = "timeline"
 
 # Bump to invalidate cached canvas HTML after visualization changes
 # (mirrors PLOT_VERSION in shift_toi.py).
-CANVAS_VERSION = 4
+#
+# 5: the metric rail is built from hockey/derive/metric_catalog.py instead of
+#    a table kept in this file, so every lane label changed. A warm worker
+#    would otherwise keep serving the old rail from _plotly_cache.
+CANVAS_VERSION = 5
 
 
 def _default_props(game: Game) -> dict:
@@ -55,45 +58,13 @@ def _default_props(game: Game) -> dict:
 
 _STAGE_LABELS = {"regular": "Regular season", "playoff": "Playoffs"}
 
-# Display grouping for the event-type rail. A game has ~40 distinct types,
-# which is too many for one flat list. Order within a group is deliberate
-# (most-used first), not alphabetical. Types absent from this table fall into
-# a trailing "Other" group, so a game from another league still lists all of
-# its types.
-# Bare names stay listed alongside their split lanes: an event with an
-# "undetermined" outcome falls back to one, and it should group with its own
-# family rather than dropping into "Other".
-_EVENT_GROUPS: tuple[tuple[str, tuple[str, ...]], ...] = (
-    ("Scoring", (
-        "goal", "goalagainst", "assist",
-        "scoringchance", "scoringchance against",
-        "shot attempts", "shot on net", "shot (blocked)", "shot (missed)",
-        "block",
-    )),
-    ("Entries & exits", (
-        "controlled entry", "controlled entry against",
-        "dumpin+", "dumpin-", "dumpinagainst",
-        "dumpinrecovery+ (offensive)", "dumpinrecovery+ (defensive)",
-        "dumpinrecoveries- (offensive)", "dumpinrecoveries- (defensive)",
-        "dumpoutrecovery+ (offensive)", "dumpoutrecovery+ (defensive)",
-        "dumpoutrecoveries- (offensive)", "dumpoutrecoveries- (defensive)",
-        "controlled exits", "dumpouts",
-        "carry to slot", "carry to slot against", "linecarries",
-    )),
-    ("Puck movement", (
-        "possession", "pass+", "pass-", "reception+", "reception-",
-        "failed pass location", "lpr+", "lpr-",
-    )),
-    ("Pressure & physical", ("check to body", "check to stick")),
-    ("Stoppages & specials", (
-        "faceoff+", "faceoff-", "faceoff recovery",
-        "icing", "offside", "penalty", "penalty drawn",
-    )),
-)
+# The rail's grouping is no longer declared here. It is the metric layer's own
+# shape -- module -> population -> filter group -> item -- read from
+# hockey/derive/metric_catalog.py by _group_event_types and _module_blocks
+# below, so there is no display-only table to drift out of step with the
+# metrics themselves.
 
-_OTHER_GROUP = "Other"
-
-# Ticking a type this common draws a wall of lines rather than a signal; the
+# Ticking a metric this common draws a wall of lines rather than a signal; the
 # count is flagged so you can see that before you tick it.
 _DENSE_THRESHOLD = 300
 
@@ -116,165 +87,44 @@ _LANE_CHROME = 54
 _MIN_LANE_AREA = 96
 
 
-# A lane is an event type filtered the way the metrics in
-# hockey/derive/gameflow_metrics/CLAUDE.md are: most of them only count with a
-# particular outcome, and a few split further on `type`. Faceoffs are the
-# clearest case -- they come in pairs, one event per team at the same moment,
-# one successful and one failed, so a single "faceoff" lane would draw both at
-# once and hide who won.
+# The lane tree comes from the metric layer, not from a table kept here.
+# hockey/derive/metric_catalog.py assembles it from the eight derive modules:
+# module -> population -> filter group -> item, where each item is the same
+# Event -> bool predicate the metrics themselves are computed with. So the
+# selector and the metrics can no longer disagree -- adding a filter item to a
+# module puts it on the canvas, and there is no second copy to update.
 #
-# An event whose name appears below but matches none of its rules keeps the
-# plain name (Sportlogiq also emits "undetermined") rather than being dropped
-# from the widget.
-@dataclass(frozen=True)
-class _LaneRule:
-    """One lane, and the event filter that fills it. Unset fields don't filter.
-
-    ``mirror`` names a second lane carrying the same events with the sides
-    swapped -- the "against" metrics. They are not supplier events: a scoring
-    chance is one event, and whether it reads as "for" or "against" depends on
-    which team you are asking about. The mirrored lane exists so the player
-    report can answer "how often was this player on the ice while the OTHER
-    team did this", which a single lane cannot express: in WOI mode the report
-    counts every player on the ice for an event regardless of whose event it
-    is, so "for" and "against" would otherwise land in the same column.
-    """
-    label: str
-    outcome: str | None = None
-    type_prefix: str | None = None   # `type` starts with this
-    type_has: str | None = None      # `type` contains this
-    type_lacks: str | None = None    # `type` does not contain this
-    type_equals: str | None = None   # `type` is exactly this
-    grade_in: frozenset | None = None  # expected_goals_all_shots_grade
-    mirror: str | None = None        # extra lane, drawn for the opposing side
-
-    def matches(self, outcome: str | None, type_: str, grade: str | None) -> bool:
-        if self.outcome is not None and outcome != self.outcome:
-            return False
-        if self.type_equals is not None and type_ != self.type_equals:
-            return False
-        if self.type_prefix is not None and not type_.startswith(self.type_prefix):
-            return False
-        if self.type_has is not None and self.type_has not in type_:
-            return False
-        if self.type_lacks is not None and self.type_lacks in type_:
-            return False
-        if self.grade_in is not None and grade not in self.grade_in:
-            return False
-        return True
-
-
-_CHANCE_GRADES = frozenset({"A", "B", "C"})
-
-# The metric list from hockey/derive/gameflow_metrics/CLAUDE.md, and nothing
-# else. An event name absent from this table contributes no lane at all, which
-# is what prunes the widget: the supplier emits 42 event names and this exposes
-# the listed metrics only.
-#
-# Every matching rule fires, so one event can land in several lanes -- a shot
-# on net counts towards "shot attempts" as well as its own lane.
-#
-# The supplier's `type` carries a tail of qualifiers ("offensivewithplaywith
-# shotonnet", "outsideblocked"), so these match on a prefix or a substring
-# rather than equality wherever a qualifier tail is expected.
-_LANE_RULES: dict[str, tuple[_LaneRule, ...]] = {
-    "goal": (_LaneRule("goal"),),
-    "goalagainst": (_LaneRule("goalagainst"),),
-    "assist": (_LaneRule("assist"),),
-    "scoringchance": (
-        _LaneRule("scoringchance", grade_in=_CHANCE_GRADES,
-                  mirror="scoringchance against"),
-    ),
-    "shot": (
-        _LaneRule("shot attempts"),
-        _LaneRule("shot on net", outcome="successful"),
-        _LaneRule("shot (blocked)", outcome="failed", type_has="blocked"),
-        _LaneRule("shot (missed)", outcome="failed", type_lacks="blocked"),
-    ),
-    "block": (_LaneRule("block", type_prefix="shot"),),
-    "controlledentry": (_LaneRule("controlled entry", outcome="successful"),),
-    "controlledentryagainst": (_LaneRule("controlled entry against"),),
-    "dumpin": (
-        _LaneRule("dumpin+", outcome="successful"),
-        _LaneRule("dumpin-", outcome="failed"),
-    ),
-    "dumpinagainst": (_LaneRule("dumpinagainst"),),
-    "dumpinrecovery": (
-        _LaneRule("dumpinrecovery+ (offensive)", outcome="successful",
-                  type_prefix="offensive",
-                  mirror="dumpinrecoveries- (defensive)"),
-        _LaneRule("dumpinrecovery+ (defensive)", outcome="successful",
-                  type_prefix="defensive",
-                  mirror="dumpinrecoveries- (offensive)"),
-    ),
-    "dumpoutrecovery": (
-        _LaneRule("dumpoutrecovery+ (offensive)", outcome="successful",
-                  type_prefix="offensive",
-                  mirror="dumpoutrecoveries- (defensive)"),
-        _LaneRule("dumpoutrecovery+ (defensive)", outcome="successful",
-                  type_prefix="defensive",
-                  mirror="dumpoutrecoveries- (offensive)"),
-    ),
-    "controlledexit": (_LaneRule("controlled exits", outcome="successful"),),
-    "dumpout": (_LaneRule("dumpouts"),),
-    "carrytoslot": (_LaneRule("carry to slot", mirror="carry to slot against"),),
-    "carry": (_LaneRule("linecarries"),),
-    "possession": (_LaneRule("possession", outcome="successful"),),
-    "pass": (
-        _LaneRule("pass+", outcome="successful"),
-        _LaneRule("pass-", outcome="failed"),
-    ),
-    "reception": (
-        _LaneRule("reception+", outcome="successful"),
-        _LaneRule("reception-", outcome="failed"),
-    ),
-    "failedpasslocation": (_LaneRule("failed pass location"),),
-    "lpr": (
-        # "contested" is a substring, not the whole type: the supplier also
-        # emits qualified forms like "hipresopdumpcontested", ~23% of them.
-        _LaneRule("lpr+", outcome="successful", type_has="contested"),
-        _LaneRule("lpr-", outcome="failed", type_has="contested"),
-    ),
-    "check": (
-        _LaneRule("check to body", type_prefix="body"),
-        _LaneRule("check to stick", type_prefix="stick"),
-    ),
-    "faceoff": (
-        _LaneRule("faceoff+", outcome="successful"),
-        _LaneRule("faceoff-", outcome="failed"),
-    ),
-    "faceoffrecovery": (_LaneRule("faceoff recovery", outcome="successful"),),
-    "icing": (_LaneRule("icing"),),
-    "offside": (_LaneRule("offside"),),
-    "penalty": (_LaneRule("penalty"),),
-    "penaltydrawn": (_LaneRule("penalty drawn"),),
-}
+# Importing it must stay filesystem-free: the canvas has to render in
+# ``db_only`` deployments, where DATA_ROOT_DIR is unset. The metric modules
+# resolve their settings lazily for exactly this reason.
+from hockey.derive import metric_catalog as catalog
 
 # Lanes that carry another lane's events with the sides swapped.
-_MIRRORED_LANES: frozenset = frozenset(
-    rule.mirror
-    for rules in _LANE_RULES.values() for rule in rules
-    if rule.mirror
-)
+#
+# Empty now. The old hand-written table synthesised "against" lanes (scoring
+# chance against, carry to slot against, ...) by mirroring an event onto the
+# other bench, because the metric list had no real opponent events. The
+# catalog does: defensive_events supplies controlledentryagainst, blocks and
+# checks as genuine events with their own filters, so a mirrored copy would be
+# a second, weaker version of a lane that already exists. _build_figure still
+# consults this, so restoring mirrors means filling this set -- nothing else.
+_MIRRORED_LANES: frozenset = frozenset()
 
 _FLIP_SIDE = {_SIDE_HOME: _SIDE_AWAY, _SIDE_AWAY: _SIDE_HOME, _SIDE_NONE: _SIDE_NONE}
 
 
 def _display_lanes(event: Event) -> tuple[str, ...]:
-    """Every lane this event belongs to; empty if it is not a listed metric."""
-    rules = _LANE_RULES.get(event.name)
-    if not rules:
-        return ()
-    outcome = event.get_raw("outcome")
-    type_ = event.type or ""
-    grade = event.get_raw("expected_goals_all_shots_grade")
-    lanes: list[str] = []
-    for rule in rules:
-        if rule.matches(outcome, type_, grade):
-            lanes.append(rule.label)
-            if rule.mirror:
-                lanes.append(rule.mirror)
-    return tuple(lanes)
+    """Every lane this event belongs to; empty if no module covers it.
+
+    An event lands in its population's "All" lane plus one lane per matching
+    filter item, so a pass is typically in five or six lanes at once -- the
+    groups are independent axes, not alternatives.
+
+    Roughly a third of a game's events (goals, assists, faceoffs, penalties,
+    loose-puck recoveries, plain carries) belong to no population and so get
+    no lane. That is the scope of the eight modules, not a gap here.
+    """
+    return catalog.lanes_for_event(event)
 
 
 def _team_label(team) -> str:
@@ -773,21 +623,68 @@ class GameCanvas:
         return f'<div class="segbar" id="team-sel">{"".join(buttons)}</div>{unattributed}'
 
     def _group_event_types(self) -> list[tuple[str, list[str]]]:
-        """Bucket this game's event types into display groups, in a fixed order.
+        """This game's lanes bucketed by population, in catalog order.
 
-        Only groups with at least one type present in this game are returned;
-        anything not covered by ``_EVENT_GROUPS`` lands in a trailing "Other".
+        One bucket per population that actually occurs in this game, holding
+        its lanes in the order the metric module declares them ("All" first,
+        then each filter group's items). A lane with no events in this game is
+        dropped, which is what stops the rail listing filter items the
+        supplier never produced -- an untagged rush differential, say, or a
+        pass type this league does not use.
+
+        There is no "Other" bucket any more: a lane exists only because a
+        module defines it, so nothing can fall outside the tree.
         """
-        remaining = set(self._event_types)
+        present = set(self._event_types)
         groups: list[tuple[str, list[str]]] = []
-        for title, names in _EVENT_GROUPS:
-            present = [n for n in names if n in remaining]
-            if present:
-                remaining.difference_update(present)
-                groups.append((title, present))
-        if remaining:
-            groups.append((_OTHER_GROUP, sorted(remaining)))
+        for module in catalog.TREE:
+            for population in module.populations:
+                lanes = [lane.key for lane in population.lanes
+                         if lane.key in present]
+                if lanes:
+                    groups.append((population.label, lanes))
         return groups
+
+    def _module_blocks(self) -> list[tuple[str, list[tuple[str, list[str]]]]]:
+        """The rail tree: module -> its populations present in this game.
+
+        The module level is display only -- lanes are keyed by population and
+        item, so this adds a heading without touching the lane identity the
+        chart, the report and the CSV all share.
+        """
+        by_population = dict(self._group_event_types())
+        blocks: list[tuple[str, list[tuple[str, list[str]]]]] = []
+        for module in catalog.TREE:
+            populations = [
+                (population.label, by_population[population.label])
+                for population in module.populations
+                if population.label in by_population
+            ]
+            if populations:
+                blocks.append((module.label, populations))
+        return blocks
+
+    def _population_subgroups(self, population_label: str,
+                              lanes: list[str]) -> list[tuple[str, list[str]]]:
+        """One population's lanes split by the filter group they came from.
+
+        ``All`` has no group of its own and leads the list under an empty
+        heading, so it reads as the population total rather than as a member
+        of whichever group happens to come first.
+        """
+        present = set(lanes)
+        out: list[tuple[str, list[str]]] = []
+        for module in catalog.TREE:
+            for population in module.populations:
+                if population.label != population_label:
+                    continue
+                if population.all_lane.key in present:
+                    out.append(("", [population.all_lane.key]))
+                for group, group_lanes in population.groups:
+                    keys = [lane.key for lane in group_lanes if lane.key in present]
+                    if keys:
+                        out.append((group, keys))
+        return out
 
     def _roster_by_side(self) -> list[tuple[str, list]]:
         """The two rosters, home first, each sorted by jersey number."""
@@ -940,37 +837,82 @@ class GameCanvas:
         return "\n".join(blocks)
 
     def _rail_html(self) -> str:
-        """The event-type rail: collapsible groups of checkboxes with counts.
+        """The metric rail: module -> population -> filter group -> item.
 
-        A group starts expanded only if it contains a pre-selected type, so an
-        untouched canvas opens as a short menu rather than a 40-row list.
+        The tree is the metric layer's own structure, read from
+        hockey/derive/metric_catalog.py, rather than a display-only copy of it
+        kept in this file.
+
+        A row SHOWS just the item ("On Net") because the group heading above
+        it already says which population it belongs to; its ``data-type`` is
+        the full lane key ("Shots · On Net"), which is what the chart, the
+        report, the CSV and the search box all key on. Filter-group headings
+        inside a population are plain captions, not another collapsible level
+        -- four levels of disclosure in a 300px rail is more clicking than
+        reading.
+
+        Modules and populations start collapsed unless they hold a
+        pre-selected lane, so an untouched canvas opens as a short menu rather
+        than a 145-row list.
         """
+        chevron = (
+            '<svg class="chev" width="14" height="14" viewBox="0 0 16 16" '
+            'fill="none"><path d="M6 4 L10 8 L6 12" stroke="'
+            f'{self._props["axis-color"]}'
+            '" stroke-width="1.6" stroke-linecap="round" '
+            'stroke-linejoin="round"/></svg>'
+        )
         blocks = []
-        for title, names in self._group_event_types():
-            on = sum(1 for n in names if n in self._preselected)
-            rows = []
-            for name in names:
-                count = self._event_counts[name]
-                checked = " checked" if name in self._preselected else ""
-                dense = " dense" if count >= _DENSE_THRESHOLD else ""
-                rows.append(
-                    f'        <label class="evt" data-type="{name}">'
-                    f'<input type="checkbox" onchange="_toggle(this)"{checked}>'
-                    f'<span class="evt-name">{name}</span>'
-                    f'<span class="evt-count{dense}">{count:,}</span></label>'
-                )
-            badge = (f'<span class="badge">{on} on</span>' if on
-                     else '<span class="badge" hidden></span>')
-            body_hidden = "" if on else " hidden"
-            blocks.append(f"""      <div class="group{' open' if on else ''}">
-        <div class="group-head" onclick="_toggleGroup(this)">
-          <svg class="chev" width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M6 4 L10 8 L6 12" stroke="{self._props['axis-color']}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          <span class="group-name">{title}</span>
-          <span class="group-size">{len(names)}</span>
-          <span class="spacer"></span>{badge}
-        </div>
-        <div class="group-body"{body_hidden}>
+        for module_label, populations in self._module_blocks():
+            module_lanes = [key for _, lanes in populations for key in lanes]
+            module_on = sum(1 for key in module_lanes if key in self._preselected)
+
+            groups = []
+            for population_label, lanes in populations:
+                on = sum(1 for key in lanes if key in self._preselected)
+                rows = []
+                for heading, keys in self._population_subgroups(population_label, lanes):
+                    if heading:
+                        rows.append(
+                            f'            <div class="sub">{escape(heading)}</div>')
+                    for key in keys:
+                        count = self._event_counts[key]
+                        checked = " checked" if key in self._preselected else ""
+                        dense = " dense" if count >= _DENSE_THRESHOLD else ""
+                        item = catalog.BY_KEY[key].item
+                        rows.append(
+                            f'            <label class="evt" data-type="{escape(key)}">'
+                            f'<input type="checkbox" onchange="_toggle(this)"{checked}>'
+                            f'<span class="evt-name">{escape(item)}</span>'
+                            f'<span class="evt-count{dense}">{count:,}</span></label>'
+                        )
+                badge = (f'<span class="badge">{on} on</span>' if on
+                         else '<span class="badge" hidden></span>')
+                body_hidden = "" if on else " hidden"
+                groups.append(f"""        <div class="group{' open' if on else ''}">
+          <div class="group-head" onclick="_toggleGroup(this)">
+            {chevron}
+            <span class="group-name">{escape(population_label)}</span>
+            <span class="group-size">{len(lanes)}</span>
+            <span class="spacer"></span>{badge}
+          </div>
+          <div class="group-body"{body_hidden}>
 {chr(10).join(rows)}
+          </div>
+        </div>""")
+
+            module_badge = (f'<span class="badge">{module_on} on</span>' if module_on
+                            else '<span class="badge" hidden></span>')
+            module_hidden = "" if module_on else " hidden"
+            blocks.append(f"""      <div class="module{' open' if module_on else ''}">
+        <div class="module-head" onclick="_toggleModule(this)">
+          {chevron}
+          <span class="module-name">{escape(module_label)}</span>
+          <span class="group-size">{len(module_lanes)}</span>
+          <span class="spacer"></span>{module_badge}
+        </div>
+        <div class="module-body"{module_hidden}>
+{chr(10).join(groups)}
         </div>
       </div>""")
         return "\n".join(blocks)
@@ -996,7 +938,7 @@ class GameCanvas:
 
         num_types = len(self._event_types)
         selected = len(self._preselected)
-        rail_meta = (f"{num_types} types in this game · "
+        rail_meta = (f"{num_types} metrics in this game · "
                      + (f"{selected} on chart" if selected else "none on chart"))
 
         return f"""<!doctype html>
@@ -1202,18 +1144,39 @@ class GameCanvas:
   }}
   .search input::placeholder {{ color: {props['axis-color']}; }}
   #controls {{ display: flex; flex-direction: column; }}
+  /* Three levels: module > population (.group) > filter-group caption (.sub).
+     Only the first two collapse; a caption is a label, not a control. */
+  .module {{ border-top: 1px solid {props['border-color']}; }}
+  .module:first-child {{ border-top: 0; }}
+  .module-head {{
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    height: 36px;
+    cursor: pointer;
+    user-select: none;
+  }}
+  .module-name {{
+    font-size: 12.5px;
+    font-weight: 700;
+    color: {props['title-color']};
+  }}
+  .module-body {{ padding-left: 10px; }}
   .group-head {{
     display: flex;
     align-items: center;
     gap: 7px;
-    height: 32px;
+    height: 30px;
     cursor: pointer;
     user-select: none;
   }}
   .group-name {{ font-size: 12.5px; font-weight: 600; color: #cbd5e1; }}
   .group-size {{ font-size: 11px; color: {props['axis-color']}; }}
   .chev {{ flex-shrink: 0; transition: transform 120ms ease; }}
-  .group.open .chev {{ transform: rotate(90deg); }}
+  /* Scoped with > so opening a module does not rotate the chevrons of the
+     populations nested inside it. */
+  .group.open > .group-head .chev {{ transform: rotate(90deg); }}
+  .module.open > .module-head .chev {{ transform: rotate(90deg); }}
   .badge {{
     font-size: 10.5px;
     font-weight: 600;
@@ -1226,8 +1189,17 @@ class GameCanvas:
     display: flex;
     flex-direction: column;
     gap: 2px;
-    padding-bottom: 8px;
+    padding: 0 0 8px 10px;
   }}
+  .sub {{
+    margin: 7px 0 1px;
+    font-size: 10.5px;
+    font-weight: 600;
+    color: {props['axis-color']};
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }}
+  .sub:first-child {{ margin-top: 2px; }}
   .evt {{
     display: flex;
     align-items: center;
@@ -1549,19 +1521,19 @@ class GameCanvas:
 <div class="layout">
   <div class="card rail">
     <div class="rail-head">
-      <span class="section-heading">Event types</span>
+      <span class="section-heading">Metrics</span>
       <span class="spacer"></span>
       <button type="button" class="clear" id="rail-clear" onclick="_clearAll()">Clear</button>
     </div>
     <div class="rail-meta" id="rail-meta">{rail_meta}</div>
     <div class="search">
       <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="4.4" stroke="{props['axis-color']}" stroke-width="1.5"/><path d="M10.4 10.4 L14 14" stroke="{props['axis-color']}" stroke-width="1.5" stroke-linecap="round"/></svg>
-      <input type="text" id="type-filter" placeholder="Filter types…" autocomplete="off" oninput="_filter(this.value)">
+      <input type="text" id="type-filter" placeholder="Filter metrics…" autocomplete="off" oninput="_filter(this.value)">
     </div>
     <div id="controls">
 {rail_html}
     </div>
-    <div class="rail-meta" id="no-match" hidden>No types match that filter.</div>
+    <div class="rail-meta" id="no-match" hidden>No metrics match that filter.</div>
   </div>
   <div class="main">
     <div class="card timeline-card">
@@ -2117,13 +2089,17 @@ function _updateCounts() {{
     if (b.checked) total++;
   }});
   document.getElementById('rail-meta').textContent =
-    NUM_TYPES + ' types in this game · ' + (total ? total + ' on chart' : 'none on chart');
+    NUM_TYPES + ' metrics in this game · ' + (total ? total + ' on chart' : 'none on chart');
   var clear = document.getElementById('rail-clear');
   clear.style.color = total ? HOME_COLOR : '#475569';
   clear.style.cursor = total ? 'pointer' : 'default';
-  document.querySelectorAll('.group').forEach(function(g) {{
-    var on = g.querySelectorAll('input:checked').length;
-    var badge = g.querySelector('.badge');
+  // Both levels carry a count. A module's own badge is the first .badge inside
+  // it in DOM order (the one in its head), so this does not pick up a nested
+  // group's badge instead.
+  document.querySelectorAll('#controls .module, #controls .group').forEach(function(s) {{
+    var on = s.querySelectorAll('input:checked').length;
+    var badge = s.querySelector('.badge');
+    if (!badge) return;
     badge.textContent = on + ' on';
     badge.hidden = (on === 0);
   }});
@@ -2135,6 +2111,12 @@ function _toggleGroup(head) {{
   g.querySelector('.group-body').hidden = !open;
 }}
 
+function _toggleModule(head) {{
+  var m = head.parentNode;
+  var open = m.classList.toggle('open');
+  m.querySelector('.module-body').hidden = !open;
+}}
+
 function _clearAll() {{
   document.querySelectorAll('#controls .evt input').forEach(function(b) {{
     b.checked = false;
@@ -2142,32 +2124,65 @@ function _clearAll() {{
   _redraw();
 }}
 
+// Hide a filter-group caption whose rows were all filtered away, so it cannot
+// sit above rows that belong to the next caption.
+function _syncCaptions(group) {{
+  var body = group.querySelector('.group-body');
+  if (!body) return;
+  var caption = null, seen = false;
+  Array.prototype.forEach.call(body.children, function(node) {{
+    if (node.classList.contains('sub')) {{
+      if (caption) caption.hidden = !seen;
+      caption = node;
+      seen = false;
+    }} else if (!node.hidden) {{
+      seen = true;
+    }}
+  }});
+  if (caption) caption.hidden = !seen;
+}}
+
+// Search matches the FULL lane key ("Shots · On Net"), not just the visible
+// item text, so typing a population name finds every metric under it. Both
+// sides are lowercased: lane keys carry capitals now that they come from the
+// metric modules, and a lowercased query against a mixed-case key would match
+// nothing at all.
 function _filter(q) {{
   q = q.trim().toLowerCase();
-  var groups = document.querySelectorAll('.group');
-  // Remember how the groups were left before the first keystroke, so clearing
-  // the box restores that rather than leaving everything expanded.
+  var sections = document.querySelectorAll('#controls .module, #controls .group');
+  // Remember how things were left before the first keystroke, so clearing the
+  // box restores that rather than leaving everything expanded.
   if (q && _preSearchOpen === null) {{
     _preSearchOpen = [];
-    groups.forEach(function(g) {{ _preSearchOpen.push(g.classList.contains('open')); }});
+    sections.forEach(function(s) {{ _preSearchOpen.push(s.classList.contains('open')); }});
   }}
   var anyMatch = false;
-  groups.forEach(function(g, i) {{
+  document.querySelectorAll('#controls .group').forEach(function(g) {{
     var shown = 0;
     g.querySelectorAll('.evt').forEach(function(row) {{
-      var hit = !q || row.dataset.type.indexOf(q) !== -1;
+      var hit = !q || row.dataset.type.toLowerCase().indexOf(q) !== -1;
       row.hidden = !hit;
       if (hit) shown++;
     }});
     g.hidden = (shown === 0);
     if (shown) anyMatch = true;
-    var body = g.querySelector('.group-body');
+    _syncCaptions(g);
+  }});
+  // A module is empty exactly when every population inside it is.
+  document.querySelectorAll('#controls .module').forEach(function(m) {{
+    var any = false;
+    m.querySelectorAll('.group').forEach(function(g) {{ if (!g.hidden) any = true; }});
+    m.hidden = !any;
+  }});
+  sections.forEach(function(s, i) {{
+    var body = s.querySelector('.module-body') || s.querySelector('.group-body');
+    if (!body) return;
     if (q) {{
-      g.classList.add('open');
+      s.classList.add('open');
       body.hidden = false;
     }} else {{
-      var was = _preSearchOpen ? _preSearchOpen[i] : g.classList.contains('open');
-      g.classList.toggle('open', was);
+      var was = _preSearchOpen ? _preSearchOpen[i] : s.classList.contains('open');
+      s.classList.toggle('open', was);
       body.hidden = !was;
     }}
   }});

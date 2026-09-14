@@ -33,7 +33,22 @@ from hockey.normalize.build_game import build_game
 from hockey.model.game import Game
 from hockey.derive.filter_group import FilterGroups, Predicate, for_team
 
-settings = Settings.from_env(project_root=Path(__file__).resolve().parent)
+_SETTINGS: Settings | None = None
+
+
+def _settings() -> Settings:
+    """Settings, resolved on first use rather than at import.
+
+    Settings.from_env raises when DATA_ROOT_DIR is unset, and this module
+    is imported by the game canvas through hockey.derive.metric_catalog.
+    The canvas must keep working in db_only deployments, where that
+    variable is deliberately absent -- so nothing here may touch the
+    filesystem just to be imported.
+    """
+    global _SETTINGS
+    if _SETTINGS is None:
+        _SETTINGS = Settings.from_env(project_root=Path(__file__).resolve().parent)
+    return _SETTINGS
 
 
 # --- Predicates -----------------------------------------------------------
@@ -233,7 +248,7 @@ def print_res(res):
 
 if __name__ == "__main__":
     GAME_ID = 191848
-    raw = RawGame(game_id=GAME_ID, root_dir=settings.data_root_dir,
+    raw = RawGame(game_id=GAME_ID, root_dir=_settings().data_root_dir,
                   playsequence_source="playsequence_compiled")
     game = build_game(raw)
 

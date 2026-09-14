@@ -36,7 +36,22 @@ from hockey.derive.filter_group import FilterGroups, Predicate, for_team
 
 
 
-settings = Settings.from_env(project_root=Path(__file__).resolve().parent)
+_SETTINGS: Settings | None = None
+
+
+def _settings() -> Settings:
+    """Settings, resolved on first use rather than at import.
+
+    Settings.from_env raises when DATA_ROOT_DIR is unset, and this module
+    is imported by the game canvas through hockey.derive.metric_catalog.
+    The canvas must keep working in db_only deployments, where that
+    variable is deliberately absent -- so nothing here may touch the
+    filesystem just to be imported.
+    """
+    global _SETTINGS
+    if _SETTINGS is None:
+        _SETTINGS = Settings.from_env(project_root=Path(__file__).resolve().parent)
+    return _SETTINGS
 
 INNER_SLOT_SECTION = 'innerSlot'
 OUTER_SLOT_SECTIONS = frozenset({'eastOuterSlot', 'westOuterSlot'})
@@ -226,14 +241,14 @@ def print_res(res):
 
 def season_stats(league: int, season: str):
     from hockey.catalog import DataCatalog
-    catalog = DataCatalog(settings.data_root_dir)
+    catalog = DataCatalog(_settings().data_root_dir)
     game_ids = catalog.scheduled_game_ids(17, "20252026")
 
 
     res = []
     for game_id in game_ids[:50]:
         print(game_id)
-        raw_game = RawGame(game_id, settings.data_root_dir)
+        raw_game = RawGame(game_id, _settings().data_root_dir)
         game = build_game(raw_game)
         # r = cf.with_types(game.events, ["d2d","offboards"])
         # r2 = cf.with_flags(game.events, "lowhigh")
@@ -250,7 +265,7 @@ if __name__ == "__main__":
     #exit(0)
     GAME_ID = 191848
     GAME_ID = 186461
-    # raw = RawGame(game_id=GAME_ID, root_dir=settings.data_root_dir,
+    # raw = RawGame(game_id=GAME_ID, root_dir=_settings().data_root_dir,
     #               playsequence_source="playsequence_compiled")
     # game = build_game(raw)
     conn = open_database_azure("hockey_v2_test")
