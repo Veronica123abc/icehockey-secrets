@@ -160,6 +160,22 @@ Three rules worth knowing before you touch it:
   rather than being folded into ES. ~3.5% of the uncompiled path; ~0 on
   compiled and database.
 
+Events are not the only thing with a situation. A shift is an interval and
+carries none of those supplier fields, so the rules are also exposed over
+plain numbers — `period_from_time`, `manpower_from_skaters`,
+`goalies_from_flags` — with `ContextFilter.matches_situation` as the selection
+itself. `matches(event)` classifies and then delegates to it, so "selected"
+means one thing however it is asked. That is what lets
+`metrics/player/skater.py` narrow a TOI denominator to match the events it is
+counting.
+
+Two asymmetries worth knowing before relying on it. Direction for an event
+comes from the supplier; for a slice of ice time it has to be derived from the
+skater counts, and the two agree in sign on 99.69% of compiled events. And
+everything is relative to a team: one slice is PP1 for one bench and SH1 for
+the other, so anything crediting both sides has to ask per team rather than
+once.
+
 ---
 
 ## 5. Who consumes all this
@@ -250,13 +266,14 @@ Two habits that make it useful:
   other module — but it is the one file in the tree that a convention-following
   glob will miss. Renaming it would rename work in progress, so it is left
   alone and named explicitly by the `SCORING` constant in the catalog.
-- **`skater.py` does not filter by game context yet.** `skater_stats` takes a
-  `context` argument and raises `NotImplementedError` on anything but None.
-  Narrowing events by manpower without also narrowing TOI would rate a full
-  game's events against a partial denominator, and TOI is an interval problem
-  rather than an event one. Both halves have to be done together.
+Resolved, and recorded so they are not reintroduced:
 
-Resolved, and recorded so it is not reintroduced: manpower used to be
-implemented twice, once in `context_filter` and again in SQL inside
-`skater.py`, under different constant names. `skater.py` is now event-based and
-calls the derive modules, so there is one implementation again.
+- Manpower used to be implemented twice, once in `context_filter` and again in
+  SQL inside `skater.py`, under different constant names. `skater.py` is now
+  event-based and calls the derive modules, so there is one implementation.
+- `skater_stats` used to refuse a `context`, because narrowing events without
+  narrowing TOI would rate a full game's events against a partial denominator.
+  It now narrows both — events through `ContextFilter.matches`, ice time
+  through a sweep that classifies every shift slice from each team's side.
+  Checked by partition: ES+SH1+SH2+PP1+PP2 sums to each player's total TOI
+  exactly, and selecting every value reproduces the unfiltered figure.

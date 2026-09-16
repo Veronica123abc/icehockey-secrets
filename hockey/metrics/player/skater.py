@@ -56,13 +56,31 @@ output and from on-ice attribution. They are in the shift data -- seven or
 eight intervals a game -- so they have to be dropped explicitly rather than
 assumed absent.
 
-GAME CONTEXT IS IGNORED FOR NOW. Every event in the games counts, whatever the
-manpower or period. :func:`skater_stats` takes a ``context`` argument for when
-that changes: pass a ``hockey.derive.context_filter.ContextFilter`` and the
-events would be narrowed before anything is counted. Note that TOI would then
-also need narrowing to match -- time on ice is an interval problem, not an
-event one -- so the argument is deliberately left at "no filtering" until both
-halves can be done together.
+GAME CONTEXT NARROWS BOTH HALVES. Pass a ``ContextFilter`` as ``context`` and
+the counts drop to events in that situation AND the TOI denominator drops to
+time spent in it, so a per-60 rate divides like with like::
+
+    pp = ctx.DEFAULT.with_values(ctx.MANPOWER, [ctx.PP1])
+    lines = skater_stats(from_games(load_games(ids)), context=pp)
+
+EVERYTHING IS RELATIVE TO THE PLAYER'S OWN TEAM, which is the subtle part. A
+goal scored by team A on the power play is PP1 from A's side and SH1 for a
+team B skater who was on the ice for it. So WOI cannot simply ask whether the
+GOAL is selected -- it asks whether the goal's moment is selected from each
+credited player's side, which is the opposite answer on the two benches.
+
+TOI IS NOT AN EVENT, SO IT IS SWEPT. A shift carries no period, manpower or
+goalie field, and the situation changes whenever anyone steps on or off. The
+shifts of a game are cut at every boundary, each slice is classified from each
+team's side by ``context_filter``'s situation rules, and a skater is credited
+the slices his team's situation is selected for. Period boundaries join the
+cut list defensively: no shift straddles one in the games checked, but a slice
+spanning two periods would otherwise be credited entirely to one of them.
+
+Numerator and denominator classify by slightly different means, deliberately.
+An event carries the supplier's own ``manpower_situation`` and uses it; a slice
+has to derive direction from the skater counts. The two agree in sign on 99.69%
+of compiled events, so they part company only over a few empty-net seconds.
 
 TWO THINGS ABOUT AGGREGATING ACROSS GAMES. A player's id is stable across
 games in a league (20 of the 42 skaters in game 186461 also play 186449), so
@@ -80,6 +98,7 @@ from dataclasses import dataclass, fields
 from hockey.model.events import Event
 from hockey.model.roster import Roster
 from hockey.model.toi import ToIInterval
+from hockey.derive import context_filter as ctx
 from hockey.derive.scoring import scoring
 from hockey.derive.shooting import metrics as shooting
 
@@ -177,6 +196,93 @@ def _on_ice_at(spans: Sequence[tuple[float, float]], t: float) -> bool:
     return i > 0 and spans[i - 1][0] <= t < spans[i - 1][1]
 
 
+Situation = tuple[str, str, str]      # (period, manpower, goalies)
+
+
+def _situation_timeline(toi: Sequence[ToIInterval],
+                        roster: Roster) -> list[tuple[float, float, dict[int, Situation]]]:
+    """One game cut into slices of constant situation.
+
+    ``(start, end, {team_id: (period, manpower, goalies)})`` per slice, each
+    team's situation stated from ITS OWN side -- so one slice reads PP1 for one
+    bench and SH1 for the other.
+
+    The cuts are every shift start and end, plus the period boundaries. Between
+    two consecutive cuts nobody steps on or off, so the situation holds across
+    the whole slice and can be credited in one go.
+
+    A slice with only one team on the ice is a gap in the data, not a 5v0, and
+    is dropped: strength is a comparison and it takes two teams.
+    """
+    end_of_game = max((x.end_t for x in toi if x.end_t is not None), default=0.0)
+    spans = [(x.start_t, end_of_game if x.end_t is None else x.end_t,
+              x.player_id, x.team_id) for x in toi]
+
+    cuts = {a for a, _, _, _ in spans} | {b for _, b, _, _ in spans}
+    cuts |= {n * ctx.PERIOD_LENGTH
+             for n in range(1, int(end_of_game // ctx.PERIOD_LENGTH) + 1)
+             if 0 < n * ctx.PERIOD_LENGTH < end_of_game}
+
+    out: list[tuple[float, float, dict[int, Situation]]] = []
+    for lo, hi in zip(sorted(cuts), sorted(cuts)[1:]):
+        if hi <= lo:
+            continue
+        skaters: dict[int, int] = defaultdict(int)
+        goalie_on: dict[int, bool] = defaultdict(bool)
+        for start, end, player_id, team_id in spans:
+            if start > lo or hi > end or team_id is None:
+                continue
+            player = roster.players.get(player_id)
+            if player is not None and player.position == GOALIE:
+                goalie_on[team_id] = True
+            else:
+                skaters[team_id] += 1
+        teams = sorted(set(skaters) | set(goalie_on))
+        if len(teams) != 2:
+            continue
+        period = ctx.period_from_time(lo)
+        first, second = teams
+        situations = {
+            own: (period,
+                  ctx.manpower_from_skaters(skaters[own], skaters[other],
+                                            own_goalie_on=goalie_on[own],
+                                            opposing_goalie_on=goalie_on[other]),
+                  ctx.goalies_from_flags(goalie_on[own], goalie_on[other]))
+            for own, other in ((first, second), (second, first))
+        }
+        out.append((lo, hi, situations))
+    return out
+
+
+def _selected_seconds(timeline, spans: Sequence[tuple[float, float]],
+                      team_id: int | None, context) -> float:
+    """Seconds on the ice with this player's team's situation selected."""
+    if team_id is None:
+        return 0.0
+    total = 0.0
+    for lo, hi, situations in timeline:
+        situation = situations.get(team_id)
+        if situation is None:
+            continue
+        if not context.matches_situation(team_id=team_id, period=situation[0],
+                                         manpower=situation[1],
+                                         goalies=situation[2]):
+            continue
+        for start, end in spans:
+            overlap = min(hi, end) - max(lo, start)
+            if overlap > 0:
+                total += overlap
+    return total
+
+
+def _situation_at(timeline, t: float, team_id: int) -> Situation | None:
+    """The situation at ``t`` from ``team_id``'s side, or None outside play."""
+    for lo, hi, situations in timeline:
+        if lo <= t < hi:
+            return situations.get(team_id)
+    return None
+
+
 # --- Accumulating one game at a time ----------------------------------------
 
 class _Totals:
@@ -189,14 +295,25 @@ class _Totals:
         self.names: dict[int, tuple[str, str]] = {}
         self.games_seen: dict[int, set[int]] = defaultdict(set)
 
-    def add(self, data: GameData) -> None:
+    def add(self, data: GameData, context=None) -> None:
         spans = _skater_spans(data.toi, data.roster)
+        timeline = (_situation_timeline(data.toi, data.roster)
+                    if context is not None else None)
 
         for player_id, player_spans in spans.items():
-            self.games_seen[player_id].add(data.game_id)
-            self.tally[player_id]["toi"] += sum(end - start
-                                                for start, end in player_spans)
             player = data.roster.players.get(player_id)
+            if timeline is None:
+                seconds = sum(end - start for start, end in player_spans)
+            else:
+                seconds = _selected_seconds(
+                    timeline, player_spans,
+                    player.team_id if player is not None else None, context)
+                if seconds <= 0:
+                    # On the ice, but never in the selected situation. Counting
+                    # the game would inflate games_played and deflate TOI/GP.
+                    continue
+            self.games_seen[player_id].add(data.game_id)
+            self.tally[player_id]["toi"] += seconds
             if player is not None:
                 if player.team_id is not None:
                     self.teams[player_id][player.team_id] += 1
@@ -208,8 +325,13 @@ class _Totals:
 
         def credit(events: Iterable[Event], metric: str) -> None:
             for event in events:
-                if event.player_id is not None and event.player_id in spans:
-                    self.tally[event.player_id][metric] += 1
+                if event.player_id is None or event.player_id not in spans:
+                    continue
+                # An event credited to a player belongs to his team, so the
+                # supplier's classification is already from his side.
+                if context is not None and not context.matches(event):
+                    continue
+                self.tally[event.player_id][metric] += 1
 
         # The derive helpers read only `.events`, which GameData provides.
         shots = shooting.all_shots(data)
@@ -231,6 +353,14 @@ class _Totals:
                 player = data.roster.players.get(player_id)
                 if player is None or player.team_id is None:
                     continue
+                if context is not None:
+                    # Asked from HIS side, not the scorer's: a power-play goal
+                    # against is a penalty kill for the man on the ice.
+                    situation = _situation_at(timeline, goal.t, player.team_id)
+                    if situation is None or not context.matches_situation(
+                            team_id=player.team_id, period=situation[0],
+                            manpower=situation[1], goalies=situation[2]):
+                        continue
                 metric = ("goals_for_woi" if player.team_id == goal.team_id
                           else "goals_against_woi")
                 self.tally[player_id][metric] += 1
@@ -268,18 +398,14 @@ def skater_stats(games: Iterable[GameData], *, min_toi: float = 0.0,
     ``games`` is an iterable of :class:`GameData`; pass a generator and only
     one game is held at a time. ``min_toi`` is in minutes, across all of them.
 
-    ``context`` is accepted and must be None for now: filtering events by
-    manpower or period without also narrowing TOI would rate a full game's
-    events against a partial denominator. See the module docstring.
+    ``context`` is a ``hockey.derive.context_filter.ContextFilter``. It narrows
+    the events counted AND the ice time they are counted over, so the two
+    halves describe the same situation -- ``min_toi`` is then minutes in that
+    situation, not minutes of hockey.
     """
-    if context is not None:
-        raise NotImplementedError(
-            "context filtering needs TOI narrowed to the same situation; "
-            "see the module docstring")
-
     totals = _Totals()
     for data in games:
-        totals.add(data)
+        totals.add(data, context)
     return totals.lines(min_toi)
 
 
@@ -354,3 +480,33 @@ if __name__ == "__main__":
           f"of {totals['shots']:4d}")
     print(f"   WOI goals for+against {sum(l.goals_for_woi + l.goals_against_woi for l in lines)} "
           f"(a goal counts once per skater on the ice, so ~10x the goal count)")
+
+    # Context narrows the events AND the ice time they are counted over, so
+    # these are not slices of the table above -- each has its own denominator.
+    print("\n   context selections (events and TOI narrowed together):")
+    selections = [
+        ("even strength", ctx.DEFAULT),
+        ("power play", ctx.DEFAULT.with_values(ctx.MANPOWER, [ctx.PP1, ctx.PP2])),
+        ("penalty kill", ctx.DEFAULT.with_values(ctx.MANPOWER, [ctx.SH1, ctx.SH2])),
+        ("third period", ctx.DEFAULT.with_values(ctx.PERIOD, [ctx.P3])),
+    ]
+    for label, selection in selections:
+        picked = skater_stats(from_games(load_games(GAME_IDS)), context=selection)
+        minutes = sum(l.toi for l in picked)
+        goals = sum(l.goals for l in picked)
+        print(f"      {label:14s} {len(picked):3d} skaters  {minutes:7.1f} player-min  "
+              f"{goals:2d} goals   [{' · '.join(selection.describe())}]")
+
+    # Every player's ice time has to land in exactly one manpower bucket, so
+    # the five of them add back up to his total. Cheap to check, and the whole
+    # correctness of a per-60 rate rests on it.
+    full = {l.player_id: l.toi for l in lines}
+    summed: dict[int, float] = {}
+    for value in ctx.MANPOWERS:
+        selection = ctx.ContextFilter(teams=None, periods=frozenset({ctx.ALL}),
+                                      manpower=frozenset({value}),
+                                      goalies=frozenset(ctx.GOALIE_SITUATIONS))
+        for line in skater_stats(from_games(load_games(GAME_IDS)), context=selection):
+            summed[line.player_id] = summed.get(line.player_id, 0.0) + line.toi
+    off = [p for p in full if abs(full[p] - summed.get(p, 0.0)) > 1e-6]
+    print(f"\n   ES+SH1+SH2+PP1+PP2 == total TOI for all {len(full)} skaters: {not off}")

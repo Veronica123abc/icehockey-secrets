@@ -45,6 +45,15 @@ field, null skater counts, no team -- classifies as ``None`` and matches no
 specific value. On the uncompiled path ~3.5% of events carry no on-ice data at
 all, and those are excluded by any narrowing selection rather than being
 silently folded into 'ES'.
+
+EVENTS ARE NOT THE ONLY THING WITH A SITUATION. Time on ice has one too, and a
+shift carries none of the supplier fields above -- it is an interval, not an
+event. So the classification rules are exposed over plain numbers as well
+(:func:`period_from_time`, :func:`manpower_from_skaters`,
+:func:`goalies_from_flags`), and the selection itself is
+:meth:`ContextFilter.matches_situation`, which :meth:`ContextFilter.matches`
+delegates to once it has classified an event. One definition of "selected",
+two ways of arriving at it.
 """
 from __future__ import annotations
 
@@ -114,6 +123,20 @@ def period_of(event: Event) -> str | None:
     return _PERIOD_BY_NUMBER.get(number, OT if number >= 4 else None)
 
 
+def period_from_time(t: float | None) -> str | None:
+    """P1/P2/P3/OT from a game time, for data carrying no period field.
+
+    A shift is an interval with no period on it, so TOI has to derive one.
+    This is not an approximation: checked against the events, which do carry
+    the field, ``t // 1200 + 1`` agrees with ``raw['period']`` on every one of
+    the 11888 events of games 186461 and 186449, overtime included.
+    """
+    if t is None:
+        return None
+    number = int(t // PERIOD_LENGTH) + 1
+    return _PERIOD_BY_NUMBER.get(number, OT if number >= 4 else None)
+
+
 def _effective_skaters(skaters: int | None, goalie_off: bool) -> int | None:
     """Skaters minus the extra attacker a pulled goalie buys.
 
@@ -139,6 +162,31 @@ def manpower_magnitude(event: Event) -> int | None:
     if own is None or opp is None:
         return None
     return min(2, abs(own - opp))
+
+
+def manpower_from_skaters(own: int, opposing: int, *,
+                          own_goalie_on: bool, opposing_goalie_on: bool) -> str:
+    """ES/PP1/PP2/SH1/SH2 from who is on the ice, relative to ``own``.
+
+    This is the TOI path. An event carries the supplier's own
+    ``manpower_situation`` and :func:`manpower_of` takes the direction from it;
+    a shift carries nothing, so the direction has to be derived here too. The
+    two agree in sign on 100% of 28421 uncompiled and 99.69% of 46989 compiled
+    events, so a count taken from the supplier and a denominator derived here
+    classify the same moments, give or take a few empty-net seconds.
+
+    The pulled-goalie adjustment is the one :func:`manpower_magnitude` applies:
+    a team with its goalie off has bought an extra attacker, not an advantage,
+    so 6v5 is even strength.
+    """
+    difference = ((own - (0 if own_goalie_on else 1))
+                  - (opposing - (0 if opposing_goalie_on else 1)))
+    if difference == 0:
+        return ES
+    magnitude = min(2, abs(difference))
+    if difference > 0:
+        return PP1 if magnitude == 1 else PP2
+    return SH1 if magnitude == 1 else SH2
 
 
 def manpower_of(event: Event) -> str | None:
@@ -178,6 +226,19 @@ def goalies_of(event: Event) -> str | None:
     if own_off:
         return GOALIE_OUT
     if opp_off:
+        return OPPONENT_GOALIE_OUT
+    return BOTH_GOALIES
+
+
+def goalies_from_flags(own_goalie_on: bool, opposing_goalie_on: bool) -> str:
+    """The goalie situation from who is on the ice, relative to ``own``.
+
+    The TOI counterpart of :func:`goalies_of`, folding both-nets-empty into
+    "Goalie out" the same way it does.
+    """
+    if not own_goalie_on:
+        return GOALIE_OUT
+    if not opposing_goalie_on:
         return OPPONENT_GOALIE_OUT
     return BOTH_GOALIES
 
@@ -232,16 +293,37 @@ class ContextFilter:
     def all_periods(self) -> bool:
         return ALL in self.periods or not self.periods
 
-    def matches(self, event: Event) -> bool:
-        if self.teams is not None and team_of(event) not in self.teams:
+    def matches_situation(self, *, team_id: int | None = None,
+                          period: str | None = None,
+                          manpower: str | None = None,
+                          goalies: str | None = None) -> bool:
+        """Whether a SITUATION is selected, however it came to be classified.
+
+        This is the selection rule with the classifying already done. An event
+        arrives through :meth:`matches`; a stretch of ice time, which is not an
+        event and carries no supplier fields, classifies itself and arrives
+        here. Both therefore honour one definition of "selected".
+
+        A dimension given as None matches nothing, which is how an
+        unclassifiable event or slice drops out instead of being assumed.
+        """
+        if self.teams is not None and team_id not in self.teams:
             return False
-        if not self.all_periods and period_of(event) not in self.periods:
+        if not self.all_periods and period not in self.periods:
             return False
-        if manpower_of(event) not in self.manpower:
+        if manpower not in self.manpower:
             return False
-        if goalies_of(event) not in self.goalies:
+        if goalies not in self.goalies:
             return False
         return True
+
+    def matches(self, event: Event) -> bool:
+        """Whether an event happened in the selected context."""
+        return self.matches_situation(
+            team_id=team_of(event),
+            period=period_of(event),
+            manpower=manpower_of(event),
+            goalies=goalies_of(event))
 
     # -- reporting ---------------------------------------------------------
 
