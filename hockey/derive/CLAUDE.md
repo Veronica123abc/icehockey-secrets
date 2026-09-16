@@ -162,11 +162,21 @@ Three rules worth knowing before you touch it:
 
 ---
 
-## 5. How the canvas consumes all this
+## 5. Who consumes all this
 
-`hockey/visualize/game_canvas.py` builds its left-hand rail from
-`metric_catalog` — it holds no metric definitions of its own. Add a filter item
-to a module and it appears on the canvas; there is no second list to update.
+Two things do, and neither defines a metric of its own.
+
+**`hockey/visualize/game_canvas.py`** builds its left-hand rail from
+`metric_catalog`. Add a filter item to a module and it appears on the canvas;
+there is no second list to update.
+
+**`hockey/metrics/player/skater.py`** is the same numbers without the GUI: one
+line per skater over a list of games, for prototyping. It calls the metric
+modules directly — `scoring.all_goals`, `shooting.filter_shots(shots,
+Result=['On Net'])` — so "shots on net" means there exactly what it means on
+the canvas rail. It takes `Game` objects rather than ids, so it works with
+either loader. That is the pattern to copy for any new consumer: read the
+metric from `derive/`, and put only the aggregating here.
 
 Context is classified server-side and packed into one int per event
 (`period*100 + manpower*10 + goalies`) so the browser filters with no round
@@ -229,11 +239,13 @@ Two habits that make it useful:
   other module — but it is the one file in the tree that a convention-following
   glob will miss. Renaming it would rename work in progress, so it is left
   alone and named explicitly by the `SCORING` constant in the catalog.
-- **Manpower is implemented twice.** `context_filter` classifies events in
-  Python; `hockey/metrics/player/skater.py` reproduces the same rule in SQL for
-  database aggregation, under different constant names (`FS/PP/PP2/SH/SH2`
-  against `ES/PP1/PP2/SH1/SH2`). They agree by construction today — same
-  supplier field, same pulled-goalie adjustment, same clamp — but they are two
-  implementations and a change to one must be made to the other.
-- `hockey/metrics/` is a different layer from `hockey/derive/`: it aggregates
-  over many games in the database, rather than filtering one game's events.
+- **`skater.py` does not filter by game context yet.** `skater_stats` takes a
+  `context` argument and raises `NotImplementedError` on anything but None.
+  Narrowing events by manpower without also narrowing TOI would rate a full
+  game's events against a partial denominator, and TOI is an interval problem
+  rather than an event one. Both halves have to be done together.
+
+Resolved, and recorded so it is not reintroduced: manpower used to be
+implemented twice, once in `context_filter` and again in SQL inside
+`skater.py`, under different constant names. `skater.py` is now event-based and
+calls the derive modules, so there is one implementation again.

@@ -235,6 +235,6 @@ Game data lives in `/home/data` on Azure (persistent across restarts and redeplo
 ## Other Modules
 
 - `hockey/db/` — seed scripts for ingesting data into an Azure MySQL database; `build_game_from_db` in `hockey/normalize/build_game_db.py` is the DB-backed game loader used by the Flask app
-- `hockey/metrics/` — a different layer from `hockey/derive/`: it aggregates over many games **in the database** (`player/skater.py` returns one line per skater for a list of games, counting in SQL and sweeping shifts for TOI), alongside older standalone scripts (cross-center passes, faceoffs, pass length). Note `skater.py` reimplements `context_filter`'s manpower rule in SQL under different constant names — see the drift note in `hockey/derive/CLAUDE.md`
+- `hockey/metrics/` — aggregation **across games**, where `hockey/derive/` filters the events of one. `player/skater.py` returns one line per skater over a list of games (goals, assists, shot attempts, shots on net, TOI, and goals for/against while on ice) — the same numbers the game canvas puts in its player report, as a function you can call without the GUI. It takes `Game` objects rather than ids, so it works with either loader, and it reads every metric from `hockey/derive/` rather than restating any. Alongside it sit older standalone scripts (cross-center passes, faceoffs, pass length)
 - `hockey/experiments/` — exploratory analyses (e.g. fatigue/grade correlation)
 - `hockey/io/blob_upload.py` — Azure Blob Storage upload utility
