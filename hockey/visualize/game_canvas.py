@@ -34,7 +34,9 @@ _DIV_ID = "timeline"
 # 7: context filter (period / manpower / goalies). Segments carry a per-event
 #    context code the older cached HTML has no array for, so serving it would
 #    break the new JS.
-CANVAS_VERSION = 7
+# 8: scoring registered in the catalog -- the rail gains a "Scoring" section
+#    with goals and assists, so the cached rail is short of four lanes.
+CANVAS_VERSION = 8
 
 
 def _default_props(game: Game) -> dict:

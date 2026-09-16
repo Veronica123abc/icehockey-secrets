@@ -130,7 +130,7 @@ SECTION  ->  POPULATION  ->  GROUP  ->  ITEM
   from several — `Entries` holds `controlled_entries` and `dumpins`.
 - The one rule: a population appears in exactly ONE section per registry.
 
-Currently 7 sections, 13 populations, 145 lanes. Run
+Currently 8 sections, 15 populations, 149 lanes. Run
 `python hockey/derive/metric_catalog.py` to print the whole tree.
 
 ---
@@ -224,12 +224,11 @@ Two habits that make it useful:
 
 ## 8. Known drift (as of 2026-09-16)
 
-- **`scoring` is not wired up.** `hockey/derive/scoring/scoring.py` defines
-  `GOAL_FILTERS` and `ASSIST_FILTERS` and follows the pattern exactly, but it
-  appears in neither `metric_catalog._REGISTRY` nor `golden.py MODULES` — so
-  goals and assists show up on no canvas and are covered by no regression.
-  It is also the only module named `scoring.py` rather than `metrics.py`.
-  Steps 5–7 above are what it is missing.
+- **`scoring` is named `scoring.py`, not `metrics.py`.** It is registered in
+  `metric_catalog._REGISTRY` and swept by `golden.py`, and behaves like every
+  other module — but it is the one file in the tree that a convention-following
+  glob will miss. Renaming it would rename work in progress, so it is left
+  alone and named explicitly by the `SCORING` constant in the catalog.
 - **Manpower is implemented twice.** `context_filter` classifies events in
   Python; `hockey/metrics/player/skater.py` reproduces the same rule in SQL for
   database aggregation, under different constant names (`FS/PP/PP2/SH/SH2`

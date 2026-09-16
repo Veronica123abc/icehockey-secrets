@@ -68,6 +68,9 @@ ALL_ITEM = "All"
 # Module paths, named so a registry entry reads as prose and a typo is a
 # NameError at import rather than a LookupError halfway through a build.
 SHOOTING = "hockey.derive.shooting.metrics"
+# The one module not called metrics.py. Left at its own name rather than
+# renamed underneath work in progress; see the drift note in CLAUDE.md.
+SCORING = "hockey.derive.scoring.scoring"
 CONTROLLED_ENTRIES = "hockey.derive.controlled_entries.metrics"
 DUMPINS = "hockey.derive.dumpins.metrics"
 DZ_EXITS = "hockey.derive.DZExits.metrics"
@@ -101,6 +104,10 @@ class SectionSpec:
 #: sections happen to line up one-to-one with a module, which is a convenience
 #: rather than a constraint.
 _REGISTRY: tuple[SectionSpec, ...] = (
+    SectionSpec("Scoring", (
+        PopulationSpec("Goals", SCORING, "goal"),
+        PopulationSpec("Assists", SCORING, "assist"),
+    )),
     SectionSpec("Shooting", (
         PopulationSpec("Shots", SHOOTING, "shot"),
     )),
