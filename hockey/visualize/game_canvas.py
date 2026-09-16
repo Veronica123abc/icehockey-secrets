@@ -31,7 +31,10 @@ _DIV_ID = "timeline"
 # 6: "Controlled entries" and "Dump-ins" merged into one "Entries" section.
 #    Lane keys are unchanged -- only the rail's grouping moved -- but the
 #    cached HTML still holds the old headings.
-CANVAS_VERSION = 6
+# 7: context filter (period / manpower / goalies). Segments carry a per-event
+#    context code the older cached HTML has no array for, so serving it would
+#    break the new JS.
+CANVAS_VERSION = 7
 
 
 def _default_props(game: Game) -> dict:
@@ -101,6 +104,40 @@ _MIN_LANE_AREA = 96
 # ``db_only`` deployments, where DATA_ROOT_DIR is unset. The metric modules
 # resolve their settings lazily for exactly this reason.
 from hockey.derive import metric_catalog as catalog
+from hockey.derive import context_filter as ctx
+
+# --- Context codes --------------------------------------------------------
+# Which SITUATION an event happened in -- period, manpower, goalies -- comes
+# from hockey/derive/context_filter.py, which is deliberately ignorant of this
+# file so the same classification can back any other visual.
+#
+# Each event is reduced to one small integer so the browser can narrow the
+# chart the way it already narrows by team and player, with no round trip:
+#
+#     code = period*100 + manpower*10 + goalies
+#
+# with 9 in any position meaning "the event does not say". One int per event
+# rather than three arrays -- a segment already carries a time and a player id
+# for each of ~16k lane memberships, and this keeps the page from growing a
+# third again.
+#
+# The TEAM dimension is deliberately absent: the canvas already has a team
+# selector, and a second one would be two controls fighting over one filter.
+_CTX_PERIODS = ctx.PERIODS[1:]          # "All" is a selection, not a value
+_CTX_MANPOWER = ctx.MANPOWERS
+_CTX_GOALIES = ctx.GOALIE_SITUATIONS
+_CTX_UNKNOWN = 9
+
+
+def _context_index(value, table) -> int:
+    return table.index(value) if value in table else _CTX_UNKNOWN
+
+
+def _context_code(event: Event) -> int:
+    """Pack an event's period, manpower and goalie situation into one int."""
+    return (_context_index(ctx.period_of(event), _CTX_PERIODS) * 100
+            + _context_index(ctx.manpower_of(event), _CTX_MANPOWER) * 10
+            + _context_index(ctx.goalies_of(event), _CTX_GOALIES))
 
 # Lanes that carry another lane's events with the sides swapped.
 #
@@ -295,9 +332,9 @@ class GameCanvas:
 
         Also populates ``self._segments``: event type -> one entry per side,
         each carrying the two trace indices that render it (``l``ine and
-        ``h``over), the ``s``ide, and the event ``t``imes and ``p``layer ids
-        behind them. The browser re-derives the traces from that whenever a
-        filter changes.
+        ``h``over), the ``s``ide, and the event ``t``imes, ``p``layer ids and
+        ``c``ontext codes behind them. The browser re-derives the traces from
+        that whenever a filter changes.
         """
         end_time = self._end_time
         props = self._props
@@ -403,10 +440,11 @@ class GameCanvas:
                     showlegend=False,
                 ))
 
-                # The event times and player ids behind these two traces. The
-                # browser re-derives x/y from them whenever a filter changes --
-                # a player filter can't be expressed as trace visibility, since
-                # one trace mixes every player on that side.
+                # The event times, player ids and context codes behind these
+                # two traces. The browser re-derives x/y from them whenever a
+                # filter changes -- neither a player nor a context filter can
+                # be expressed as trace visibility, since one trace mixes
+                # every player and every situation on that side.
                 specs.append({
                     "l": line_idx,
                     "h": hover_idx,
@@ -414,6 +452,7 @@ class GameCanvas:
                     "t": [round(e.t, 1) for e in group],
                     "p": ([None] * len(group) if mirrored
                           else [e.player_id for e in group]),
+                    "c": [_context_code(e) for e in group],
                 })
 
             segments[etype] = specs
@@ -624,6 +663,54 @@ class GameCanvas:
                 f'unattributed</span>'
             )
         return f'<div class="segbar" id="team-sel">{"".join(buttons)}</div>{unattributed}'
+
+    def _context_bar_html(self) -> str:
+        """The context bar: period, manpower and goalie situation.
+
+        The values and their order come from hockey/derive/context_filter.py,
+        so this renders whatever that module defines rather than restating it.
+
+        TEAM is not here on purpose. The context filter has a team dimension,
+        but this page already has a team selector beside the chart, and two
+        controls driving one filter is a bug waiting to happen. The team
+        segmented control IS the team dimension.
+
+        Each button carries the integer index the packed context code uses, so
+        the browser compares numbers rather than re-deriving labels. Period's
+        "All" is index -1: not a value an event can have, but a selection that
+        drops the constraint.
+        """
+        groups = [
+            (ctx.PERIOD, [(ctx.ALL, -1, ctx.ALL)]
+             + [(value, i, value) for i, value in enumerate(_CTX_PERIODS)],
+             {ctx.ALL}),
+            (ctx.MANPOWER,
+             [(value, i, value) for i, value in enumerate(_CTX_MANPOWER)],
+             {ctx.ES}),
+            (ctx.GOALIES,
+             [(short, i, full) for i, (full, short) in enumerate(
+                 zip(_CTX_GOALIES, ("Both", "Goalie out", "Opp. goalie out")))],
+             {"Both"}),
+        ]
+        blocks = []
+        for dimension, buttons, active in groups:
+            rendered = []
+            for label, index, title in buttons:
+                on = " active" if label in active else ""
+                rendered.append(
+                    f'<button type="button" class="ctx{on}" data-dim="{dimension}"'
+                    f' data-idx="{index}" title="{escape(title)}"'
+                    f' onclick="_setCtx(this)">{escape(label)}</button>'
+                )
+            blocks.append(
+                f'    <div class="ctxgrp" data-dim="{dimension}">'
+                f'<span class="ctxlabel">{escape(dimension)}</span>'
+                f'{"".join(rendered)}</div>'
+            )
+        return ('  <div class="ctxbar" id="ctx-bar">\n'
+                + "\n".join(blocks)
+                + '\n    <span class="spacer"></span>'
+                + '\n    <span class="ctxmeta" id="ctx-meta"></span>\n  </div>')
 
     def _group_event_types(self) -> list[tuple[str, list[str]]]:
         """This game's lanes bucketed by population, in catalog order.
@@ -1237,6 +1324,46 @@ class GameCanvas:
     font-variant-numeric: tabular-nums;
   }}
   .evt-count.dense {{ color: #fbbf24; }}
+  .ctxbar {{
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px 18px;
+    padding: 9px 0 11px;
+    margin-bottom: 4px;
+    border-bottom: 1px solid {props['border-color']};
+  }}
+  .ctxgrp {{ display: flex; align-items: center; gap: 4px; }}
+  .ctxlabel {{
+    margin-right: 4px;
+    font-size: 10.5px;
+    font-weight: 600;
+    color: {props['axis-color']};
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }}
+  .ctx {{
+    padding: 3px 9px;
+    border: 1px solid {props['border-color']};
+    border-radius: 5px;
+    background: {props['background-color']};
+    font-family: inherit;
+    font-size: 11.5px;
+    color: {props['font-color']};
+    cursor: pointer;
+  }}
+  .ctx:hover {{ color: {props['text-color']}; border-color: #475569; }}
+  .ctx.active {{
+    background: rgba(96, 165, 250, 0.16);
+    border-color: rgba(96, 165, 250, 0.5);
+    color: #cfe0fd;
+    font-weight: 600;
+  }}
+  .ctxmeta {{
+    font-size: 11px;
+    color: {props['axis-color']};
+    font-variant-numeric: tabular-nums;
+  }}
   .timeline-card {{ padding: 18px 20px 14px; }}
   .plot-wrap {{ position: relative; width: 100%; }}
   /* to_html wraps the graph div in a plain <div>; that one needs a definite
@@ -1544,6 +1671,7 @@ class GameCanvas:
         <span class="section-heading">{props['title']}</span>
         <span class="head-right">{self._team_selector_html()}</span>
       </div>
+{self._context_bar_html()}
       <div class="plot-wrap" id="plot-wrap" style="height: {plot_height}px">
 {fig_html}
       </div>
@@ -1602,6 +1730,75 @@ var REPORT_INFO = {json.dumps(self._report_info())};
 var REPORT = null;           // the model behind the sheet on screen
 var _preSearchOpen = null;   // group open/closed state to restore after a search
 
+// -- Context filter ---------------------------------------------------------
+// Period, manpower and goalie situation, classified server-side by
+// hockey/derive/context_filter.py and packed into one int per event:
+//
+//     code = period*100 + manpower*10 + goalies      (9 = the event cannot say)
+//
+// A selection is held as indices into those same tables, so filtering is
+// integer comparison rather than string work on every one of ~16k memberships.
+//
+// Period's -1 is "All", which drops the constraint. Manpower and Goalies have
+// no such value: ticking every button is how you get everything there, the
+// same convention the metric rail uses.
+var CTX_LABELS = {json.dumps({ctx.PERIOD: list(_CTX_PERIODS),
+                              ctx.MANPOWER: list(_CTX_MANPOWER),
+                              ctx.GOALIES: list(_CTX_GOALIES)})};
+var CTX = {{"{ctx.PERIOD}": [-1], "{ctx.MANPOWER}": [0], "{ctx.GOALIES}": [0]}};
+var CTX_UNKNOWN = {_CTX_UNKNOWN};
+
+// An event the classifier could not place (code digit 9) matches no value, so
+// it is dropped by any selection -- an unknown situation is not evidence of
+// even strength.
+function _ctxShown(seg, i) {{
+  var code = seg.c[i];
+  var per = CTX["{ctx.PERIOD}"];
+  if (per.indexOf(-1) === -1 && per.indexOf((code / 100) | 0) === -1) return false;
+  if (CTX["{ctx.MANPOWER}"].indexOf(((code / 10) | 0) % 10) === -1) return false;
+  if (CTX["{ctx.GOALIES}"].indexOf(code % 10) === -1) return false;
+  return true;
+}}
+
+function _setCtx(btn) {{
+  var dim = btn.dataset.dim;
+  var idx = parseInt(btn.dataset.idx, 10);
+  var at = CTX[dim].indexOf(idx);
+  if (at === -1) CTX[dim].push(idx); else CTX[dim].splice(at, 1);
+  if (dim === "{ctx.PERIOD}") {{
+    // "All" and the individual periods exclude each other, both ways.
+    if (idx === -1 && at === -1) CTX[dim] = [-1];
+    else if (idx !== -1) {{
+      var allAt = CTX[dim].indexOf(-1);
+      if (allAt !== -1) CTX[dim].splice(allAt, 1);
+    }}
+  }}
+  // Emptying a dimension would blank the chart with no obvious way back, so
+  // the last button out stays in.
+  if (CTX[dim].length === 0) CTX[dim] = [idx];
+  document.querySelectorAll('#ctx-bar .ctx').forEach(function(b) {{
+    if (b.dataset.dim !== dim) return;
+    b.classList.toggle('active',
+      CTX[dim].indexOf(parseInt(b.dataset.idx, 10)) !== -1);
+  }});
+  _redraw();
+}}
+
+// One chip per dimension, for the bar and for the report sheet.
+function _ctxChips() {{
+  return ["{ctx.PERIOD}", "{ctx.MANPOWER}", "{ctx.GOALIES}"].map(function(dim) {{
+    var names = CTX[dim].map(function(i) {{
+      return i === -1 ? 'All' : CTX_LABELS[dim][i];
+    }});
+    return dim + ': ' + names.join(', ');
+  }});
+}}
+
+function _updateCtxMeta() {{
+  var el = document.getElementById('ctx-meta');
+  if (el) el.textContent = _ctxChips().join('   ·   ');
+}}
+
 // A trace shows when its type is ticked AND it belongs to the selected team.
 // "Both teams" keeps unattributed events; picking a team drops them, since
 // they aren't that team's events. A segment belongs to exactly one side, so
@@ -1647,6 +1844,10 @@ function _onIceAt(t) {{
 // attributed to them; "Player WOI" keeps every event that happened while one
 // of them was on the ice, whoever it is attributed to.
 function _eventShown(seg, i) {{
+  // Context first, and above the no-players shortcut below: the situation
+  // filter applies whether or not anyone is selected, and "no players picked"
+  // means every player, not every situation.
+  if (!_ctxShown(seg, i)) return false;
   if (NUM_PLAYERS === 0) return true;
   var credited = PLAYERS[seg.p[i]] === true;
   // WOI also keeps anything credited to a selected player. Being credited
@@ -1675,14 +1876,18 @@ function _fmtCount(n) {{
   return String(n).replace(/\\B(?=(\\d{{3}})+(?!\\d))/g, ',');
 }}
 
-// How many events of a type survive the team and player filters. This is what
-// the rail shows, so its numbers always describe what the chart would draw --
-// including the dense flag.
+// How many events of a type survive the team, player AND context filters.
+// This is what the rail shows, so its numbers always describe what the chart
+// would draw -- including the dense flag.
+//
+// There used to be a shortcut here that added seg.t.length whole whenever no
+// player was selected. That is no longer true of anything: the context filter
+// narrows events with no player selected at all, so taking the shortcut would
+// print unfiltered counts beside a filtered chart.
 function _typeCount(type) {{
   var n = 0;
   SEGMENTS[type].forEach(function(seg) {{
     if (!_sideShown(seg.s)) return;
-    if (NUM_PLAYERS === 0) {{ n += seg.t.length; return; }}
     for (var i = 0; i < seg.t.length; i++) {{
       if (_eventShown(seg, i)) n++;
     }}
@@ -1841,6 +2046,7 @@ function _redraw() {{
   _updateCounts();
   _updateTypeCounts();
   _updateRosterMeta();
+  _updateCtxMeta();
   _updateReportHint();
 }}
 
@@ -1917,6 +2123,11 @@ function _reportModel() {{
     SEGMENTS[type].forEach(function(seg) {{
       if (!_sideShown(seg.s)) return;
       for (var i = 0; i < seg.t.length; i++) {{
+        // The report must tabulate exactly what the chart is drawing, and it
+        // does not go through _eventShown -- WOI credits players who are not
+        // the event's owner, which that function cannot express. So the
+        // context test is repeated here rather than inherited.
+        if (!_ctxShown(seg, i)) continue;
         var owner = seg.p[i];
         var credited = owner !== null && counts[owner] !== undefined;
         if (credited) counts[owner][type]++;
@@ -1990,7 +2201,7 @@ function _renderReport(model) {{
     model.metrics.length
       ? model.metrics.length + (model.metrics.length === 1 ? ' metric' : ' metrics')
       : 'No metrics selected'
-  ];
+  ].concat(_ctxChips());
 
   var html = '<div class="rep-title">' + REPORT_INFO.title + '</div>' +
     '<div class="rep-meta">' + REPORT_INFO.meta + '</div>' +
