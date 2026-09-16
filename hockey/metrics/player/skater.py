@@ -30,7 +30,8 @@ never asks how they were obtained. Two adapters produce them:
 The second exists because building games does not scale: ~0.9s and ~23MB each,
 so a 52-game season is ~48s and holds a payload it never looks at. The query
 path asks only for the event names the metrics actually read -- 2521 rows for
-twenty games, 0.41s against ~18s -- so a season fits in memory comfortably.
+twenty games, 0.41s against ~18s. Measured on a real season rather than
+extrapolated: 410 games, 431 skaters, 17.6s.
 
 GAMES THAT ARE NOT INGESTED ARE SKIPPED, AND SAID SO. :func:`from_database`
 warns naming them rather than falling back to files, because a silent fallback
@@ -45,13 +46,22 @@ bulk of a game's 23MB is the supplier payload hanging off its events, so
 flattening a season into one list of events would hold all of it at once and
 undo the saving. Totals are accumulated per game and the game is then dropped.
 
-Measured, because "streaming saves memory" is the kind of claim that is easy
-to assert and easy to get wrong: peak is flat at ~73MB across 2, 4, 6, 8 and
-10 games -- it does not grow with the number of games, so a 52-game season
-costs the same as a two-game one. Materialising the same six games instead
-peaked at 162MB and would scale from there. The accumulator itself is noise
-(213 players ~ 0.04MB), and releasing the loop variable early changes nothing,
-so the bound really is "about one game" rather than "one game per something".
+Measured ON THE FILE PATH, because "streaming saves memory" is the kind of
+claim that is easy to assert and easy to get wrong: peak is flat at ~73MB
+across 2, 4, 6, 8 and 10 games -- it does not grow with the number of games,
+so a 52-game season costs the same as a two-game one. Materialising the same
+six games instead peaked at 162MB and would scale from there. The accumulator
+itself is noise (213 players ~ 0.04MB), and releasing the loop variable early
+changes nothing, so the bound really is "about one game" rather than "one game
+per something".
+
+THE DATABASE PATH DOES NOT STREAM, and that flat bound is not its bound.
+:func:`_database_bundles` runs its queries and buffers every game's events,
+shifts and roster before it yields the first bundle, so its peak scales with
+the season instead of staying flat: 365MB over 410 games, against 85MB before
+the call. :func:`skater_stats` still consumes one bundle at a time either way
+-- it is the PRODUCING that is eager here, not the consuming. Worth knowing
+before pointing it at something much larger than one season.
 
 Pass a generator -- ``load_games`` is one -- rather than a list.
 
@@ -467,7 +477,15 @@ def available_games(conn, game_sl_ids: Iterable[int]) -> tuple[list[int], list[i
 
 def from_database(conn, game_sl_ids: Iterable[int], *,
                   names: Sequence[str] = EVENT_NAMES) -> Iterator[GameData]:
-    """Bundles read straight from the database, three queries for the lot.
+    """Bundles read straight from the database, in bulk rather than per game.
+
+    The whole set costs ``6 + ceil(total_events / 5000)`` statements: one
+    availability check, one for the events, two id maps, one per 5000-event
+    chunk of `event_flag` (``_CHUNK`` in hockey/db/event_query.py), then one
+    each for shifts and affiliation. Seven for eight games, sixteen for a
+    410-game season. So it grows with event VOLUME rather than with the number
+    of games -- but it does grow, and calling it a fixed number would be
+    wrong; the point is that nothing here is per game.
 
     Games the database does not hold are skipped and named in a warning --
     see the module docstring for why they are not quietly read from files.
@@ -476,7 +494,10 @@ def from_database(conn, game_sl_ids: Iterable[int], *,
     call this, not when something first iterates it, so the warning names the
     caller who passed the ids rather than whatever loop happened to consume
     them -- and it arrives even if the result is never iterated at all. The
-    reading is still lazy; it is the checking that is eager.
+    reading is still deferred to first iteration; it is the checking that is
+    eager. Deferred is not incremental, though: once iteration does start,
+    every query runs before the first bundle comes back, so the memory note in
+    the module docstring applies from that point on.
     """
     usable, missing = available_games(conn, game_sl_ids)
     if missing:
@@ -648,11 +669,11 @@ if __name__ == "__main__":
 
     # THE OTHER ADAPTER. Everything above went through load_games, which
     # builds one game at a time -- ~0.9s and ~23MB each. from_database reads
-    # the same events in a fixed number of queries no matter how many games
-    # are named, which is the path a season-sized run wants; the per-game loop
-    # at the end of _database_bundles groups rows that have already arrived,
-    # it does not fetch. Shown side by side because the file path is the only
-    # one demonstrated above, which makes the fast one easy to miss.
+    # the same events in a handful of bulk queries for the whole set, none of
+    # them per game, which is the path a season-sized run wants; the per-game
+    # loop at the end of _database_bundles groups rows that have already
+    # arrived, it does not fetch. Shown side by side because the file path is
+    # the only one demonstrated above, which makes the fast one easy to miss.
     #
     # Skipped rather than failed when there is no database to talk to: this
     # demo has to keep working on a machine that only has the data files.
