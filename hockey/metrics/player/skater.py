@@ -645,3 +645,64 @@ if __name__ == "__main__":
             summed[line.player_id] = summed.get(line.player_id, 0.0) + line.toi
     off = [p for p in full if abs(full[p] - summed.get(p, 0.0)) > 1e-6]
     print(f"\n   ES+SH1+SH2+PP1+PP2 == total TOI for all {len(full)} skaters: {not off}")
+
+    # THE OTHER ADAPTER. Everything above went through load_games, which
+    # builds one game at a time -- ~0.9s and ~23MB each. from_database reads
+    # the same events in a fixed number of queries no matter how many games
+    # are named, which is the path a season-sized run wants; the per-game loop
+    # at the end of _database_bundles groups rows that have already arrived,
+    # it does not fetch. Shown side by side because the file path is the only
+    # one demonstrated above, which makes the fast one easy to miss.
+    #
+    # Skipped rather than failed when there is no database to talk to: this
+    # demo has to keep working on a machine that only has the data files.
+    import time
+
+    print("\n   the same games, read from the database instead:")
+    try:
+        from hockey.db.database import open_database_azure
+        conn = open_database_azure()
+    except Exception as exc:
+        print(f"      no database available ({type(exc).__name__}), skipped")
+    else:
+        usable, absent = available_games(conn, GAME_IDS)
+        if absent:
+            print("      not ingested, so not comparable: "
+                  f"{', '.join(str(g) for g in absent)}")
+        if not usable:
+            print("      none of these games are in the database")
+        else:
+            start = time.perf_counter()
+            db_lines = skater_stats(from_database(conn, usable))
+            db_secs = time.perf_counter() - start
+
+            start = time.perf_counter()
+            file_lines = skater_stats(from_games(load_games(usable)))
+            file_secs = time.perf_counter() - start
+
+            print(f"      database {db_secs:5.2f}s   files {file_secs:5.2f}s   "
+                  f"({file_secs / db_secs:4.1f}x)   {len(db_lines)} skaters")
+
+            # Both adapters feed the same GameData seam, so the lines have to
+            # agree field for field. If they ever stop agreeing the two paths
+            # have drifted, and a season's numbers would depend on which one
+            # happened to run -- exactly what from_database refuses to hide.
+            columns = [f.name for f in fields(SkaterLine)]
+            by_id = {line.player_id: line for line in file_lines}
+            differing: list[str] = []
+            for line in db_lines:
+                other = by_id.get(line.player_id)
+                if other is None:
+                    differing.append(f"{line.name}: absent from the file path")
+                    continue
+                for column in columns:
+                    mine, theirs = getattr(line, column), getattr(other, column)
+                    same = (abs(mine - theirs) <= 1e-6
+                            if isinstance(mine, float) else mine == theirs)
+                    if not same:
+                        differing.append(f"{line.name}: {column} "
+                                         f"{mine!r} vs {theirs!r}")
+            agree = not differing and len(db_lines) == len(file_lines)
+            print(f"      identical to the file path, field for field: {agree}")
+            for note in differing[:5]:
+                print(f"         {note}")
