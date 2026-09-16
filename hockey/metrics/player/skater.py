@@ -4,9 +4,10 @@
 The same numbers the game canvas puts in its player report, as a function you
 can call without the GUI::
 
-    from hockey.metrics.player.skater import skater_stats, load_games, print_lines
+    from hockey.metrics.player.skater import (skater_stats, from_games,
+                                              load_games, print_lines)
 
-    lines = skater_stats(load_games([186449, 186461]))
+    lines = skater_stats(from_games(load_games([186449, 186461])))
     print_lines(lines, limit=20)
 
 One line per skater who appears in any of the games, aggregated across all of
@@ -19,6 +20,28 @@ Result=['On Net'])`` -- the same predicate the canvas rail ticks. This module
 decides only who to credit and how to add things up, so a change to what "on
 net" means happens in one place and arrives here for free.
 
+WHERE THE DATA COMES FROM IS NOT THIS MODULE'S BUSINESS. :func:`skater_stats`
+consumes :class:`GameData` -- the events, shifts and roster of one game -- and
+never asks how they were obtained. :func:`from_games` adapts built ``Game``
+objects; a database adapter reading `event`, `shift` and `affiliation` in bulk
+would yield the same bundles, which matters because building a game costs
+~0.9s and ~23MB, so a 52-game season is ~48s and ~1.2GB the slow way.
+
+AND IT CONSUMES THEM ONE AT A TIME. That is deliberate, not incidental. The
+bulk of a game's 23MB is the supplier payload hanging off its events, so
+flattening a season into one list of events would hold all of it at once and
+undo the saving. Totals are accumulated per game and the game is then dropped.
+
+Measured, because "streaming saves memory" is the kind of claim that is easy
+to assert and easy to get wrong: peak is flat at ~73MB across 2, 4, 6, 8 and
+10 games -- it does not grow with the number of games, so a 52-game season
+costs the same as a two-game one. Materialising the same six games instead
+peaked at 162MB and would scale from there. The accumulator itself is noise
+(213 players ~ 0.04MB), and releasing the loop variable early changes nothing,
+so the bound really is "about one game" rather than "one game per something".
+
+Pass a generator -- ``load_games`` is one -- rather than a list.
+
 WHAT "WOI" MEANS. *With on ice*: goals scored by either team while the player
 was on the ice, split by whether it was his team that scored. That is the
 canvas's "Player WOI" mode, and it is computed the same way -- a player is
@@ -29,16 +52,16 @@ interval, and without it a player's own goal could be missing from his on-ice
 count, leaving WOI not a superset of what he is credited with.
 
 GOALIES ARE NOT SKATERS. This is ``skater.py``: goalies are dropped from the
-output and from on-ice attribution. They are in ``game.toi`` -- seven or eight
-intervals a game -- so they have to be dropped explicitly rather than assumed
-absent.
+output and from on-ice attribution. They are in the shift data -- seven or
+eight intervals a game -- so they have to be dropped explicitly rather than
+assumed absent.
 
 GAME CONTEXT IS IGNORED FOR NOW. Every event in the games counts, whatever the
 manpower or period. :func:`skater_stats` takes a ``context`` argument for when
 that changes: pass a ``hockey.derive.context_filter.ContextFilter`` and the
-events are narrowed before anything is counted. Note that TOI would then also
-need narrowing to match -- time on ice is an interval problem, not an event
-one -- so the argument is deliberately left at "no filtering" until both
+events would be narrowed before anything is counted. Note that TOI would then
+also need narrowing to match -- time on ice is an interval problem, not an
+event one -- so the argument is deliberately left at "no filtering" until both
 halves can be done together.
 
 TWO THINGS ABOUT AGGREGATING ACROSS GAMES. A player's id is stable across
@@ -51,11 +74,12 @@ from __future__ import annotations
 
 from bisect import bisect_right
 from collections import defaultdict
-from collections.abc import Iterable, Sequence
+from collections.abc import Iterable, Iterator, Sequence
 from dataclasses import dataclass, fields
 
-from hockey.model.game import Game
 from hockey.model.events import Event
+from hockey.model.roster import Roster
+from hockey.model.toi import ToIInterval
 from hockey.derive.scoring import scoring
 from hockey.derive.shooting import metrics as shooting
 
@@ -66,6 +90,30 @@ GOALIE = "G"
 #: describe the sample rather than counting events, so they are not here.
 METRICS = ("goals", "assists", "shot_attempts", "shots_on_net",
            "goals_for_woi", "goals_against_woi")
+
+
+@dataclass(frozen=True)
+class GameData:
+    """One game's events, shifts and roster -- whatever produced them.
+
+    This is the seam between "where the data comes from" and "what the numbers
+    are". A ``Game`` built from JSON, a ``Game`` built from the database, or
+    three bulk queries grouped by game all reduce to this.
+
+    It deliberately exposes ``events`` under that name, because the base-set
+    helpers in ``hockey/derive`` read exactly that attribute and nothing else
+    -- ``scoring.all_goals(data)`` works, so the population definitions stay
+    in the metric modules rather than being restated here.
+    """
+    game_id: int
+    events: Sequence[Event]
+    toi: Sequence[ToIInterval]
+    roster: Roster
+
+    @classmethod
+    def from_game(cls, game) -> "GameData":
+        return cls(game_id=game.game_id, events=game.events,
+                   toi=game.toi, roster=game.roster)
 
 
 @dataclass(frozen=True, slots=True)
@@ -88,7 +136,8 @@ class SkaterLine:
 
 # --- On-ice spans -----------------------------------------------------------
 
-def _skater_spans(game: Game) -> dict[int, list[tuple[float, float]]]:
+def _skater_spans(toi: Sequence[ToIInterval],
+                  roster: Roster) -> dict[int, list[tuple[float, float]]]:
     """player id -> his on-ice spans in this game, merged and sorted.
 
     Goalies are dropped. ``end_t`` is None when the supplier never recorded the
@@ -99,11 +148,10 @@ def _skater_spans(game: Game) -> dict[int, list[tuple[float, float]]]:
     Merging is defensive: no player's intervals overlap in the games checked,
     but a double-counted second would quietly inflate TOI if that changed.
     """
-    end_of_game = max((x.end_t for x in game.toi if x.end_t is not None),
-                      default=0.0)
+    end_of_game = max((x.end_t for x in toi if x.end_t is not None), default=0.0)
     raw: dict[int, list[tuple[float, float]]] = defaultdict(list)
-    for interval in game.toi:
-        player = game.roster.players.get(interval.player_id)
+    for interval in toi:
+        player = roster.players.get(interval.player_id)
         if player is not None and player.position == GOALIE:
             continue
         end = end_of_game if interval.end_t is None else interval.end_t
@@ -129,62 +177,96 @@ def _on_ice_at(spans: Sequence[tuple[float, float]], t: float) -> bool:
     return i > 0 and spans[i - 1][0] <= t < spans[i - 1][1]
 
 
-# --- One game ---------------------------------------------------------------
+# --- Accumulating one game at a time ----------------------------------------
 
-def _count_game(game: Game, tally: dict[int, dict[str, float]],
-                teams: dict[int, dict[int, int]],
-                names: dict[int, tuple[str, str]],
-                games_seen: dict[int, set[int]]) -> None:
-    """Add one game's numbers into the running totals."""
-    spans = _skater_spans(game)
+class _Totals:
+    """Running totals across games. One game is added, then dropped."""
 
-    for player_id, player_spans in spans.items():
-        games_seen[player_id].add(game.game_id)
-        tally[player_id]["toi"] += sum(end - start for start, end in player_spans)
-        player = game.roster.players.get(player_id)
-        if player is not None:
-            if player.team_id is not None:
-                teams[player_id][player.team_id] += 1
-            first = (player.first_name or "").strip()
-            last = (player.last_name or "").strip()
-            names[player_id] = (" ".join(p for p in (first, last) if p) or str(player_id),
-                                player.position or "")
+    def __init__(self) -> None:
+        self.tally: dict[int, dict[str, float]] = defaultdict(
+            lambda: dict.fromkeys(("toi",) + METRICS, 0))
+        self.teams: dict[int, dict[int, int]] = defaultdict(lambda: defaultdict(int))
+        self.names: dict[int, tuple[str, str]] = {}
+        self.games_seen: dict[int, set[int]] = defaultdict(set)
 
-    def credit(events: Iterable[Event], metric: str) -> None:
-        for event in events:
-            if event.player_id is not None and event.player_id in spans:
-                tally[event.player_id][metric] += 1
+    def add(self, data: GameData) -> None:
+        spans = _skater_spans(data.toi, data.roster)
 
-    shots = shooting.all_shots(game)
-    credit(scoring.all_goals(game), "goals")
-    credit(scoring.all_assists(game), "assists")
-    credit(shots, "shot_attempts")
-    credit(shooting.filter_shots(shots, Result=["On Net"]), "shots_on_net")
-
-    # WOI: every goal counts for every skater on the ice for it, whichever team
-    # scored. A player's own goal counts even if it sits just outside his
-    # recorded shift -- see the module docstring.
-    for goal in scoring.all_goals(game):
-        if goal.t is None or goal.team_id is None:
-            continue
         for player_id, player_spans in spans.items():
-            if not (_on_ice_at(player_spans, goal.t) or goal.player_id == player_id):
+            self.games_seen[player_id].add(data.game_id)
+            self.tally[player_id]["toi"] += sum(end - start
+                                                for start, end in player_spans)
+            player = data.roster.players.get(player_id)
+            if player is not None:
+                if player.team_id is not None:
+                    self.teams[player_id][player.team_id] += 1
+                first = (player.first_name or "").strip()
+                last = (player.last_name or "").strip()
+                self.names[player_id] = (
+                    " ".join(p for p in (first, last) if p) or str(player_id),
+                    player.position or "")
+
+        def credit(events: Iterable[Event], metric: str) -> None:
+            for event in events:
+                if event.player_id is not None and event.player_id in spans:
+                    self.tally[event.player_id][metric] += 1
+
+        # The derive helpers read only `.events`, which GameData provides.
+        shots = shooting.all_shots(data)
+        credit(scoring.all_goals(data), "goals")
+        credit(scoring.all_assists(data), "assists")
+        credit(shots, "shot_attempts")
+        credit(shooting.filter_shots(shots, Result=["On Net"]), "shots_on_net")
+
+        # WOI: every goal counts for every skater on the ice for it, whichever
+        # team scored. A player's own goal counts even if it sits just outside
+        # his recorded shift -- see the module docstring.
+        for goal in scoring.all_goals(data):
+            if goal.t is None or goal.team_id is None:
                 continue
-            player = game.roster.players.get(player_id)
-            if player is None or player.team_id is None:
+            for player_id, player_spans in spans.items():
+                if not (_on_ice_at(player_spans, goal.t)
+                        or goal.player_id == player_id):
+                    continue
+                player = data.roster.players.get(player_id)
+                if player is None or player.team_id is None:
+                    continue
+                metric = ("goals_for_woi" if player.team_id == goal.team_id
+                          else "goals_against_woi")
+                self.tally[player_id][metric] += 1
+
+    def lines(self, min_toi: float) -> list[SkaterLine]:
+        out: list[SkaterLine] = []
+        for player_id, counts in self.tally.items():
+            minutes = counts["toi"] / 60.0
+            if minutes <= min_toi:
                 continue
-            metric = ("goals_for_woi" if player.team_id == goal.team_id
-                      else "goals_against_woi")
-            tally[player_id][metric] += 1
+            played = len(self.games_seen[player_id])
+            name, position = self.names.get(player_id, (str(player_id), ""))
+            team_id = (max(self.teams[player_id].items(), key=lambda kv: kv[1])[0]
+                       if self.teams[player_id] else 0)
+            out.append(SkaterLine(
+                player_id=player_id,
+                name=name,
+                team_id=team_id,
+                position=position,
+                games_played=played,
+                toi=minutes,
+                toi_per_game=minutes / played if played else 0.0,
+                **{metric: int(counts[metric]) for metric in METRICS},
+            ))
+        out.sort(key=lambda line: line.toi, reverse=True)
+        return out
 
 
 # --- The public function ----------------------------------------------------
 
-def skater_stats(games: Iterable[Game], *, min_toi: float = 0.0,
+def skater_stats(games: Iterable[GameData], *, min_toi: float = 0.0,
                  context=None) -> list[SkaterLine]:
     """One line per skater appearing in ``games``, sorted by TOI descending.
 
-    ``min_toi`` is in minutes, across all the games together.
+    ``games`` is an iterable of :class:`GameData`; pass a generator and only
+    one game is held at a time. ``min_toi`` is in minutes, across all of them.
 
     ``context`` is accepted and must be None for now: filtering events by
     manpower or period without also narrowing TOI would rate a full game's
@@ -195,46 +277,27 @@ def skater_stats(games: Iterable[Game], *, min_toi: float = 0.0,
             "context filtering needs TOI narrowed to the same situation; "
             "see the module docstring")
 
-    tally: dict[int, dict[str, float]] = defaultdict(
-        lambda: dict.fromkeys(("toi",) + METRICS, 0))
-    teams: dict[int, dict[int, int]] = defaultdict(lambda: defaultdict(int))
-    names: dict[int, tuple[str, str]] = {}
-    games_seen: dict[int, set[int]] = defaultdict(set)
+    totals = _Totals()
+    for data in games:
+        totals.add(data)
+    return totals.lines(min_toi)
 
+
+# --- Adapters ---------------------------------------------------------------
+
+def from_games(games: Iterable) -> Iterator[GameData]:
+    """Adapt built ``Game`` objects. Lazy, so the games stream."""
     for game in games:
-        _count_game(game, tally, teams, names, games_seen)
-
-    lines: list[SkaterLine] = []
-    for player_id, counts in tally.items():
-        minutes = counts["toi"] / 60.0
-        if minutes <= min_toi:
-            continue
-        played = len(games_seen[player_id])
-        name, position = names.get(player_id, (str(player_id), ""))
-        team_id = (max(teams[player_id].items(), key=lambda kv: kv[1])[0]
-                   if teams[player_id] else 0)
-        lines.append(SkaterLine(
-            player_id=player_id,
-            name=name,
-            team_id=team_id,
-            position=position,
-            games_played=played,
-            toi=minutes,
-            toi_per_game=minutes / played if played else 0.0,
-            **{metric: int(counts[metric]) for metric in METRICS},
-        ))
-
-    lines.sort(key=lambda line: line.toi, reverse=True)
-    return lines
+        yield GameData.from_game(game)
 
 
 def load_games(game_ids: Iterable[int], *,
-               playsequence_source: str = "playsequence_compiled") -> list[Game]:
-    """Build Games from the local data root. A convenience for prototyping.
+               playsequence_source: str = "playsequence_compiled") -> Iterator:
+    """Build Games from the local data root, one at a time.
 
-    Kept separate from :func:`skater_stats`, which takes Games rather than ids
-    so it stays independent of where a game came from -- the database loader
-    (``build_game_from_db``) produces the same objects.
+    A generator on purpose: a built game retains ~23MB, so materialising a
+    52-game season would hold ~1.2GB for no reason. Consumed by
+    :func:`from_games`, the peak stays at about one game.
     """
     from pathlib import Path
     from hockey.config.settings import Settings
@@ -242,9 +305,9 @@ def load_games(game_ids: Iterable[int], *,
     from hockey.normalize.build_game import build_game
 
     settings = Settings.from_env(project_root=Path(__file__).resolve().parent)
-    return [build_game(RawGame(game_id=game_id, root_dir=settings.data_root_dir,
-                               playsequence_source=playsequence_source))
-            for game_id in game_ids]
+    for game_id in game_ids:
+        yield build_game(RawGame(game_id=game_id, root_dir=settings.data_root_dir,
+                                 playsequence_source=playsequence_source))
 
 
 def to_dataframe(lines: Iterable[SkaterLine]):
@@ -272,22 +335,22 @@ def print_lines(lines: Sequence[SkaterLine], *, limit: int | None = None) -> Non
 if __name__ == "__main__":
     GAME_IDS = [186449, 186461]
 
-    games = load_games(GAME_IDS)
-    lines = skater_stats(games)
-    print(f"{len(lines)} skaters over {len(games)} games\n")
+    lines = skater_stats(from_games(load_games(GAME_IDS)))
+    print(f"{len(lines)} skaters over {len(GAME_IDS)} games\n")
     print_lines(lines, limit=25)
 
     # The totals have to agree with the events themselves, so check rather
-    # than trust: every goal is credited to exactly one skater, and every goal
-    # in a game puts one on-ice count on each skater who was out for it.
-    total_goals = sum(len(scoring.all_goals(g)) for g in games)
-    total_assists = sum(len(scoring.all_assists(g)) for g in games)
-    total_shots = sum(len(shooting.all_shots(g)) for g in games)
+    # than trust. Re-loading is the point: nothing above is still in memory.
+    totals = {"goals": 0, "assists": 0, "shots": 0}
+    for game in load_games(GAME_IDS):
+        totals["goals"] += len(scoring.all_goals(game))
+        totals["assists"] += len(scoring.all_assists(game))
+        totals["shots"] += len(shooting.all_shots(game))
     print(f"\n   goals   credited {sum(l.goals for l in lines):4d} "
-          f"of {total_goals:4d} in the games")
+          f"of {totals['goals']:4d} in the games")
     print(f"   assists credited {sum(l.assists for l in lines):4d} "
-          f"of {total_assists:4d}")
+          f"of {totals['assists']:4d}")
     print(f"   shots   credited {sum(l.shot_attempts for l in lines):4d} "
-          f"of {total_shots:4d}")
+          f"of {totals['shots']:4d}")
     print(f"   WOI goals for+against {sum(l.goals_for_woi + l.goals_against_woi for l in lines)} "
           f"(a goal counts once per skater on the ice, so ~10x the goal count)")

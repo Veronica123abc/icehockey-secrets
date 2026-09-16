@@ -171,12 +171,23 @@ Two things do, and neither defines a metric of its own.
 there is no second list to update.
 
 **`hockey/metrics/player/skater.py`** is the same numbers without the GUI: one
-line per skater over a list of games, for prototyping. It calls the metric
+line per skater over a set of games, for prototyping. It calls the metric
 modules directly — `scoring.all_goals`, `shooting.filter_shots(shots,
 Result=['On Net'])` — so "shots on net" means there exactly what it means on
-the canvas rail. It takes `Game` objects rather than ids, so it works with
-either loader. That is the pattern to copy for any new consumer: read the
-metric from `derive/`, and put only the aggregating here.
+the canvas rail. That is the pattern to copy for any new consumer: read the
+metric from `derive/`, and put only the aggregating in `metrics/`.
+
+It consumes `GameData` — one game's events, shifts and roster — rather than
+`Game` objects, so where the data came from is not its concern: built games
+adapt through `from_games`, and a bulk database read of `event`/`shift`/
+`affiliation` would yield the same bundles without building 52 games at ~0.9s
+and ~23MB each. `GameData` exposes `.events` under that name deliberately, so
+the base-set helpers here (`scoring.all_goals(data)`) accept it and the
+population definitions stay in the metric modules.
+
+Bundles are consumed one at a time and dropped, which keeps peak memory flat
+at ~73MB whether it is two games or fifty — so callers pass a generator, not
+a list.
 
 Context is classified server-side and packed into one int per event
 (`period*100 + manpower*10 + goalies`) so the browser filters with no round
