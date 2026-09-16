@@ -61,6 +61,33 @@ This is the computational core between model and visualization. `current_shift_t
 
 `Game.shift_toi_series(queries)` delegates directly to this function. The visualization calls it once for the full game (`range(end_time)`) to build all three line traces.
 
+### Metrics and Filters — read `hockey/derive/CLAUDE.md` first
+
+**If you are about to touch a metric, a filter or the canvas rail, read
+[`hockey/derive/CLAUDE.md`](hockey/derive/CLAUDE.md) before anything else.** It
+is the architecture; the `CLAUDE.md` in each metric subfolder is the hockey
+definition of what the numbers mean. The short version:
+
+- Every metric module describes POPULATIONS of events (all `shot`s, all
+  `pass`es) with a `*_FILTERS` dictionary: group → item → `Event -> bool`
+  predicate. Selections are OR within a group, AND across groups, and every
+  group is *exhaustive* — ticking all its items returns the whole population.
+- `hockey/derive/filter_group.py` holds the single implementation of that
+  machinery; modules bind it with `FilterGroups(event_name, FILTERS)`.
+- `hockey/derive/metric_catalog.py` assembles all of it into one tree
+  (section → population → group → item, 145 lanes) which the game canvas
+  builds its selector from. A new module must be registered there *and* in
+  `golden.py` or it is invisible and unprotected.
+- `hockey/derive/context_filter.py` is orthogonal: it filters by the SITUATION
+  (team, period, manpower, goalies) rather than by the kind of event.
+- `hockey/regression/golden.py` is the substitute for a test suite — it
+  freezes counts *and event signatures* for every metric. Run `compare`
+  before and after any refactor.
+
+Metric modules must resolve `Settings` lazily (see `_settings()` in any of
+them): the canvas imports them through the catalog, and `Settings.from_env`
+raises without `DATA_ROOT_DIR`, which would break `db_only` deployments.
+
 ### Manifests (static metadata)
 
 `hockey/manifests/` contains bundled JSON files:
@@ -141,6 +168,13 @@ Grades A/B/C map to colors green/orange/red. Home chances appear above the x-axi
 | `hockey/normalize/build_game.py` | Orchestrates normalization into `Game` |
 | `hockey/model/game.py` | `Game` dataclass; DataFrame exports; shift series methods |
 | `hockey/derive/current_shift.py` | `find_intervals` sweep-line + `current_shift_toi_series` + single-time `current_shift_toi` |
+| `hockey/derive/CLAUDE.md` | **Metrics/filters architecture — read before touching either** |
+| `hockey/derive/filter_group.py` | The single implementation of the filter-group machinery; `FilterGroups` |
+| `hockey/derive/metric_catalog.py` | Section → population → group → item tree; what the canvas rail is built from |
+| `hockey/derive/context_filter.py` | Situation filter: team, period, manpower, goalie — reusable, no UI dependency |
+| `hockey/derive/<module>/metrics.py` | One metric module per folder: predicates + `*_FILTERS` + `get_full_data` |
+| `hockey/regression/golden.py` | Stands in for a test suite: freezes counts **and event signatures** per metric |
+| `hockey/visualize/game_canvas.py` | Game canvas: metric rail, context bar, timeline, player report (`CANVAS_VERSION`) |
 | `hockey/visualize/shift_toi.py` | Main visualization: 3 line traces + chance markers |
 | `hockey/data_collection/sportlogiq_api.py` | `SportlogiqApi` client + `download_complete_game` |
 | `source_mode.py` | `GAME_SOURCE` mode switch: `game_source()`, `use_db()`, `use_files()` |
@@ -201,6 +235,6 @@ Game data lives in `/home/data` on Azure (persistent across restarts and redeplo
 ## Other Modules
 
 - `hockey/db/` — seed scripts for ingesting data into an Azure MySQL database; `build_game_from_db` in `hockey/normalize/build_game_db.py` is the DB-backed game loader used by the Flask app
-- `hockey/metrics/` — standalone analytics scripts (cross-center passes, faceoffs, pass length)
+- `hockey/metrics/` — a different layer from `hockey/derive/`: it aggregates over many games **in the database** (`player/skater.py` returns one line per skater for a list of games, counting in SQL and sweeping shifts for TOI), alongside older standalone scripts (cross-center passes, faceoffs, pass length). Note `skater.py` reimplements `context_filter`'s manpower rule in SQL under different constant names — see the drift note in `hockey/derive/CLAUDE.md`
 - `hockey/experiments/` — exploratory analyses (e.g. fatigue/grade correlation)
 - `hockey/io/blob_upload.py` — Azure Blob Storage upload utility
