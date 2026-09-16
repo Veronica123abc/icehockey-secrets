@@ -22,10 +22,23 @@ net" means happens in one place and arrives here for free.
 
 WHERE THE DATA COMES FROM IS NOT THIS MODULE'S BUSINESS. :func:`skater_stats`
 consumes :class:`GameData` -- the events, shifts and roster of one game -- and
-never asks how they were obtained. :func:`from_games` adapts built ``Game``
-objects; a database adapter reading `event`, `shift` and `affiliation` in bulk
-would yield the same bundles, which matters because building a game costs
-~0.9s and ~23MB, so a 52-game season is ~48s and ~1.2GB the slow way.
+never asks how they were obtained. Two adapters produce them:
+
+* :func:`from_games` adapts built ``Game`` objects, from files or anywhere.
+* :func:`from_database` reads `event`, `shift` and `affiliation` in bulk.
+
+The second exists because building games does not scale: ~0.9s and ~23MB each,
+so a 52-game season is ~48s and holds a payload it never looks at. The query
+path asks only for the event names the metrics actually read -- 2521 rows for
+twenty games, 0.41s against ~18s -- so a season fits in memory comfortably.
+
+GAMES THAT ARE NOT INGESTED ARE SKIPPED, AND SAID SO. :func:`from_database`
+warns naming them rather than falling back to files, because a silent fallback
+would make a season's numbers depend on which machine ran it and on which
+games happened to be on that disk. :func:`available_games` answers the same
+question directly if you would rather check first. A game counts as usable
+only with BOTH events and shifts: events alone would produce a full set of
+counts against no ice time, which is worse than skipping it.
 
 AND IT CONSUMES THEM ONE AT A TIME. That is deliberate, not incidental. The
 bulk of a game's 23MB is the supplier payload hanging off its events, so
@@ -90,13 +103,14 @@ fact about every game.
 """
 from __future__ import annotations
 
+import warnings
 from bisect import bisect_right
 from collections import defaultdict
 from collections.abc import Iterable, Iterator, Sequence
 from dataclasses import dataclass, fields
 
 from hockey.model.events import Event
-from hockey.model.roster import Roster
+from hockey.model.roster import Player, Roster
 from hockey.model.toi import ToIInterval
 from hockey.derive import context_filter as ctx
 from hockey.derive.scoring import scoring
@@ -109,6 +123,12 @@ GOALIE = "G"
 #: describe the sample rather than counting events, so they are not here.
 METRICS = ("goals", "assists", "shot_attempts", "shots_on_net",
            "goals_for_woi", "goals_against_woi")
+
+#: The supplier event names :meth:`_Totals.add` reads. The database adapter
+#: asks for these and no others, which is most of why it is quick -- but it
+#: means adding a metric over a new event name means adding the name here too,
+#: or the query path will quietly under-report what the file path finds.
+EVENT_NAMES = ("goal", "assist", "shot")
 
 
 @dataclass(frozen=True)
@@ -415,6 +435,121 @@ def from_games(games: Iterable) -> Iterator[GameData]:
     """Adapt built ``Game`` objects. Lazy, so the games stream."""
     for game in games:
         yield GameData.from_game(game)
+
+
+def available_games(conn, game_sl_ids: Iterable[int]) -> tuple[list[int], list[int]]:
+    """``(usable, missing)`` for the ids asked for, in the order given.
+
+    Usable means the database holds BOTH events and shifts for the game. A
+    game row on its own is not enough: counts with no ice time behind them
+    would look like a very idle player rather than like missing data.
+    """
+    game_sl_ids = list(dict.fromkeys(game_sl_ids))
+    if not game_sl_ids:
+        return [], []
+    placeholders = ", ".join(["%s"] * len(game_sl_ids))
+    cursor = conn.cursor()
+    try:
+        cursor.execute(
+            f"""SELECT g.sl_id,
+                       EXISTS(SELECT 1 FROM event e WHERE e.game_id = g.id),
+                       EXISTS(SELECT 1 FROM shift s WHERE s.game_id = g.id)
+                FROM game g WHERE g.sl_id IN ({placeholders})""",
+            tuple(game_sl_ids))
+        complete = {int(sl) for sl, has_events, has_shifts in cursor.fetchall()
+                    if has_events and has_shifts}
+    finally:
+        cursor.close()
+    usable = [g for g in game_sl_ids if g in complete]
+    missing = [g for g in game_sl_ids if g not in complete]
+    return usable, missing
+
+
+def from_database(conn, game_sl_ids: Iterable[int], *,
+                  names: Sequence[str] = EVENT_NAMES) -> Iterator[GameData]:
+    """Bundles read straight from the database, three queries for the lot.
+
+    Games the database does not hold are skipped and named in a warning --
+    see the module docstring for why they are not quietly read from files.
+
+    Deliberately NOT a generator. Which games are missing is settled when you
+    call this, not when something first iterates it, so the warning names the
+    caller who passed the ids rather than whatever loop happened to consume
+    them -- and it arrives even if the result is never iterated at all. The
+    reading is still lazy; it is the checking that is eager.
+    """
+    usable, missing = available_games(conn, game_sl_ids)
+    if missing:
+        warnings.warn(
+            f"{len(missing)} game(s) not in the database, skipped: "
+            f"{', '.join(str(g) for g in missing)}",
+            stacklevel=2)
+    return _database_bundles(conn, usable, names)
+
+
+def _database_bundles(conn, usable: Sequence[int],
+                      names: Sequence[str]) -> Iterator[GameData]:
+    """The reading half of :func:`from_database`, once the ids are settled.
+
+    ``query_events`` is imported here rather than at the top because
+    ``hockey.db.event_query`` resolves Settings at import time, and this
+    module is meant to stay importable without DATA_ROOT_DIR.
+    """
+    if not usable:
+        return
+    from hockey.db.event_query import query_events
+
+    placeholders = ", ".join(["%s"] * len(usable))
+    events_by_game: dict[int, list[Event]] = defaultdict(list)
+    for event in query_events(conn, game_sl_ids=usable, names=list(names)):
+        events_by_game[event.game_id].append(event)
+
+    # Shifts and affiliation are keyed by the database's own game id, so both
+    # queries join `game` to come back in SportLogIQ ids -- the space the
+    # events, the roster and GameData.game_id all speak.
+    toi_by_game: dict[int, list[ToIInterval]] = defaultdict(list)
+    players_by_game: dict[int, dict[int, Player]] = defaultdict(dict)
+    cursor = conn.cursor()
+    try:
+        cursor.execute(
+            f"""SELECT g.sl_id, p.sl_id, t.sl_id, s.in_time, s.out_time
+                FROM shift s
+                JOIN game g ON g.id = s.game_id
+                JOIN player p ON p.id = s.player_id
+                LEFT JOIN affiliation a
+                       ON a.game_id = s.game_id AND a.player_id = s.player_id
+                LEFT JOIN team t ON t.id = a.team_id
+                WHERE g.sl_id IN ({placeholders})""",
+            tuple(usable))
+        for game_sl, player_sl, team_sl, in_time, out_time in cursor.fetchall():
+            toi_by_game[int(game_sl)].append(ToIInterval(
+                game_id=int(game_sl), team_id=team_sl, player_id=player_sl,
+                start_t=float(in_time),
+                end_t=None if out_time is None else float(out_time)))
+
+        cursor.execute(
+            f"""SELECT g.sl_id, p.sl_id, t.sl_id, p.first_name, p.last_name,
+                       a.position
+                FROM affiliation a
+                JOIN game g ON g.id = a.game_id
+                JOIN player p ON p.id = a.player_id
+                JOIN team t ON t.id = a.team_id
+                WHERE g.sl_id IN ({placeholders})""",
+            tuple(usable))
+        for game_sl, player_sl, team_sl, first, last, position in cursor.fetchall():
+            players_by_game[int(game_sl)][player_sl] = Player(
+                player_id=player_sl, team_id=team_sl, first_name=first,
+                last_name=last, position=position)
+    finally:
+        cursor.close()
+
+    for game_sl in usable:
+        yield GameData(
+            game_id=game_sl,
+            events=events_by_game.get(game_sl, []),
+            toi=toi_by_game.get(game_sl, []),
+            roster=Roster(game_id=game_sl,
+                          players=players_by_game.get(game_sl, {})))
 
 
 def load_games(game_ids: Iterable[int], *,

@@ -194,16 +194,25 @@ the canvas rail. That is the pattern to copy for any new consumer: read the
 metric from `derive/`, and put only the aggregating in `metrics/`.
 
 It consumes `GameData` — one game's events, shifts and roster — rather than
-`Game` objects, so where the data came from is not its concern: built games
-adapt through `from_games`, and a bulk database read of `event`/`shift`/
-`affiliation` would yield the same bundles without building 52 games at ~0.9s
-and ~23MB each. `GameData` exposes `.events` under that name deliberately, so
-the base-set helpers here (`scoring.all_goals(data)`) accept it and the
-population definitions stay in the metric modules.
+`Game` objects, so where the data came from is not its concern. Two adapters
+supply them: `from_games` for built games, and `from_database` for a bulk read
+of `event`/`shift`/`affiliation`. Over the golden twenty the database path
+takes 0.85s and 11MB against 22.3s and 75MB for building the games, and the
+two agree on all 283 skaters with no field differing — which is the property
+that makes the seam worth having.
 
-Bundles are consumed one at a time and dropped, which keeps peak memory flat
-at ~73MB whether it is two games or fifty — so callers pass a generator, not
-a list.
+`GameData` exposes `.events` under that name deliberately, so the base-set
+helpers here (`scoring.all_goals(data)`) accept it and the population
+definitions stay in the metric modules.
+
+Bundles are consumed one at a time and dropped, so peak memory is flat at
+~73MB on the file path whether it is two games or fifty — callers pass a
+generator, not a list.
+
+A game the database does not hold is skipped and named in a warning rather
+than quietly read from files: a silent fallback would make a season's numbers
+depend on which machine ran it. "Holds" means events AND shifts, because
+events alone would produce a full set of counts against no ice time.
 
 Context is classified server-side and packed into one int per event
 (`period*100 + manpower*10 + goalies`) so the browser filters with no round
