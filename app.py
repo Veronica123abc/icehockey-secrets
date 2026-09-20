@@ -418,6 +418,7 @@ def game_view(game_id: int):
 @app.route("/game/<int:game_id>/canvas")
 def game_canvas_view(game_id: int):
     """Gameflow and metrics: the interactive event timeline for one game."""
+    print("Game Id: ", game_id)
     if not _game_exists(game_id):
         auto = request.args.get("auto", "0")
         return redirect(url_for("confirm_download", game_id=game_id, auto=auto))

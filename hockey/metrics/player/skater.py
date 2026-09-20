@@ -617,6 +617,12 @@ def print_lines(lines: Sequence[SkaterLine], *, limit: int | None = None) -> Non
 if __name__ == "__main__":
     GAME_IDS = [186449, 186461]
 
+    from hockey.db.database import open_database_azure
+    from hockey.db.event_query import query_events
+
+
+
+
     lines = skater_stats(from_games(load_games(GAME_IDS)))
     print(f"{len(lines)} skaters over {len(GAME_IDS)} games\n")
     print_lines(lines, limit=25)
