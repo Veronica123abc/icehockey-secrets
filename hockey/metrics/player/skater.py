@@ -84,7 +84,16 @@ the counts drop to events in that situation AND the TOI denominator drops to
 time spent in it, so a per-60 rate divides like with like::
 
     pp = ctx.DEFAULT.with_values(ctx.MANPOWER, [ctx.PP1])
-    lines = skater_stats(from_games(load_games(ids)), context=pp)
+    lines = skater_stats(from_games(load_games(ids)), context=pp, min_toi=20)
+    print_lines(lines, per60=True)      # PP goals over PP minutes
+
+RATES ARE DERIVED, NOT STORED. ``SkaterLine.per60(metric)`` divides the count
+by that line's own TOI, so it cannot fall out of step with either, and under a
+context it is automatically the narrowed denominator -- that is the whole point
+of narrowing both halves. ``min_toi`` is what keeps a rate honest: four
+power-play minutes and one goal is 15.0 G/60, arithmetically correct and
+worthless. Nothing here enforces a floor, because what counts as enough sample
+depends on the question.
 
 EVERYTHING IS RELATIVE TO THE PLAYER'S OWN TEAM, which is the subtle part. A
 goal scored by team A on the power play is PP1 from A's side and SH1 for a
@@ -121,7 +130,7 @@ from dataclasses import dataclass, fields
 
 from hockey.model.events import Event
 from hockey.model.roster import Player, Roster
-from hockey.model.toi import ToIInterval
+from hockey.model.toi import ToIInterval, merge_spans
 from hockey.derive import context_filter as ctx
 from hockey.derive.scoring import scoring
 from hockey.derive.shooting import metrics as shooting
@@ -133,6 +142,18 @@ GOALIE = "G"
 #: describe the sample rather than counting events, so they are not here.
 METRICS = ("goals", "assists", "shot_attempts", "shots_on_net",
            "goals_for_woi", "goals_against_woi")
+
+#: One report column per metric: field name, count heading, rate heading. The
+#: table is built from this rather than from a hand-written header string, so a
+#: metric added to METRICS cannot end up with its numbers under the wrong name.
+_METRIC_COLUMNS = (
+    ("goals",             "G",     "G/60"),
+    ("assists",           "A",     "A/60"),
+    ("shot_attempts",     "SA",    "SA/60"),
+    ("shots_on_net",      "SOG",   "SOG/60"),
+    ("goals_for_woi",     "GF/oi", "GF/60"),
+    ("goals_against_woi", "GA/oi", "GA/60"),
+)
 
 #: The supplier event names :meth:`_Totals.add` reads. The database adapter
 #: asks for these and no others, which is most of why it is quick -- but it
@@ -182,6 +203,23 @@ class SkaterLine:
     goals_for_woi: int          # goals by his team while he was on the ice
     goals_against_woi: int      # goals against his team while he was on the ice
 
+    def per60(self, metric: str) -> float:
+        """One metric as a rate per 60 minutes of ice time.
+
+        Derived rather than stored: the count and the TOI are both already on
+        the line, and a stored rate would be a third number to keep in step.
+
+        The denominator is THIS LINE's TOI, which is what makes the rate safe
+        under a context: ``skater_stats`` narrows the events and the ice time
+        together, so a power-play line's G/60 is power-play goals over
+        power-play minutes, never over whole games. It is also why a rate is
+        only as trustworthy as the sample behind it -- use ``min_toi`` to keep
+        four power-play minutes from reporting 15.0 G/60.
+        """
+        if metric not in METRICS:
+            raise KeyError(f"unknown metric {metric!r}; metrics are {METRICS}")
+        return getattr(self, metric) * 60.0 / self.toi if self.toi else 0.0
+
 
 # --- On-ice spans -----------------------------------------------------------
 
@@ -194,8 +232,8 @@ def _skater_spans(toi: Sequence[ToIInterval],
     allows it, so an open shift is closed at the last time anything ends rather
     than running to infinity.
 
-    Merging is defensive: no player's intervals overlap in the games checked,
-    but a double-counted second would quietly inflate TOI if that changed.
+    Merging is ``toi.merge_spans``; what belongs here is the POLICY around it
+    -- dropping goalies and closing an open shift -- not the arithmetic.
     """
     end_of_game = max((x.end_t for x in toi if x.end_t is not None), default=0.0)
     raw: dict[int, list[tuple[float, float]]] = defaultdict(list)
@@ -207,17 +245,7 @@ def _skater_spans(toi: Sequence[ToIInterval],
         if end > interval.start_t:
             raw[interval.player_id].append((interval.start_t, end))
 
-    merged: dict[int, list[tuple[float, float]]] = {}
-    for player_id, spans in raw.items():
-        spans.sort()
-        out = [spans[0]]
-        for start, end in spans[1:]:
-            if start <= out[-1][1]:
-                out[-1] = (out[-1][0], max(out[-1][1], end))
-            else:
-                out.append((start, end))
-        merged[player_id] = out
-    return merged
+    return {player_id: merge_spans(spans) for player_id, spans in raw.items()}
 
 
 def _on_ice_at(spans: Sequence[tuple[float, float]], t: float) -> bool:
@@ -512,42 +540,34 @@ def _database_bundles(conn, usable: Sequence[int],
                       names: Sequence[str]) -> Iterator[GameData]:
     """The reading half of :func:`from_database`, once the ids are settled.
 
-    ``query_events`` is imported here rather than at the top because
-    ``hockey.db.event_query`` resolves Settings at import time, and this
-    module is meant to stay importable without DATA_ROOT_DIR.
+    ``query_events`` and ``query_shifts`` are imported here rather than at the
+    top because ``hockey.db.event_query`` resolves Settings at import time, and
+    this module is meant to stay importable without DATA_ROOT_DIR.
+    ``shift_query`` has no such problem; it is imported alongside for symmetry.
     """
     if not usable:
         return
     from hockey.db.event_query import query_events
+    from hockey.db.shift_query import query_shifts
 
     placeholders = ", ".join(["%s"] * len(usable))
     events_by_game: dict[int, list[Event]] = defaultdict(list)
     for event in query_events(conn, game_sl_ids=usable, names=list(names)):
         events_by_game[event.game_id].append(event)
 
-    # Shifts and affiliation are keyed by the database's own game id, so both
-    # queries join `game` to come back in SportLogIQ ids -- the space the
-    # events, the roster and GameData.game_id all speak.
+    # Shifts come back already in SportLogIQ ids -- the space the events, the
+    # roster and GameData.game_id all speak -- so grouping them is all that is
+    # left to do here. Goalies are kept: _skater_spans drops them by roster,
+    # and _situation_timeline needs them to tell a pulled goalie from a
+    # penalty.
     toi_by_game: dict[int, list[ToIInterval]] = defaultdict(list)
+    for interval in query_shifts(conn, game_sl_ids=usable):
+        toi_by_game[interval.game_id].append(interval)
+
+    # Affiliation is still read here: it is the roster, not the shifts.
     players_by_game: dict[int, dict[int, Player]] = defaultdict(dict)
     cursor = conn.cursor()
     try:
-        cursor.execute(
-            f"""SELECT g.sl_id, p.sl_id, t.sl_id, s.in_time, s.out_time
-                FROM shift s
-                JOIN game g ON g.id = s.game_id
-                JOIN player p ON p.id = s.player_id
-                LEFT JOIN affiliation a
-                       ON a.game_id = s.game_id AND a.player_id = s.player_id
-                LEFT JOIN team t ON t.id = a.team_id
-                WHERE g.sl_id IN ({placeholders})""",
-            tuple(usable))
-        for game_sl, player_sl, team_sl, in_time, out_time in cursor.fetchall():
-            toi_by_game[int(game_sl)].append(ToIInterval(
-                game_id=int(game_sl), team_id=team_sl, player_id=player_sl,
-                start_t=float(in_time),
-                end_t=None if out_time is None else float(out_time)))
-
         cursor.execute(
             f"""SELECT g.sl_id, p.sl_id, t.sl_id, p.first_name, p.last_name,
                        a.position
@@ -592,26 +612,49 @@ def load_games(game_ids: Iterable[int], *,
                                  playsequence_source=playsequence_source))
 
 
-def to_dataframe(lines: Iterable[SkaterLine]):
+def to_dataframe(lines: Iterable[SkaterLine], *, per60: bool = True):
     """The lines as a DataFrame. pandas is imported here so the module stays
-    usable without it."""
+    usable without it.
+
+    ``per60`` appends a ``<metric>_per60`` column for each counted metric. A
+    DataFrame has no width to run out of, so they are on by default -- unlike
+    the printed table, which has to choose.
+    """
     import pandas as pd
+    lines = list(lines)
     columns = [f.name for f in fields(SkaterLine)]
-    return pd.DataFrame([[getattr(line, c) for c in columns] for line in lines],
-                        columns=columns)
+    rows = [[getattr(line, c) for c in columns] for line in lines]
+    if per60:
+        columns += [f"{metric}_per60" for metric, _, _ in _METRIC_COLUMNS]
+        for row, line in zip(rows, lines):
+            row += [line.per60(metric) for metric, _, _ in _METRIC_COLUMNS]
+    return pd.DataFrame(rows, columns=columns)
 
 
-def print_lines(lines: Sequence[SkaterLine], *, limit: int | None = None) -> None:
-    """A plain table, for a terminal or an IDE run window."""
+def print_lines(lines: Sequence[SkaterLine], *, limit: int | None = None,
+                per60: bool = False) -> None:
+    """A plain table, for a terminal or an IDE run window.
+
+    ``per60`` SWAPS the counting columns for rates per 60 minutes rather than
+    adding to them -- twelve numeric columns do not fit a terminal, and the
+    sample size stays on the row either way, because GP and TOI do not move.
+    """
+    headings = [head for _, count_head, rate_head in _METRIC_COLUMNS
+                for head in (rate_head if per60 else count_head,)]
+    width = 6 if per60 else 5
     header = (f"{'player':22s} {'pos':3s} {'GP':>3s} {'TOI':>7s} {'TOI/GP':>7s} "
-              f"{'G':>4s} {'A':>4s} {'SA':>4s} {'SOG':>4s} {'GF/oi':>6s} {'GA/oi':>6s}")
+              + " ".join(f"{head:>{width}s}" for head in headings))
     print(header)
     print("-" * len(header))
     for line in lines[:limit]:
+        if per60:
+            cells = [f"{line.per60(metric):{width}.2f}"
+                     for metric, _, _ in _METRIC_COLUMNS]
+        else:
+            cells = [f"{getattr(line, metric):{width}d}"
+                     for metric, _, _ in _METRIC_COLUMNS]
         print(f"{line.name[:22]:22s} {line.position:3s} {line.games_played:3d} "
-              f"{line.toi:7.1f} {line.toi_per_game:7.1f} "
-              f"{line.goals:4d} {line.assists:4d} {line.shot_attempts:4d} "
-              f"{line.shots_on_net:4d} {line.goals_for_woi:6d} {line.goals_against_woi:6d}")
+              f"{line.toi:7.1f} {line.toi_per_game:7.1f} " + " ".join(cells))
 
 
 if __name__ == "__main__":
@@ -626,6 +669,13 @@ if __name__ == "__main__":
     lines = skater_stats(from_games(load_games(GAME_IDS)))
     print(f"{len(lines)} skaters over {len(GAME_IDS)} games\n")
     print_lines(lines, limit=25)
+
+    # The same lines as rates. Sorted by TOI still, so the rows line up with
+    # the table above -- and with a min_toi, because two games is a small
+    # sample and a fourth-liner's G/60 off six minutes is not a number.
+    print(f"\nper 60 minutes (min 20 min of ice time):\n")
+    print_lines(skater_stats(from_games(load_games(GAME_IDS)), min_toi=20.0),
+                limit=25, per60=True)
 
     # The totals have to agree with the events themselves, so check rather
     # than trust. Re-loading is the point: nothing above is still in memory.

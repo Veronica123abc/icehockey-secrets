@@ -265,8 +265,23 @@ if __name__ == "__main__":
     NAMES = ["shot"]            # None for every event type
     OUTCOMES = None             # e.g. ["successful"]
     ZONES = None                # e.g. ["oz"]
-    WITH_ON_ICE = False
+    # True because the context filter below reads the goalie refs, which only
+    # the on-ice reconstruction fills in. With it off they are all null, and
+    # `goalies_of` cannot tell "unknown" from "off the ice" -- every event
+    # classifies as 'Goalie out' and the default selection keeps none of them.
+    # The pulled-goalie adjustment reads them too, so a handful of empty-net
+    # events change PP2/PP1 with it on. Skater counts come from the row and
+    # are there either way. It costs little: 0.4s for 388 events over 64 games.
+    WITH_ON_ICE = True
     LIMIT = None
+    LANE_KEY = "Shots · 1-Timer Taken"   # one leaf of the metric catalog
+
+    # The situation to count that lane in. Spelled out rather than left to
+    # ContextFilter's own defaults, which are ES with both goalies on the ice
+    # -- a narrowing, not "everything", and an easy thing to apply by accident.
+    CONTEXT_PERIODS = ["All"]                     # or any of P1, P2, P3, OT
+    CONTEXT_MANPOWER = ["ES", "PP1", "PP2"]       # of ES, SH1, SH2, PP1, PP2
+    CONTEXT_GOALIES = ["Both goalies on ice"]     # or a goalie pulled, either end
 
     import time
     from collections import Counter
@@ -311,5 +326,65 @@ if __name__ == "__main__":
                   f"slot {sum(1 for e in shots if is_slot(e))}, "
                   f"1-timers {sum(1 for e in shots if is_one_timer(e))}, "
                   f"on net {sum(1 for e in shots if is_on_net(e))}")
+
+        # The same thing without naming a predicate: pick a leaf of the metric
+        # catalog by its lane key. `print_tree` lists every key there is, and
+        # importing the catalog touches neither the filesystem nor the database,
+        # so it is safe to do from any session.
+        from hockey.derive import metric_catalog as mc
+
+        # mc.print_tree(mc.TREE)                      # the whole tree
+        print("\nlane keys matching '1-Timer':",
+              [k for k in mc.BY_KEY if '1-Timer' in k])
+
+        lane = mc.BY_KEY[LANE_KEY]
+        # `lane.matches` only runs the predicate -- it does not check that the
+        # event came from the lane's own population, and a predicate reads
+        # `type`/`flags` without asking. On a mixed shortlist the event_name
+        # guard is what stops is_one_timer being asked about a pass.
+        n = sum(1 for e in events
+                if e.name == lane.event_name and lane.matches(e))
+        print(f"{LANE_KEY}: {n:,}")
+
+        # Or every lane at once. `lanes_for_event` dispatches on e.name itself,
+        # so it needs no guard; an event lands in its population's 'All' lane
+        # plus one lane per matching item, the groups being independent axes.
+        print("\nall lanes these events fall in:")
+        for key, count in Counter(
+                k for e in events for k in mc.lanes_for_event(e)).most_common():
+            print(f"   {key:42s} {count:,}")
+
+        # The other half of the question: the lane says WHAT happened, a
+        # context filter says what SITUATION it happened in. They compose --
+        # narrow the list first, then count lanes in it exactly as above.
+        from hockey.derive import context_filter as cf
+
+        # What is available, per dimension and independent of any selection.
+        # The None bucket is events the dimension could not classify; on the
+        # database path there are usually none.
+        print("\nsituations present:")
+        for dimension, tally in cf.counts(events).items():
+            pretty = {k: v for k, v in sorted(tally.items(), key=lambda kv: -kv[1])}
+            print(f"   {dimension:9s} {pretty}")
+
+        context = (cf.ContextFilter()
+                   .with_values(cf.PERIOD, CONTEXT_PERIODS)
+                   .with_values(cf.MANPOWER, CONTEXT_MANPOWER)
+                   .with_values(cf.GOALIES, CONTEXT_GOALIES))
+        # Everything is relative to event.team_id, so 'PP1' means the team
+        # credited with the event was a man up. The Team dimension is left at
+        # every team here because the query already picked the player.
+        in_context = cf.apply(events, context)
+        print(f"\ncontext: {' · '.join(context.describe())}")
+        print(f"   {len(in_context):,} of {len(events):,} events")
+
+        n_context = sum(1 for e in in_context
+                        if e.name == lane.event_name and lane.matches(e))
+        print(f"   {LANE_KEY}: {n_context:,} of {n:,}")
+
+        print("\nall lanes, in that context:")
+        for key, count in Counter(
+                k for e in in_context for k in mc.lanes_for_event(e)).most_common():
+            print(f"   {key:42s} {count:,}")
     finally:
         conn.close()

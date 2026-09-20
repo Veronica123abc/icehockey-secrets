@@ -14,6 +14,7 @@ from hockey.config.settings import Settings
 from hockey.io.raw_game import RawGame
 from hockey.model.events import Event
 from hockey.model.game import Game
+from hockey.model.toi import merge_spans
 from hockey.normalize.build_game import build_game
 from hockey.visualize.shift_toi import _game_end_time_seconds, _team_color
 
@@ -803,24 +804,19 @@ class GameCanvas:
         rather than per-event on-ice sets -- 742 intervals against 5,583
         events, and the browser only has to test a time.
         """
-        by_player: dict[int, list[list[float]]] = defaultdict(list)
+        by_player: dict[int, list[tuple[float, float]]] = defaultdict(list)
         for x in self._game.toi:
             end = self._end_time if x.end_t is None else x.end_t
             if end <= x.start_t:
                 continue
-            by_player[x.player_id].append([round(x.start_t, 1), round(end, 1)])
+            # Rounded BEFORE merging, so two spans that meet only once rounded
+            # are joined rather than emitted as a pair the browser would test
+            # twice. Merging is toi.merge_spans; the rounding and the JSON
+            # shape are this function's own business.
+            by_player[x.player_id].append((round(x.start_t, 1), round(end, 1)))
 
-        merged_by_player: dict[int, list[list[float]]] = {}
-        for pid, spans in by_player.items():
-            spans.sort()
-            merged = [spans[0]]
-            for start, end in spans[1:]:
-                if start <= merged[-1][1]:
-                    merged[-1][1] = max(merged[-1][1], end)
-                else:
-                    merged.append([start, end])
-            merged_by_player[pid] = merged
-        return merged_by_player
+        return {pid: [[start, end] for start, end in merge_spans(spans)]
+                for pid, spans in by_player.items()}
 
     def _player_mode_html(self) -> str:
         """Switch between "attributed to the player" and "player on the ice"."""
