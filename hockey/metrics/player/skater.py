@@ -109,6 +109,10 @@ the slices his team's situation is selected for. Period boundaries join the
 cut list defensively: no shift straddles one in the games checked, but a slice
 spanning two periods would otherwise be credited entirely to one of them.
 
+That sweep is :mod:`hockey.metrics.player.on_ice_spans`, not this file --
+``woi.py`` asks the same two questions of every shot in a season, and one
+implementation of "who was on, in what situation" is the whole point.
+
 Numerator and denominator classify by slightly different means, deliberately.
 An event carries the supplier's own ``manpower_situation`` and uses it; a slice
 has to derive direction from the skater counts. The two agree in sign on 99.69%
@@ -123,20 +127,18 @@ fact about every game.
 from __future__ import annotations
 
 import warnings
-from bisect import bisect_right
 from collections import defaultdict
 from collections.abc import Iterable, Iterator, Sequence
 from dataclasses import dataclass, fields
 
 from hockey.model.events import Event
-from hockey.model.roster import Player, Roster
-from hockey.model.toi import ToIInterval, merge_spans
+from hockey.model.roster import Roster
+from hockey.model.toi import ToIInterval
 from hockey.derive import context_filter as ctx
 from hockey.derive.scoring import scoring
 from hockey.derive.shooting import metrics as shooting
-
-#: Roster position marking a goalie.
-GOALIE = "G"
+from hockey.metrics.player.on_ice_spans import (GOALIE, SituationTimeline,
+                                                on_ice_at, skater_spans)
 
 #: The counted metrics, in report order. games_played and the TOI columns
 #: describe the sample rather than counting events, so they are not here.
@@ -221,126 +223,6 @@ class SkaterLine:
         return getattr(self, metric) * 60.0 / self.toi if self.toi else 0.0
 
 
-# --- On-ice spans -----------------------------------------------------------
-
-def _skater_spans(toi: Sequence[ToIInterval],
-                  roster: Roster) -> dict[int, list[tuple[float, float]]]:
-    """player id -> his on-ice spans in this game, merged and sorted.
-
-    Goalies are dropped. ``end_t`` is None when the supplier never recorded the
-    player coming off; it does not happen in the games checked, but the model
-    allows it, so an open shift is closed at the last time anything ends rather
-    than running to infinity.
-
-    Merging is ``toi.merge_spans``; what belongs here is the POLICY around it
-    -- dropping goalies and closing an open shift -- not the arithmetic.
-    """
-    end_of_game = max((x.end_t for x in toi if x.end_t is not None), default=0.0)
-    raw: dict[int, list[tuple[float, float]]] = defaultdict(list)
-    for interval in toi:
-        player = roster.players.get(interval.player_id)
-        if player is not None and player.position == GOALIE:
-            continue
-        end = end_of_game if interval.end_t is None else interval.end_t
-        if end > interval.start_t:
-            raw[interval.player_id].append((interval.start_t, end))
-
-    return {player_id: merge_spans(spans) for player_id, spans in raw.items()}
-
-
-def _on_ice_at(spans: Sequence[tuple[float, float]], t: float) -> bool:
-    """Whether ``t`` falls inside one of the (sorted, disjoint) spans."""
-    i = bisect_right(spans, (t, float("inf")))
-    return i > 0 and spans[i - 1][0] <= t < spans[i - 1][1]
-
-
-Situation = tuple[str, str, str]      # (period, manpower, goalies)
-
-
-def _situation_timeline(toi: Sequence[ToIInterval],
-                        roster: Roster) -> list[tuple[float, float, dict[int, Situation]]]:
-    """One game cut into slices of constant situation.
-
-    ``(start, end, {team_id: (period, manpower, goalies)})`` per slice, each
-    team's situation stated from ITS OWN side -- so one slice reads PP1 for one
-    bench and SH1 for the other.
-
-    The cuts are every shift start and end, plus the period boundaries. Between
-    two consecutive cuts nobody steps on or off, so the situation holds across
-    the whole slice and can be credited in one go.
-
-    A slice with only one team on the ice is a gap in the data, not a 5v0, and
-    is dropped: strength is a comparison and it takes two teams.
-    """
-    end_of_game = max((x.end_t for x in toi if x.end_t is not None), default=0.0)
-    spans = [(x.start_t, end_of_game if x.end_t is None else x.end_t,
-              x.player_id, x.team_id) for x in toi]
-
-    cuts = {a for a, _, _, _ in spans} | {b for _, b, _, _ in spans}
-    cuts |= {n * ctx.PERIOD_LENGTH
-             for n in range(1, int(end_of_game // ctx.PERIOD_LENGTH) + 1)
-             if 0 < n * ctx.PERIOD_LENGTH < end_of_game}
-
-    out: list[tuple[float, float, dict[int, Situation]]] = []
-    for lo, hi in zip(sorted(cuts), sorted(cuts)[1:]):
-        if hi <= lo:
-            continue
-        skaters: dict[int, int] = defaultdict(int)
-        goalie_on: dict[int, bool] = defaultdict(bool)
-        for start, end, player_id, team_id in spans:
-            if start > lo or hi > end or team_id is None:
-                continue
-            player = roster.players.get(player_id)
-            if player is not None and player.position == GOALIE:
-                goalie_on[team_id] = True
-            else:
-                skaters[team_id] += 1
-        teams = sorted(set(skaters) | set(goalie_on))
-        if len(teams) != 2:
-            continue
-        period = ctx.period_from_time(lo)
-        first, second = teams
-        situations = {
-            own: (period,
-                  ctx.manpower_from_skaters(skaters[own], skaters[other],
-                                            own_goalie_on=goalie_on[own],
-                                            opposing_goalie_on=goalie_on[other]),
-                  ctx.goalies_from_flags(goalie_on[own], goalie_on[other]))
-            for own, other in ((first, second), (second, first))
-        }
-        out.append((lo, hi, situations))
-    return out
-
-
-def _selected_seconds(timeline, spans: Sequence[tuple[float, float]],
-                      team_id: int | None, context) -> float:
-    """Seconds on the ice with this player's team's situation selected."""
-    if team_id is None:
-        return 0.0
-    total = 0.0
-    for lo, hi, situations in timeline:
-        situation = situations.get(team_id)
-        if situation is None:
-            continue
-        if not context.matches_situation(team_id=team_id, period=situation[0],
-                                         manpower=situation[1],
-                                         goalies=situation[2]):
-            continue
-        for start, end in spans:
-            overlap = min(hi, end) - max(lo, start)
-            if overlap > 0:
-                total += overlap
-    return total
-
-
-def _situation_at(timeline, t: float, team_id: int) -> Situation | None:
-    """The situation at ``t`` from ``team_id``'s side, or None outside play."""
-    for lo, hi, situations in timeline:
-        if lo <= t < hi:
-            return situations.get(team_id)
-    return None
-
-
 # --- Accumulating one game at a time ----------------------------------------
 
 class _Totals:
@@ -354,8 +236,8 @@ class _Totals:
         self.games_seen: dict[int, set[int]] = defaultdict(set)
 
     def add(self, data: GameData, context=None) -> None:
-        spans = _skater_spans(data.toi, data.roster)
-        timeline = (_situation_timeline(data.toi, data.roster)
+        spans = skater_spans(data.toi, data.roster)
+        timeline = (SituationTimeline(data.toi, data.roster)
                     if context is not None else None)
 
         for player_id, player_spans in spans.items():
@@ -363,8 +245,8 @@ class _Totals:
             if timeline is None:
                 seconds = sum(end - start for start, end in player_spans)
             else:
-                seconds = _selected_seconds(
-                    timeline, player_spans,
+                seconds = timeline.selected_seconds(
+                    player_spans,
                     player.team_id if player is not None else None, context)
                 if seconds <= 0:
                     # On the ice, but never in the selected situation. Counting
@@ -405,7 +287,7 @@ class _Totals:
             if goal.t is None or goal.team_id is None:
                 continue
             for player_id, player_spans in spans.items():
-                if not (_on_ice_at(player_spans, goal.t)
+                if not (on_ice_at(player_spans, goal.t)
                         or goal.player_id == player_id):
                     continue
                 player = data.roster.players.get(player_id)
@@ -414,7 +296,7 @@ class _Totals:
                 if context is not None:
                     # Asked from HIS side, not the scorer's: a power-play goal
                     # against is a penalty kill for the man on the ice.
-                    situation = _situation_at(timeline, goal.t, player.team_id)
+                    situation = timeline.situation_at(goal.t, player.team_id)
                     if situation is None or not context.matches_situation(
                             team_id=player.team_id, period=situation[0],
                             manpower=situation[1], goalies=situation[2]):
@@ -548,9 +430,9 @@ def _database_bundles(conn, usable: Sequence[int],
     if not usable:
         return
     from hockey.db.event_query import query_events
+    from hockey.db.roster_query import query_rosters
     from hockey.db.shift_query import query_shifts
 
-    placeholders = ", ".join(["%s"] * len(usable))
     events_by_game: dict[int, list[Event]] = defaultdict(list)
     for event in query_events(conn, game_sl_ids=usable, names=list(names)):
         events_by_game[event.game_id].append(event)
@@ -564,33 +446,17 @@ def _database_bundles(conn, usable: Sequence[int],
     for interval in query_shifts(conn, game_sl_ids=usable):
         toi_by_game[interval.game_id].append(interval)
 
-    # Affiliation is still read here: it is the roster, not the shifts.
-    players_by_game: dict[int, dict[int, Player]] = defaultdict(dict)
-    cursor = conn.cursor()
-    try:
-        cursor.execute(
-            f"""SELECT g.sl_id, p.sl_id, t.sl_id, p.first_name, p.last_name,
-                       a.position
-                FROM affiliation a
-                JOIN game g ON g.id = a.game_id
-                JOIN player p ON p.id = a.player_id
-                JOIN team t ON t.id = a.team_id
-                WHERE g.sl_id IN ({placeholders})""",
-            tuple(usable))
-        for game_sl, player_sl, team_sl, first, last, position in cursor.fetchall():
-            players_by_game[int(game_sl)][player_sl] = Player(
-                player_id=player_sl, team_id=team_sl, first_name=first,
-                last_name=last, position=position)
-    finally:
-        cursor.close()
+    # The roster is the third bulk read, and it is `affiliation` rather than
+    # either of the other two tables -- who was dressed, and as what.
+    rosters = query_rosters(conn, game_sl_ids=usable)
+    empty = Roster(game_id=0, players={})
 
     for game_sl in usable:
         yield GameData(
             game_id=game_sl,
             events=events_by_game.get(game_sl, []),
             toi=toi_by_game.get(game_sl, []),
-            roster=Roster(game_id=game_sl,
-                          players=players_by_game.get(game_sl, {})))
+            roster=rosters.get(game_sl, empty))
 
 
 def load_games(game_ids: Iterable[int], *,
