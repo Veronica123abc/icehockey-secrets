@@ -114,6 +114,10 @@ _REGISTRY: tuple[SectionSpec, ...] = (
     SectionSpec("Entries", (
         PopulationSpec("Controlled entries", CONTROLLED_ENTRIES, "controlledentry"),
         PopulationSpec("Dump-ins", DUMPINS, "dumpin"),
+        # 1:1 with the dump-in, and the event whose outcome says the dumping
+        # team recovered -- so its Successful share is a true recovery rate,
+        # which "Dump-ins · Successful" (a depth criterion) is not.
+        PopulationSpec("Dump-in entries", DUMPINS, "dumpinentry"),
         PopulationSpec("Dump-in recoveries", DUMPINS, "dumpinrecovery"),
     )),
     SectionSpec("DZ exits", (

@@ -1,25 +1,42 @@
 #!/usr/bin/python
 """Dump-in metrics.
 
-Two populations live here, each with its own filter dictionary:
+Three populations live here, each with its own filter dictionary:
 
 * ``dumpin`` -- the puck event, one per attempt. Carries the dumping player's
   location ('westofdot', 'midice', 'eastofdot') and the technique ('rim',
   'crossice', 'soft', 'straight') in flags, and dump-vs-chip in ``type``.
+* ``dumpinentry`` -- 1:1 with ``dumpin``, and the event whose OUTCOME says
+  whether the dumping team got the puck back.
 * ``dumpinrecovery`` -- who picked the puck up afterwards, and what came of
   it. ``type`` is a concatenation: an 'offensive'/'defensive' prefix (the
   dumping team vs the opposition), optionally 'selfchipin', then the same
   withplay/withshotonnet/withslotshot decorations that appear in flags.
 
-``dumpinentry`` is 1:1 with ``dumpin`` (150/150 over two games) and is the
-event whose outcome says whether the dumping team recovered; it is exposed
-through :func:`dumpin_entry` but is not a filtered population of its own,
-since every filterable attribute it carries is also on one of the two above.
+WHY ``dumpinentry`` IS ITS OWN POPULATION and not a decoration on ``dumpin``:
+a dump-in's own 'successful' is a DEPTH criterion (see CLAUDE.md -- probably
+past the last defender), while a dumpinentry's is possession. Over games
+186449 + 186461 + 191848 the successful entries number 83 and the offensive
+dump-in recoveries also number 83 -- per game 25, 34, 24 either way -- so
+"successful entry" means "the dumping team recovered", and it is the only
+population here whose share of the whole is a recovery RATE. Rating recoveries
+against ``Dump-ins · Successful`` instead answers a different question and is
+not bounded by 1.
 
-Group exhaustiveness, verified over games 186461 + 191848 (150 dump-ins):
-Type 129+21, Location 65+31+54 and Result 122+28 each total 150 exactly.
-Technique covers only 122 -- 28 attempts carry no technique flag -- so that
-group has an explicit 'Untagged' item to keep it exhaustive.
+Group exhaustiveness for ``dumpin``, verified over games 186461 + 191848 (150
+dump-ins): Type 129+21, Location 65+31+54 and Result 122+28 each total 150
+exactly. Technique covers only 122 -- 28 attempts carry no technique flag --
+so that group has an explicit 'Untagged' item to keep it exhaustive.
+
+For ``dumpinentry``, verified over 186449 + 186461 + 191848 on the FILE path
+(209 entries, 1:1 with 209 dump-ins, all 209 linked by base_event_id; 191848
+is not in the database, so a database-only check sees only two of the three):
+Result 83+126 = 209, and With Shot covers all 209 (on-net 26 and slot 17 union
+to 32, plus 177 with no shot). The two shot items overlap deliberately, as
+they do in shooting's 'Slot'. It is given no Technique group even though it
+carries those flags: they are identical to the paired dump-in's on all 209
+pairs, so the axis already exists as ``Dump-ins · Technique`` and a second
+copy would drift.
 
 The group machinery itself lives in ``hockey.derive.filter_group``.
 """
@@ -223,7 +240,23 @@ DUMPIN_RECOVERY_FILTERS: dict[str, dict[str, Predicate]] = {
     },
 }
 
+#: The entry's Result is possession, not depth: successful means the dumping
+#: team recovered. The shot decorations are the same flags the recovery
+#: population carries, so the predicates are shared rather than restated.
+DUMPIN_ENTRY_FILTERS: dict[str, dict[str, Predicate]] = {
+    'Result': {
+        'Successful': is_successful,
+        'Failed': is_failed,
+    },
+    'With Shot': {
+        'With Shot On Net': with_shot_onnet,
+        'With Slot Shot': with_slotshot,
+        'With No Shot': with_no_shot,
+    },
+}
+
 DUMPINS = FilterGroups('dumpin', DUMPIN_FILTERS)
+DUMPIN_ENTRIES = FilterGroups('dumpinentry', DUMPIN_ENTRY_FILTERS)
 RECOVERIES = FilterGroups('dumpinrecovery', DUMPIN_RECOVERY_FILTERS)
 
 
@@ -232,6 +265,12 @@ RECOVERIES = FilterGroups('dumpinrecovery', DUMPIN_RECOVERY_FILTERS)
 def all_dumpins(game: Game, team_id: int | str | None = None) -> list[Event]:
     """Every dump-in attempt, one per puck event."""
     events = [e for e in game.events if e.name == 'dumpin']
+    return for_team(events, team_id) if team_id else events
+
+
+def all_dumpin_entries(game: Game, team_id: int | str | None = None) -> list[Event]:
+    """Every dump-in entry -- one per dump-in, successful iff recovered."""
+    events = [e for e in game.events if e.name == 'dumpinentry']
     return for_team(events, team_id) if team_id else events
 
 
@@ -270,6 +309,23 @@ def group_breakdown(dumpins: Iterable[Event]) -> dict[str, dict[str, list[Event]
 def check_groups_exhaustive(dumpins: Iterable[Event]) -> dict[str, bool]:
     """Whether each group's items together cover every dump-in."""
     return DUMPINS.check_exhaustive(dumpins)
+
+
+def entries_matching(entries: Iterable[Event], group: str, item: str) -> list[Event]:
+    return DUMPIN_ENTRIES.matching(entries, group, item)
+
+
+def filter_dumpin_entries(entries: Iterable[Event],
+                          **selections: Iterable[str]) -> list[Event]:
+    return DUMPIN_ENTRIES.filter(entries, **selections)
+
+
+def entry_group_breakdown(entries: Iterable[Event]) -> dict[str, dict[str, list[Event]]]:
+    return DUMPIN_ENTRIES.breakdown(entries)
+
+
+def check_entry_groups_exhaustive(entries: Iterable[Event]) -> dict[str, bool]:
+    return DUMPIN_ENTRIES.check_exhaustive(entries)
 
 
 def recoveries_matching(recoveries: Iterable[Event], group: str, item: str) -> list[Event]:
@@ -323,10 +379,13 @@ def get_full_data(game: Game) -> dict:
 
     for team_id in team_ids:
         dumpins = all_dumpins(game, team_id)
+        entries = all_dumpin_entries(game, team_id)
         recoveries = all_dumpin_recoveries(game, team_id)
         res[team_id] = {
             'All Dump-Ins': dumpins,
             **DUMPINS.rows(dumpins),
+            'All Dump-In Entries': entries,
+            **DUMPIN_ENTRIES.rows(entries, 'Entry '),
             'All Dump-In Recoveries': recoveries,
             **RECOVERIES.rows(recoveries, 'Recovery '),
         }
