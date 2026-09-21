@@ -1,23 +1,37 @@
 #!/usr/bin/python
-"""The on-ice report engine: any metric-catalog lanes, per player, over a season.
+"""On-ice metrics: any metric-catalog lanes, per player, over a season.
 
 The game canvas's player report counts, per player, the events of the ticked
 metric-catalog lanes that happened while he was on the ice, narrowed by a
 context selection, for ONE game. This is that with the game count raised to a
 season and the ticking done in Python -- and nothing here knows WHICH lanes, so
-a new report is a list of :class:`Column` and a title::
+a new report is a list of :class:`Column` and a title.
 
-    from hockey.reports.on_ice import Column, ColumnSet, FOR, report
+THIS MODULE COMPUTES; IT DOES NOT DRAW. It imports no plotting library and
+never opens a file for output. A report is three visible steps::
+
+    from hockey.reports.on_ice import (Column, ColumnSet, FOR,
+                                       open_connection, player_rows, to_sheet)
+    from hockey.reports.sheet import render_pdf
 
     COLUMNS = ColumnSet((
         Column("Entries", "Controlled entries · Successful", FOR),
         Column("Dump-ins", "Dump-ins · All", FOR),
     ))
-    report(players, league=17, season="20252026", columns=COLUMNS,
-           title="Entries", slug="entries")
+    rows, missing = player_rows(conn, players, 17, "20252026", columns=COLUMNS)
+    sheet = to_sheet(rows, missing, columns=COLUMNS, title="Entries")
+    render_pdf(sheet, "output/entries.pdf")
 
-``player_woi.py`` and ``player_entries.py`` are both that, and neither
-contains a line of fetching or drawing.
+:func:`player_rows` is the whole metric side and returns plain data, so it can
+be printed, charted, diffed against the canvas or checked in a notebook with
+no page in sight. :func:`to_sheet` is the only thing here that knows a page
+exists, and even it only builds a description -- a title and rows of formatted
+STRINGS -- which ``hockey/reports/sheet.py`` renders without knowing what any
+of them mean. Formatting sits on this side because "TOI is minutes but TOI/GP
+is mm:ss" is a fact about the metric, not about the paper.
+
+``player_woi.py`` and ``player_entries.py`` are both those three lines plus a
+:class:`ColumnSet`, and neither contains a line of fetching or drawing.
 
 NO METRIC IS DEFINED HERE. A column names LANES of
 ``hockey/derive/metric_catalog.py`` and counts them with those lanes' own
@@ -583,43 +597,19 @@ def team_labels() -> dict[int, str]:
     return out
 
 
-# --- The page --------------------------------------------------------------
-# A print surface, so the light palette only. The side tints are the diverging
-# pair -- for and against are poles, not two categories -- at low alpha, so
-# every cell keeps near-black text on near-white. Colour is never the only
-# channel: the band headings say "For", "Against" and "Both" in words.
+# --- Handing the numbers to a page -----------------------------------------
+# This module does not draw. It turns its own result into a
+# hockey.reports.sheet.Sheet -- a title and rows of formatted strings -- and
+# the drawing is that module's business. The formatting lives on THIS side of
+# the seam on purpose: that TOI is minutes but TOI/GP is mm:ss, and that some
+# columns are rates while others are totals, are facts about the metric, not
+# about the page.
 
-_SURFACE = "#fcfcfb"
-_INK = "#0b0b0b"
-_INK_SECONDARY = "#52514e"
-_INK_MUTED = "#898781"
-_RULE = "#c3c2b7"
-_ZEBRA = "#f2f1ed"
-_SIDE_STYLE = {
-    BOTH:    ("Both", "#8d8c86", 0.18),     # neutral midpoint
-    FOR:     ("For", "#2a78d6", 0.13),      # cool pole
-    AGAINST: ("Against", "#d03b3b", 0.13),  # warm pole
-}
-
-# Page geometry, in inches measured down from the top-left corner.
-_PAGE = (11.69, 8.27)       # A4 landscape
-_MARGIN = 0.5
-_ROW_HEIGHT = 0.235
-_GROUP_BAND = 0.24
-_NAME_ROW = 0.26
-_TABLE_HEAD = _GROUP_BAND + _NAME_ROW
-_FOOTER_HEIGHT = 0.5
-_CONT_TOP = 0.62
-
-#: A metric column is sized to fill the page, but only within reason: a
-#: five-column report stretched across A4 landscape reads as a scatter of
-#: numbers, and a twenty-column one would be unreadably narrow. Outside the
-#: band the table is narrower than the page, or the font steps down.
-_RATE_WIDTH_MAX = 0.92
-_RATE_WIDTH_MIN = 0.40
-
-#: (heading, width in inches, alignment) for the columns that are not metrics.
-_IDENTITY = (
+#: The columns every on-ice report carries before its metrics: who, and how
+#: much sample is behind the rates. Widths are in inches -- a player name needs
+#: about two, a position needs a third of one -- and the metric columns that
+#: follow share whatever is left.
+_IDENTITY: tuple[tuple[str, float, str], ...] = (
     ("Player", 1.95, "left"),
     ("Team", 0.70, "left"),
     ("Pos", 0.36, "left"),
@@ -628,239 +618,17 @@ _IDENTITY = (
     ("TOI/GP", 0.62, "right"),
 )
 
-
-def _rate_width(columns: ColumnSet) -> float:
-    used = sum(width for _, width, _ in _IDENTITY)
-    available = _PAGE[0] - 2 * _MARGIN - used
-    return min(max(available / len(columns), _RATE_WIDTH_MIN), _RATE_WIDTH_MAX)
-
-
-def _table_right(columns: ColumnSet) -> float:
-    """The table's right edge, which is the page's only when it fills it."""
-    used = sum(width for _, width, _ in _IDENTITY)
-    return _MARGIN + used + _rate_width(columns) * len(columns)
-
-
-def _cell_size(columns: ColumnSet) -> float:
-    return 7.6 if _rate_width(columns) >= 0.50 else 6.8
-
-
-def _column_x(columns: ColumnSet) -> list[tuple[float, float, str]]:
-    """(left, width, alignment) per column, identity first then the metrics."""
-    out: list[tuple[float, float, str]] = []
-    x = _MARGIN
-    for _, width, align in _IDENTITY:
-        out.append((x, width, align))
-        x += width
-    rate = _rate_width(columns)
-    for _ in columns:
-        out.append((x, rate, "right"))
-        x += rate
-    return out
-
-
-def _side_spans(columns: ColumnSet) -> list[tuple[int, int, str, str, float]]:
-    """(first column index, how many, label, tint, alpha) per run of one side.
-
-    Read off the columns rather than hardcoded, so re-ordering or adding one
-    moves the tinted band with it instead of leaving it behind.
-    """
-    out: list[tuple[int, int, str, str, float]] = []
-    listed = list(columns)
-    for index, column in enumerate(listed):
-        if out and listed[index - 1].side == column.side:
-            start, span, label, tint, alpha = out[-1]
-            out[-1] = (start, span + 1, label, tint, alpha)
-        else:
-            label, tint, alpha = _SIDE_STYLE[column.side]
-            out.append((index, 1, label, tint, alpha))
-    return out
+#: A side is a meaning; the tone is how a page should say it. For and against
+#: are poles, so they take the ends of a diverging pair and the undivided
+#: total takes its neutral midpoint. Which hexes those are is the page's
+#: business, not this module's.
+_TONES = {FOR: "cool", AGAINST: "warm", BOTH: "neutral"}
 
 
 def _mmss(minutes: float) -> str:
     seconds = int(round(minutes * 60))
     return f"{seconds // 60}:{seconds % 60:02d}"
 
-
-def _cell(ax, text: str, left: float, width: float, y: float, align: str,
-          *, weight: str = "normal", size: float = 7.6, color: str = _INK) -> None:
-    pad = 0.06
-    if align == "right":
-        ax.text(left + width - pad, y, text, ha="right", va="center",
-                fontsize=size, color=color, fontweight=weight)
-    else:
-        ax.text(left + pad, y, text, ha="left", va="center",
-                fontsize=size, color=color, fontweight=weight)
-
-
-def _page_axes(figure):
-    """One axes covering the sheet, in inches down from the top-left.
-
-    Every coordinate below is then a position on the page rather than a
-    fraction of something, which is what makes the column widths above
-    readable as a layout.
-    """
-    ax = figure.add_axes((0, 0, 1, 1))
-    ax.set_xlim(0, _PAGE[0])
-    ax.set_ylim(_PAGE[1], 0)
-    ax.axis("off")
-    ax.set_facecolor(_SURFACE)
-    return ax
-
-
-def _title_bottom(subtitle: Sequence[str]) -> float:
-    return 0.95 + 0.19 * len(subtitle) + 0.18
-
-
-def _draw_title(ax, title: str, subtitle: Sequence[str], right: float) -> float:
-    from matplotlib.lines import Line2D
-    ax.text(_MARGIN, 0.60, title, ha="left", va="center", fontsize=17,
-            fontweight="bold", color=_INK)
-    y = 0.95
-    for line in subtitle:
-        ax.text(_MARGIN, y, line, ha="left", va="center", fontsize=8.2,
-                color=_INK_SECONDARY)
-        y += 0.19
-    ax.add_line(Line2D([_MARGIN, right], [y - 0.05, y - 0.05],
-                       color=_RULE, linewidth=0.8))
-    return _title_bottom(subtitle)
-
-
-def _draw_header(ax, top: float, positions: Sequence[tuple[float, float, str]],
-                 columns: ColumnSet) -> float:
-    """The two header rows -- side band, then column names. Returns the bottom."""
-    from matplotlib.lines import Line2D
-    from matplotlib.patches import Rectangle
-
-    rate = _rate_width(columns)
-    size = _cell_size(columns)
-    offset = len(_IDENTITY)
-    for start, span, label, tint, alpha in _side_spans(columns):
-        left = positions[offset + start][0]
-        width = rate * span
-        ax.add_patch(Rectangle((left, top), width, _TABLE_HEAD, facecolor=tint,
-                               alpha=alpha, edgecolor="none", zorder=0))
-        ax.text(left + width / 2, top + _GROUP_BAND / 2, label, ha="center",
-                va="center", fontsize=8, fontweight="bold", color=_INK_SECONDARY)
-
-    y = top + _GROUP_BAND + _NAME_ROW / 2
-    for (left, width, align), (heading, _, _) in zip(positions, _IDENTITY):
-        _cell(ax, heading, left, width, y, align, weight="bold", size=7.4)
-    for (left, width, align), column in zip(positions[offset:], columns):
-        _cell(ax, column.heading, left, width, y, align, weight="bold",
-              size=min(size, 7.4))
-
-    bottom = top + _TABLE_HEAD
-    ax.add_line(Line2D([_MARGIN, _table_right(columns)], [bottom, bottom],
-                       color=_RULE, linewidth=0.8))
-    return bottom
-
-
-def _draw_rows(ax, rows: Sequence[PlayerRow], teams: dict[int, str], top: float,
-               positions: Sequence[tuple[float, float, str]],
-               columns: ColumnSet) -> float:
-    from matplotlib.patches import Rectangle
-    size = _cell_size(columns)
-    right = _table_right(columns)
-    y = top
-    for index, row in enumerate(rows):
-        if index % 2:
-            ax.add_patch(Rectangle((_MARGIN, y), right - _MARGIN, _ROW_HEIGHT,
-                                   facecolor=_ZEBRA, edgecolor="none", zorder=0))
-        middle = y + _ROW_HEIGHT / 2
-        cells = [row.name,
-                 teams.get(row.team_id, str(row.team_id or "")),
-                 row.position,
-                 str(row.games_played),
-                 f"{row.minutes:.1f}",
-                 _mmss(row.toi_per_game)]
-        for (left, width, align), text in zip(positions, cells):
-            _cell(ax, text, left, width, middle, align)
-        for (left, width, align), column in zip(positions[len(_IDENTITY):], columns):
-            _cell(ax, row.cell(column), left, width, middle, align, size=size)
-        y += _ROW_HEIGHT
-    return y
-
-
-def _draw_footer(ax, page: int, pages: int, note: str) -> None:
-    import textwrap
-    lines = textwrap.wrap(note, 138) or [""]
-    y = _PAGE[1] - _MARGIN + 0.16 - 0.13 * (len(lines) - 1)
-    for index, line in enumerate(lines):
-        ax.text(_MARGIN, y + index * 0.13, line, ha="left", va="center",
-                fontsize=6.6, color=_INK_MUTED)
-    ax.text(_PAGE[0] - _MARGIN, _PAGE[1] - _MARGIN + 0.16, f"{page} / {pages}",
-            ha="right", va="center", fontsize=6.8, color=_INK_MUTED)
-
-
-def _draw_missing(ax, y: float, missing: Sequence[str]) -> None:
-    ax.text(_MARGIN, y + 0.30, "Not in the table", ha="left", va="center",
-            fontsize=7.6, fontweight="bold", color=_INK_SECONDARY)
-    for index, entry in enumerate(missing):
-        ax.text(_MARGIN, y + 0.52 + index * 0.17, f"·  {entry}", ha="left",
-                va="center", fontsize=7.2, color=_INK_MUTED)
-
-
-def render_pdf(rows: Sequence[PlayerRow], output: Path, *, columns: ColumnSet,
-               title: str, subtitle: Sequence[str], note: str,
-               missing: Sequence[str] = ()) -> Path:
-    """Paginate rows onto A4 landscape sheets and write the PDF.
-
-    Split from :func:`report` so a page can be made from any list of
-    :class:`PlayerRow` -- a filtered one, a re-sorted one, one built in a
-    notebook -- without going back to the database for it.
-    """
-    import matplotlib
-    matplotlib.use("Agg")
-    import matplotlib.pyplot as plt
-    from matplotlib.backends.backend_pdf import PdfPages
-
-    positions = _column_x(columns)
-    right = _table_right(columns)
-    usable = _PAGE[1] - _MARGIN - _FOOTER_HEIGHT
-    first_rows = max(int((usable - _title_bottom(subtitle) - _TABLE_HEAD)
-                         // _ROW_HEIGHT), 1)
-    later_rows = max(int((usable - _CONT_TOP - _TABLE_HEAD) // _ROW_HEIGHT), 1)
-
-    pages: list[Sequence[PlayerRow]] = []
-    remaining = list(rows)
-    while remaining or not pages:
-        take = first_rows if not pages else later_rows
-        pages.append(remaining[:take])
-        remaining = remaining[take:]
-    if missing:
-        # The unmatched requests need room of their own; a page ending flush
-        # with its last row would print them off the sheet.
-        top = _title_bottom(subtitle) if len(pages) == 1 else _CONT_TOP
-        used = top + _TABLE_HEAD + _ROW_HEIGHT * len(pages[-1])
-        if used + 0.35 + 0.17 * len(missing) > usable:
-            pages.append([])
-
-    output = Path(output)
-    output.parent.mkdir(parents=True, exist_ok=True)
-    teams = team_labels()
-    with PdfPages(output) as pdf:
-        for index, page_rows in enumerate(pages):
-            figure = plt.figure(figsize=_PAGE, facecolor=_SURFACE)
-            ax = _page_axes(figure)
-            if index == 0:
-                top = _draw_title(ax, title, subtitle, right)
-            else:
-                ax.text(_MARGIN, 0.34, f"{title} (continued)", ha="left",
-                        va="center", fontsize=9, color=_INK_SECONDARY)
-                top = _CONT_TOP
-            header_bottom = _draw_header(ax, top, positions, columns)
-            bottom = _draw_rows(ax, page_rows, teams, header_bottom, positions,
-                                columns)
-            if missing and index == len(pages) - 1:
-                _draw_missing(ax, bottom, missing)
-            _draw_footer(ax, index + 1, len(pages), note)
-            pdf.savefig(figure, facecolor=_SURFACE)
-            plt.close(figure)
-    return output
-
-
-# --- The entry point -------------------------------------------------------
 
 def _units_phrase(columns: ColumnSet) -> str:
     """How to describe the mixture of totals and rates in the subtitle."""
@@ -874,49 +642,58 @@ def _units_phrase(columns: ColumnSet) -> str:
             f"are per 60 minutes of ice time in that situation")
 
 
-def report(players: Iterable, league: int, season: str, *,
-           columns: ColumnSet, title: str, slug: str,
-           output: Path | str | None = None,
-           context=EVEN_STRENGTH,
-           stage: str | None = REGULAR,
-           min_toi: float = 0.0,
-           conn=None,
-           subtitle: Sequence[str] | None = None,
-           note: str | None = None,
-           note_extra: str = "") -> Path:
-    """Write one on-ice report and return the path written.
+def _bands(columns: ColumnSet) -> tuple:
+    """One band per run of columns sharing a side, in column order.
 
-    ``columns`` is what makes this report that report; everything else is the
-    same for all of them. ``players`` is a list of SportLogIQ player ids, full
-    names, or objects carrying a ``player_id``; an empty list is refused rather
-    than silently meaning "the whole league".
-
-    ``context`` defaults to even strength as the supplier counts it, narrowing
-    the events counted AND the ice time they are counted over, so every /60
-    column divides like with like. ``min_toi`` drops players below that many
-    minutes IN THAT SITUATION; they are named under the table, not dropped
-    silently. ``stage`` defaults to the regular season.
-
-    ``subtitle`` and ``note`` override the generated ones; ``note_extra`` adds
-    a sentence to the generated note, which is the usual thing a report wants.
+    Read off the columns rather than hardcoded, so re-ordering or adding one
+    moves the band with it instead of leaving it behind. Offset by the
+    identity fields, which sit to their left and belong to no side.
     """
-    opened = conn is None
-    conn = conn or open_connection()
-    try:
-        rows, missing = player_rows(conn, players, league, season,
-                                    columns=columns, context=context,
-                                    stage=stage, min_toi=min_toi)
-    finally:
-        if opened:
-            conn.close()
+    from hockey.reports.sheet import Band
+    out: list[Band] = []
+    listed = list(columns)
+    for index, column in enumerate(listed):
+        if out and listed[index - 1].side == column.side:
+            previous = out[-1]
+            out[-1] = Band(previous.label, previous.start, previous.span + 1,
+                           previous.tone)
+        else:
+            out.append(Band(column.side.capitalize(), len(_IDENTITY) + index, 1,
+                            _TONES[column.side]))
+    return tuple(out)
 
+
+def to_sheet(rows: Sequence[PlayerRow], missing: Sequence[str] = (), *,
+             columns: ColumnSet, title: str,
+             league: int | None = None, season: str | None = None,
+             stage: str | None = None, context=EVEN_STRENGTH,
+             min_toi: float = 0.0, subtitle: Sequence[str] | None = None,
+             note: str | None = None, note_extra: str = ""):
+    """The computed rows as a :class:`~hockey.reports.sheet.Sheet`.
+
+    Every cell comes out a string, so the page never has to know what a number
+    means. ``subtitle`` and ``note`` override the generated ones; ``note_extra``
+    adds a sentence to the generated note, which is the usual thing a report
+    wants.
+
+    The arguments after ``title`` are there only to be quoted back in the
+    header -- they say what was asked for, and nothing here re-derives a number
+    from them.
+    """
+    from hockey.reports.sheet import Field, Sheet
+
+    teams = team_labels()
     if subtitle is None:
-        subtitle = [
-            f"League {league} · season {season}" + (f" · {stage}" if stage else ""),
+        where = " · ".join(str(p) for p in (
+            f"League {league}" if league is not None else None,
+            f"season {season}" if season else None,
+            stage) if p)
+        subtitle = tuple(line for line in (
+            where,
             "Situation: " + " · ".join(context.describe()),
             f"{len(rows)} players · {_units_phrase(columns)}"
             + (f" · at least {min_toi:g} min" if min_toi else ""),
-        ]
+        ) if line)
     if note is None:
         note = ("Every column counts events that happened while the player was "
                 "on the ice, from the metric catalog: "
@@ -925,10 +702,34 @@ def report(players: Iterable, league: int, season: str, *,
                 + "TOI is in minutes, TOI/GP as mm:ss. "
                 f"Generated {date.today():%Y-%m-%d}.")
 
-    if output is None:
-        output_dir = Path(os.getenv("OUTPUT_DIR", "./output")).expanduser()
-        stem = f"{slug}_{league}_{season}" + (f"_{stage}" if stage else "")
-        output = output_dir / f"{stem}.pdf"
+    fields = tuple(Field(heading, width, align)
+                   for heading, width, align in _IDENTITY)
+    fields += tuple(Field(column.heading) for column in columns)
 
-    return render_pdf(rows, Path(output), columns=columns, title=title,
-                      subtitle=subtitle, note=note, missing=missing)
+    table = tuple(
+        (row.name,
+         teams.get(row.team_id, str(row.team_id or "")),
+         row.position,
+         str(row.games_played),
+         f"{row.minutes:.1f}",
+         _mmss(row.toi_per_game))
+        + tuple(row.cell(column) for column in columns)
+        for row in rows
+    )
+
+    return Sheet(title=title, fields=fields, rows=table,
+                 subtitle=tuple(subtitle), note=note, bands=_bands(columns),
+                 footnote_heading="Not in the table",
+                 footnotes=tuple(missing))
+
+
+def output_path(slug: str, league: int, season: str,
+                stage: str | None = None) -> Path:
+    """Where a report lands when the caller names no file.
+
+    OUTPUT_DIR if it is set, else ./output -- the same convention the rest of
+    the repo uses.
+    """
+    directory = Path(os.getenv("OUTPUT_DIR", "./output")).expanduser()
+    stem = f"{slug}_{league}_{season}" + (f"_{stage}" if stage else "")
+    return directory / f"{stem}.pdf"

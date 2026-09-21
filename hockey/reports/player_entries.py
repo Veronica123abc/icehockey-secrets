@@ -52,7 +52,9 @@ from collections.abc import Iterable
 from pathlib import Path
 
 from hockey.reports.on_ice import (FOR, Column, ColumnSet, EVEN_STRENGTH,
-                                   REGULAR, report)
+                                   REGULAR, open_connection, output_path,
+                                   player_rows, to_sheet)
+from hockey.reports.sheet import render_pdf
 
 ENTRIES = "Controlled entries"
 RECOVERIES = "Dump-in recoveries"
@@ -88,13 +90,26 @@ def player_entries_report(players: Iterable, league: int, season: str, *,
                           title: str | None = None) -> Path:
     """Write the entries report for ``players`` and return the path written.
 
-    See :func:`hockey.reports.on_ice.report` for what every argument means;
-    this adds only the columns and the naming.
+    Three steps, deliberately visible: compute the numbers, lay them out as a
+    sheet, render the sheet. Nothing but :data:`COLUMNS` and the naming is
+    specific to this report.
     """
-    return report(players, league, season, columns=COLUMNS,
-                  title=title or "Entries and dump-ins — even strength",
-                  slug="player_entries", output=output, context=context,
-                  stage=stage, min_toi=min_toi, conn=conn, note_extra=_NOTE)
+    opened = conn is None
+    conn = conn or open_connection()
+    try:
+        rows, missing = player_rows(conn, players, league, season,
+                                    columns=COLUMNS, context=context,
+                                    stage=stage, min_toi=min_toi)
+    finally:
+        if opened:
+            conn.close()
+
+    sheet = to_sheet(rows, missing, columns=COLUMNS,
+                     title=title or "Entries and dump-ins — even strength",
+                     league=league, season=season, stage=stage,
+                     context=context, min_toi=min_toi, note_extra=_NOTE)
+    return render_pdf(sheet, output or output_path("player_entries", league,
+                                                   season, stage))
 
 
 if __name__ == "__main__":
