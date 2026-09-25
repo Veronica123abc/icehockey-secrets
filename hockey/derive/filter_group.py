@@ -122,18 +122,38 @@ def check_exhaustive(events: Iterable[Event],
     return out
 
 
-def rows(events: Iterable[Event], filters: FilterSpec,
-         prefix: str = '') -> dict[str, list[Event]]:
-    """The breakdown flattened to '<prefix><Group> - <Item>' -> events.
+#: Separator between a population and one of its items in a LANE KEY, and the
+#: item name for a whole population. A metric has exactly ONE name --
+#: "<population> · <item>" -- and these two constants are what build it.
+#: metric_catalog imports them rather than defining its own, because the lane
+#: key a consumer reads and the label the golden harness records have to be
+#: the same string or they are two names for one thing.
+SEP = ' · '
+ALL_ITEM = 'All'
 
-    This is the shape ``get_full_data`` reports, and the shape the golden
-    regression harness keys on. ``prefix`` separates two populations reported
-    side by side in one module, e.g. 'Dump-Out ' or 'Reception '.
+
+def lane_key(label: str, item: str = ALL_ITEM) -> str:
+    """The canonical name of one metric: "<population> · <item>"."""
+    return f'{label}{SEP}{item}'
+
+
+def rows(events: Iterable[Event], filters: FilterSpec,
+         label: str) -> dict[str, list[Event]]:
+    """Every lane of one population: LANE KEY -> events, ``All`` included.
+
+    The keys are exactly the keys ``metric_catalog`` builds, which is the
+    point: ``get_full_data`` used to invent a second scheme
+    ('Entry Result - Successful') for the metric the catalog calls
+    'Dump-in entries · Successful', so the regression harness and the
+    consumers named the same number differently and a prefix argument existed
+    only to keep two populations in one module apart. The population label
+    does that now, because it is part of the population.
     """
-    out: dict[str, list[Event]] = {}
+    events = list(events)
+    out: dict[str, list[Event]] = {lane_key(label): events}
     for group, items in breakdown(events, filters).items():
         for item, matched in items.items():
-            out[f'{prefix}{group} - {item}'] = matched
+            out[lane_key(label, item)] = matched
     return out
 
 
@@ -143,20 +163,27 @@ class FilterGroups:
     Modules keep their dictionary as the public, readable definition and wrap
     an instance of this for the behaviour::
 
-        SHOTS = FilterGroups('shot', SHOT_FILTERS)
+        SHOTS = FilterGroups('shot', SHOT_FILTERS, 'Shots')
 
-        def filter_shots(shots, **selections):
-            return SHOTS.filter(shots, **selections)
+    THREE THINGS, AND EACH IS LOAD-BEARING. ``name`` is the SUPPLIER's event
+    name -- metric_catalog locates a population by it, and it is the one name
+    here we do not get to choose. ``filters`` is the definition. ``label`` is
+    what the population is CALLED: it opens every lane key this population
+    owns, so it is the same string the catalog, the canvas, the reports and
+    the golden snapshot all use. It lives here rather than in the catalog's
+    registry so that one population has one name in one place.
     """
 
-    __slots__ = ('name', 'filters')
+    __slots__ = ('name', 'filters', 'label')
 
-    def __init__(self, name: str, filters: FilterSpec):
+    def __init__(self, name: str, filters: FilterSpec, label: str):
         self.name = name
         self.filters = filters
+        self.label = label
 
     def __repr__(self) -> str:            # pragma: no cover - debugging aid
-        return f"<FilterGroups {self.name!r} groups={sorted(self.filters)}>"
+        return (f"<FilterGroups {self.label!r} (event {self.name!r}) "
+                f"groups={sorted(self.filters)}>")
 
     @property
     def groups(self) -> list[str]:
@@ -182,8 +209,14 @@ class FilterGroups:
     def check_exhaustive(self, events: Iterable[Event]) -> dict[str, bool]:
         return check_exhaustive(events, self.filters)
 
-    def rows(self, events: Iterable[Event], prefix: str = '') -> dict[str, list[Event]]:
-        return rows(events, self.filters, prefix)
+    def rows(self, events: Iterable[Event]) -> dict[str, list[Event]]:
+        return rows(events, self.filters, self.label)
+
+    def lane_keys(self) -> list[str]:
+        """Every lane key this population owns, ``All`` first."""
+        return [lane_key(self.label)] + [
+            lane_key(self.label, item)
+            for items in self.filters.values() for item in items]
 
 
 if __name__ == "__main__":
@@ -222,7 +255,7 @@ if __name__ == "__main__":
     }
 
     # 3. Bind the operations to the dictionary.
-    SHOTS = FilterGroups('shot', SPEC)
+    SHOTS = FilterGroups('shot', SPEC, 'Shots')
     print(SHOTS, "\n")
 
     # 4. Expand every group at once.
@@ -248,10 +281,10 @@ if __name__ == "__main__":
     # A group that leaks is caught here rather than silently losing events --
     # 'Blocked' is dropped, so two shots belong to no item.
     LEAKY: FilterSpec = {'Result': {'On Net': is_on_net, 'Missed': is_missed}}
-    print("leaky group:", FilterGroups('leaky', LEAKY).check_exhaustive(shots),
+    print("leaky group:", FilterGroups('leaky', LEAKY, 'Leaky').check_exhaustive(shots),
           "<- add a complement item ('Untagged', 'Ungraded', ...) to fix")
 
     # 7. The flattened shape get_full_data reports, optionally prefixed.
     print("\nrows(prefix='Shot '):")
-    for key, matched in SHOTS.rows(shots, 'Shot ').items():
+    for key, matched in SHOTS.rows(shots).items():
         print(f"   {key:28s} {len(matched)}")

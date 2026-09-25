@@ -136,7 +136,7 @@ SCORING_CHANCE_FILTERS: dict[str, dict[str, Predicate]] = {
     },
 }
 
-CHANCES = FilterGroups('scoringchance', SCORING_CHANCE_FILTERS)
+CHANCES = FilterGroups('scoringchance', SCORING_CHANCE_FILTERS, 'Scoring chances')
 
 
 # --- Base sets ------------------------------------------------------------
@@ -353,7 +353,6 @@ def get_full_data(game: Game) -> dict:
         categories = ogp_categories(game, team_id=team_id)
 
         res[team_id] = {
-            'All Scoring Chances': chances,
             **CHANCES.rows(chances),
             # Not a Result item: needs the base shot's 'withgoal' flag.
             'Result - Goals': scoring_chances_goals(game, chances),

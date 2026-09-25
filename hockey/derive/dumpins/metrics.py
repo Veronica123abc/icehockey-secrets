@@ -240,9 +240,9 @@ DUMPIN_ENTRY_FILTERS: dict[str, dict[str, Predicate]] = {
     },
 }
 
-DUMPINS = FilterGroups('dumpin', DUMPIN_FILTERS)
-DUMPIN_ENTRIES = FilterGroups('dumpinentry', DUMPIN_ENTRY_FILTERS)
-RECOVERIES = FilterGroups('dumpinrecovery', DUMPIN_RECOVERY_FILTERS)
+DUMPINS = FilterGroups('dumpin', DUMPIN_FILTERS, 'Dump-ins')
+DUMPIN_ENTRIES = FilterGroups('dumpinentry', DUMPIN_ENTRY_FILTERS, 'Dump-in entries')
+RECOVERIES = FilterGroups('dumpinrecovery', DUMPIN_RECOVERY_FILTERS, 'Dump-in recoveries')
 
 
 # --- Base sets ------------------------------------------------------------
@@ -332,12 +332,9 @@ def get_full_data(game: Game) -> dict:
         entries = all_dumpin_entries(game, team_id)
         recoveries = all_dumpin_recoveries(game, team_id)
         res[team_id] = {
-            'All Dump-Ins': dumpins,
             **DUMPINS.rows(dumpins),
-            'All Dump-In Entries': entries,
-            **DUMPIN_ENTRIES.rows(entries, 'Entry '),
-            'All Dump-In Recoveries': recoveries,
-            **RECOVERIES.rows(recoveries, 'Recovery '),
+            **DUMPIN_ENTRIES.rows(entries),
+            **RECOVERIES.rows(recoveries),
         }
     return res
 

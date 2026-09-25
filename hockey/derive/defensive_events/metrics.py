@@ -204,9 +204,9 @@ CHECK_FILTERS: dict[str, dict[str, Predicate]] = {
     },
 }
 
-ENTRIES_AGAINST = FilterGroups('controlledentryagainst', ENTRY_AGAINST_FILTERS)
-BLOCKS = FilterGroups('block', BLOCK_FILTERS)
-CHECKS = FilterGroups('check', CHECK_FILTERS)
+ENTRIES_AGAINST = FilterGroups('controlledentryagainst', ENTRY_AGAINST_FILTERS, 'Entries against')
+BLOCKS = FilterGroups('block', BLOCK_FILTERS, 'Blocks')
+CHECKS = FilterGroups('check', CHECK_FILTERS, 'Checks')
 
 
 # --- Base sets ------------------------------------------------------------
@@ -407,7 +407,6 @@ def get_full_data(game: Game) -> dict:
         checks = all_checks(game, team_id)
 
         res[team_id] = {
-            'All Entries Against': entries,
             **ENTRIES_AGAINST.rows(entries),
             # The differential within the entries that were NOT denied -- the
             # AND of two groups, which no single group row expresses.
@@ -418,11 +417,9 @@ def get_full_data(game: Game) -> dict:
             'Not Denied - Breakaway': filter_entries_against(
                 entries, Result=['Not Denied'], Differential=['Breakaway']),
 
-            'All Blocks': blocks,
-            **BLOCKS.rows(blocks, 'Block '),
+            **BLOCKS.rows(blocks),
 
-            'All Checks': checks,
-            **CHECKS.rows(checks, 'Check '),
+            **CHECKS.rows(checks),
 
             # Populations with no internal structure to group on.
             'Dump-Ins Against': for_team(dumpins_against(game), team_id),

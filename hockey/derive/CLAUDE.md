@@ -31,9 +31,11 @@ SHOT_FILTERS: dict[str, dict[str, Predicate]] = {
     'Pressure': {'Pressure': is_pressured, 'No Pressure': is_not_pressured},
 }
 
-# 3. Bind it. The name MUST be the supplier event name -- metric_catalog
-#    locates a population by it.
-SHOTS = FilterGroups('shot', SHOT_FILTERS)
+# 3. Bind it. Three arguments, each load-bearing: the SUPPLIER's event name
+#    (metric_catalog locates a population by it), the dictionary, and the
+#    population's LABEL -- which opens every lane key it owns, so it is the
+#    one name the catalog, canvas, reports and golden snapshot all use.
+SHOTS = FilterGroups('shot', SHOT_FILTERS, 'Shots')
 
 # 4. The base set: the whole population, optionally one team's.
 def all_shots(game, team_id=None) -> list[Event]:
@@ -44,9 +46,20 @@ def all_shots(game, team_id=None) -> list[Event]:
 #    what the module's __main__ re-verifies. Write this one.
 def check_groups_exhaustive(shots):     return SHOTS.check_exhaustive(shots)
 
-# 6. get_full_data(game) -> {team_id: {label: [events]}} -- what the golden
-#    harness sweeps. 'All X' plus SHOTS.rows(shots).
+# 6. get_full_data(game) -> {team_id: {lane key: [events]}} -- what the golden
+#    harness sweeps. Just SHOTS.rows(shots): it emits the All lane too, and
+#    its keys ARE lane keys.
 ```
+
+**One metric, one name.** `FilterGroups.rows` and `metric_catalog` both build
+keys with `filter_group.lane_key`, so `"Shots · On Net"` is what the canvas
+checkbox, the report column, `game_metrics` and the golden snapshot all call
+it. They did not used to: `rows()` invented `"<prefix><Group> - <Item>"`, so
+the same number was `'Entry Result - Successful'` to the harness and
+`'Dump-in entries · Successful'` to everyone else, and a `prefix` argument
+existed only to keep two populations in one module apart — which the label
+now does. A metric that is deliberately NOT a lane (see below) keeps its own
+descriptive label; it has no second name to collide with.
 
 **Do NOT add a per-population wrapper for every FilterGroups method.** This
 tree used to prescribe a `<population>_matching`, a `filter_<population>` and
@@ -62,9 +75,10 @@ Write a `filter_<population>` only when something calls it. Four do today,
 each used by its own module or by `skater.py`; `filter_shots` is the only one
 reaching outside `derive/`.
 
-Modules that own two populations (dumpins, DZExits, passing, defensive_events)
-bind two `FilterGroups` and prefix the second one's rows: `SHOTS.rows(x)` and
-`RECOVERIES.rows(x, 'Recovery ')`.
+Modules that own several populations (dumpins has three; DZExits, passing and
+defensive_events have two) bind one `FilterGroups` each and simply merge their
+rows — `{**DUMPINS.rows(a), **DUMPIN_ENTRIES.rows(b), **RECOVERIES.rows(c)}`.
+No prefixes: each population's label already opens its own keys.
 
 ### The contract
 

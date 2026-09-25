@@ -107,8 +107,8 @@ DUMPOUT_FILTERS: dict[str, dict[str, Predicate]] = {
     },
 }
 
-EXITS = FilterGroups('controlledexit', EXIT_FILTERS)
-DUMPOUTS = FilterGroups('dumpout', DUMPOUT_FILTERS)
+EXITS = FilterGroups('controlledexit', EXIT_FILTERS, 'Controlled exits')
+DUMPOUTS = FilterGroups('dumpout', DUMPOUT_FILTERS, 'Dump-outs')
 
 
 # --- Base sets ------------------------------------------------------------
@@ -191,10 +191,8 @@ def get_full_data(game: Game) -> dict:
         recoveries = for_team(opposition_dumpin_recoveries(game), team_id)
 
         res[team_id] = {
-            'All Controlled Exits': exits,
             **EXITS.rows(exits),
-            'All Dump-Outs': outs,
-            **DUMPOUTS.rows(outs, 'Dump-Out '),
+            **DUMPOUTS.rows(outs),
             'Opposition Dumpin Recoveries': recoveries,
             'Successful Opposition Dumpin Recoveries': [
                 e for e in recoveries if is_successful(e)],

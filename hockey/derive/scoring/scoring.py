@@ -73,8 +73,8 @@ ASSIST_FILTERS: dict[str, dict[str, Predicate]] = {
     },
 }
 
-GOALS = FilterGroups('goal', GOAL_FILTERS)
-ASSISTS = FilterGroups('assist', ASSIST_FILTERS)
+GOALS = FilterGroups('goal', GOAL_FILTERS, 'Goals')
+ASSISTS = FilterGroups('assist', ASSIST_FILTERS, 'Assists')
 
 
 # --- Base sets ------------------------------------------------------------
@@ -133,11 +133,7 @@ def get_full_data(game: Game) -> dict:
         goals = all_goals(game, team_id)
         assists = all_assists(game, team_id)
         res[team_id] = {
-            'All Goals': goals,
             **GOALS.rows(goals),
-            'All Assists': assists,
-            # No prefix: the goal population contributes no group names, so
-            # nothing here can collide with one.
             **ASSISTS.rows(assists),
         }
     return res

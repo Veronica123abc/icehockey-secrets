@@ -231,8 +231,8 @@ RECEPTION_FILTERS: dict[str, dict[str, Predicate]] = {
     },
 }
 
-PASSES = FilterGroups('pass', PASS_FILTERS)
-RECEPTIONS = FilterGroups('reception', RECEPTION_FILTERS)
+PASSES = FilterGroups('pass', PASS_FILTERS, 'Passes')
+RECEPTIONS = FilterGroups('reception', RECEPTION_FILTERS, 'Receptions')
 
 
 # label -> (zone, base_type, is_entry), in CLAUDE.md order.
@@ -377,7 +377,7 @@ def get_full_data(game: Game) -> dict:
         team_passes = passes(game, team_id)
         team_receptions = receptions(game, team_id)
 
-        out = {'All Passes': team_passes, **PASSES.rows(team_passes)}
+        out = dict(PASSES.rows(team_passes))
 
         # The thirteen zone x type combinations, which are a cross-product of
         # two groups rather than a group of their own.
@@ -387,8 +387,7 @@ def get_full_data(game: Game) -> dict:
             out[f'  {label} - failed'] = failed(events)
         out['Unclassified passes'] = unclassified_passes(game, team_id)
 
-        out['All Receptions'] = team_receptions
-        out.update(RECEPTIONS.rows(team_receptions, 'Reception '))
+        out.update(RECEPTIONS.rows(team_receptions))
 
         res[team_id] = out
     return res

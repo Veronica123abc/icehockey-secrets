@@ -152,7 +152,7 @@ SHOT_FILTERS: dict[str, dict[str, Predicate]] = {
     },
 }
 
-SHOTS = FilterGroups('shot', SHOT_FILTERS)
+SHOTS = FilterGroups('shot', SHOT_FILTERS, 'Shots')
 
 
 # --- Base sets ------------------------------------------------------------
@@ -200,7 +200,7 @@ def get_full_data(game: Game, raw_game: RawGame | None = None) -> dict:
 
     for team_id in team_ids:
         shots = all_shots(game, team_id)
-        res[team_id] = {'All Shot Attempts': shots, **SHOTS.rows(shots)}
+        res[team_id] = SHOTS.rows(shots)
     return res
 
 

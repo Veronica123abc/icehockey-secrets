@@ -55,40 +55,42 @@ import importlib
 from dataclasses import dataclass
 
 from hockey.model.events import Event
-from hockey.derive.filter_group import FilterGroups, Predicate
+from hockey.derive.filter_group import (ALL_ITEM, SEP, FilterGroups,
+                                        Predicate, lane_key)
 
-#: Separator between a population and its item in a lane key. Also the visual
-#: separator in the UI, so it is a single character that reads well in a chart
-#: axis label.
-SEP = " · "
+# SEP and ALL_ITEM are imported from filter_group, which is also what
+# FilterGroups.rows() builds its keys with -- so the lane key a consumer reads
+# and the label the golden harness records are one string, not two schemes for
+# the same metric.
 
-#: The lane that carries a whole population, unfiltered.
-ALL_ITEM = "All"
-
-# Module paths, named so a registry entry reads as prose and a typo is a
-# NameError at import rather than a LookupError halfway through a build.
-SHOOTING = "hockey.derive.shooting.metrics"
+# Module paths. The _MODULE suffix is not noise: `DUMPINS` here used to be
+# the dotted path while `dumpins.DUMPINS` is the FilterGroups, so one name
+# meant two things depending on which file you were reading.
+SHOOTING_MODULE = "hockey.derive.shooting.metrics"
 # The one module not called metrics.py. Left at its own name rather than
 # renamed underneath work in progress; see the drift note in CLAUDE.md.
-SCORING = "hockey.derive.scoring.scoring"
-CONTROLLED_ENTRIES = "hockey.derive.controlled_entries.metrics"
-DUMPINS = "hockey.derive.dumpins.metrics"
-DZ_EXITS = "hockey.derive.DZExits.metrics"
-PASSING = "hockey.derive.passing.metrics"
-PLAYMAKING = "hockey.derive.playmaking.metrics"
-POSSESSION = "hockey.derive.possession.metrics"
-DEFENSIVE_EVENTS = "hockey.derive.defensive_events.metrics"
+SCORING_MODULE = "hockey.derive.scoring.scoring"
+CONTROLLED_ENTRIES_MODULE = "hockey.derive.controlled_entries.metrics"
+DUMPINS_MODULE = "hockey.derive.dumpins.metrics"
+DZ_EXITS_MODULE = "hockey.derive.DZExits.metrics"
+PASSING_MODULE = "hockey.derive.passing.metrics"
+PLAYMAKING_MODULE = "hockey.derive.playmaking.metrics"
+POSSESSION_MODULE = "hockey.derive.possession.metrics"
+DEFENSIVE_EVENTS_MODULE = "hockey.derive.defensive_events.metrics"
 
 
 @dataclass(frozen=True)
 class PopulationSpec:
-    """One population: where to find it, and what to call it.
+    """One population: where to find it. What it is CALLED lives with it.
 
     ``module`` is the dotted path of the metric module that binds the
-    FilterGroups; ``event_name`` is both the supplier event name and the name
-    that FilterGroups was bound under.
+    FilterGroups; ``event_name`` is the supplier event name, which is also the
+    name that FilterGroups was bound under and how it is located.
+
+    There is deliberately no label here. The population's label is
+    ``FilterGroups.label``, set where the population is defined, so the
+    registry cannot drift from the module and one metric keeps one name.
     """
-    label: str
     module: str
     event_name: str
 
@@ -105,39 +107,39 @@ class SectionSpec:
 #: rather than a constraint.
 _REGISTRY: tuple[SectionSpec, ...] = (
     SectionSpec("Scoring", (
-        PopulationSpec("Goals", SCORING, "goal"),
-        PopulationSpec("Assists", SCORING, "assist"),
+        PopulationSpec(SCORING_MODULE, "goal"),
+        PopulationSpec(SCORING_MODULE, "assist"),
     )),
     SectionSpec("Shooting", (
-        PopulationSpec("Shots", SHOOTING, "shot"),
+        PopulationSpec(SHOOTING_MODULE, "shot"),
     )),
     SectionSpec("Entries", (
-        PopulationSpec("Controlled entries", CONTROLLED_ENTRIES, "controlledentry"),
-        PopulationSpec("Dump-ins", DUMPINS, "dumpin"),
+        PopulationSpec(CONTROLLED_ENTRIES_MODULE, "controlledentry"),
+        PopulationSpec(DUMPINS_MODULE, "dumpin"),
         # 1:1 with the dump-in, and the event whose outcome says the dumping
         # team recovered -- so its Successful share is a true recovery rate,
         # which "Dump-ins · Successful" (a depth criterion) is not.
-        PopulationSpec("Dump-in entries", DUMPINS, "dumpinentry"),
-        PopulationSpec("Dump-in recoveries", DUMPINS, "dumpinrecovery"),
+        PopulationSpec(DUMPINS_MODULE, "dumpinentry"),
+        PopulationSpec(DUMPINS_MODULE, "dumpinrecovery"),
     )),
     SectionSpec("DZ exits", (
-        PopulationSpec("Controlled exits", DZ_EXITS, "controlledexit"),
-        PopulationSpec("Dump-outs", DZ_EXITS, "dumpout"),
+        PopulationSpec(DZ_EXITS_MODULE, "controlledexit"),
+        PopulationSpec(DZ_EXITS_MODULE, "dumpout"),
     )),
     SectionSpec("Passing", (
-        PopulationSpec("Passes", PASSING, "pass"),
-        PopulationSpec("Receptions", PASSING, "reception"),
+        PopulationSpec(PASSING_MODULE, "pass"),
+        PopulationSpec(PASSING_MODULE, "reception"),
     )),
     SectionSpec("Playmaking", (
-        PopulationSpec("Scoring chances", PLAYMAKING, "scoringchance"),
+        PopulationSpec(PLAYMAKING_MODULE, "scoringchance"),
     )),
     SectionSpec("Possession", (
-        PopulationSpec("Possessions", POSSESSION, "possession"),
+        PopulationSpec(POSSESSION_MODULE, "possession"),
     )),
     SectionSpec("Defensive events", (
-        PopulationSpec("Entries against", DEFENSIVE_EVENTS, "controlledentryagainst"),
-        PopulationSpec("Blocks", DEFENSIVE_EVENTS, "block"),
-        PopulationSpec("Checks", DEFENSIVE_EVENTS, "check"),
+        PopulationSpec(DEFENSIVE_EVENTS_MODULE, "controlledentryagainst"),
+        PopulationSpec(DEFENSIVE_EVENTS_MODULE, "block"),
+        PopulationSpec(DEFENSIVE_EVENTS_MODULE, "check"),
     )),
 )
 
@@ -208,18 +210,22 @@ def build_tree(registry: tuple[SectionSpec, ...]) -> tuple[SectionTree, ...]:
         for spec in section.populations:
             module = importlib.import_module(spec.module)   # importlib caches
             groups = _find_groups(module, spec.event_name)
-            all_lane = Lane(key=f"{spec.label}{SEP}{ALL_ITEM}", section=section.label,
-                            population=spec.label, event_name=spec.event_name,
+            # The label comes from the population itself, not from the
+            # registry, and lane_key is the same function FilterGroups.rows
+            # builds its keys with -- so a lane has one name everywhere.
+            label = groups.label
+            all_lane = Lane(key=lane_key(label), section=section.label,
+                            population=label, event_name=spec.event_name,
                             group=None, item=ALL_ITEM, predicate=None)
             grouped = tuple(
                 (group, tuple(
-                    Lane(key=f"{spec.label}{SEP}{item}", section=section.label,
-                         population=spec.label, event_name=spec.event_name,
+                    Lane(key=lane_key(label, item), section=section.label,
+                         population=label, event_name=spec.event_name,
                          group=group, item=item, predicate=predicate)
                     for item, predicate in items.items()))
                 for group, items in groups.filters.items()
             )
-            pops.append(PopulationTree(label=spec.label, event_name=spec.event_name,
+            pops.append(PopulationTree(label=label, event_name=spec.event_name,
                                        module=spec.module, all_lane=all_lane,
                                        groups=grouped))
         out.append(SectionTree(label=section.label, populations=tuple(pops)))

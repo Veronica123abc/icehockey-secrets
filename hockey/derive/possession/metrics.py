@@ -79,7 +79,7 @@ POSSESSION_FILTERS: dict[str, dict[str, Predicate]] = {
     },
 }
 
-POSSESSIONS = FilterGroups('possession', POSSESSION_FILTERS)
+POSSESSIONS = FilterGroups('possession', POSSESSION_FILTERS, 'Possessions')
 
 
 # --- Base sets ------------------------------------------------------------
@@ -173,7 +173,6 @@ def get_full_data(game: Game) -> dict:
         team_possessions = for_team(all_possessions, team_id)
 
         res[team_id] = {
-            'All Possessions': team_possessions,
             **POSSESSIONS.rows(team_possessions),
             # SportLogIQ's definition: possession AND base event both successful.
             'Successful Possessions': for_team(successful, team_id),

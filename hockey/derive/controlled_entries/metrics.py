@@ -149,7 +149,7 @@ ENTRIES_FILTERS: dict[str, dict[str, Predicate]] = {
     },
 }
 
-ENTRIES = FilterGroups('controlledentry', ENTRIES_FILTERS)
+ENTRIES = FilterGroups('controlledentry', ENTRIES_FILTERS, 'Controlled entries')
 
 
 # --- Base sets ------------------------------------------------------------
@@ -189,7 +189,7 @@ def get_full_data(game: Game, raw_game: RawGame | None = None) -> dict:
 
     for team_id in team_ids:
         entries = all_controlled_entries(game, team_id)
-        res[team_id] = {'All Controlled Entries': entries, **ENTRIES.rows(entries)}
+        res[team_id] = ENTRIES.rows(entries)
     return res
 
 
