@@ -38,8 +38,16 @@ FilterSpec = dict[str, dict[str, Predicate]]
 
 
 def for_team(events: Iterable[Event], team_id: int | str) -> list[Event]:
-    """Events credited to one team. ``team_id`` may be an int or a str."""
-    return [e for e in events if e.team_id == int(team_id)]
+    """Events credited to one team. ``team_id`` may be an int or a str.
+
+    "Credited to" is ``context_filter.team_of``, imported here rather than
+    respelled: the same question -- whose event is this -- is asked by the
+    situation filter's Team dimension and by the reports' for/against split,
+    and one answer is the point. The import is one-way; context_filter knows
+    nothing of this module.
+    """
+    from hockey.derive.context_filter import team_of
+    return [e for e in events if team_of(e) == int(team_id)]
 
 
 def matching(events: Iterable[Event], filters: FilterSpec,

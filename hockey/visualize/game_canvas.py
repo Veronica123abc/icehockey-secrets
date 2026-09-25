@@ -304,11 +304,16 @@ class GameCanvas:
     def _event_side(self, event: Event) -> str:
         """Which side an event belongs to: ``h``, ``a`` or ``n`` (no team).
 
-        Attributed to the acting team. team_id is populated on every event;
+        Attributed to the acting team, which is ``context_filter.team_of`` --
+        the same answer the reports' for/against split uses. The fallback is
+        this file's own and stays: team_id is populated on every event, and
         team_id_in_possession is null on ~40% of them (all scoring chances,
-        entries and faceoffs), which would leave most events unattributed.
+        entries and faceoffs), so possession is a last resort rather than the
+        question.
         """
-        team = event.team_id if event.team_id is not None else event.team_id_in_possession
+        team = ctx.team_of(event)
+        if team is None:
+            team = event.team_id_in_possession
         if team == self._game.info.home_team.id:
             return _SIDE_HOME
         if team == self._game.info.away_team.id:
