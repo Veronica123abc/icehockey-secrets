@@ -37,10 +37,11 @@ _DIV_ID = "timeline"
 #    break the new JS.
 # 8: scoring registered in the catalog -- the rail gains a "Scoring" section
 #    with goals and assists, so the cached rail is short of four lanes.
+# 10: faceoffs registered -- three more lanes under a new "Faceoffs" section.
 # 9: dumpinentry registered as the "Dump-in entries" population -- six more
 #    lanes under Entries, and the one whose Result says the dumping team
 #    recovered. Cached HTML has neither the lanes nor their segments.
-CANVAS_VERSION = 9
+CANVAS_VERSION = 10
 
 
 def _default_props(game: Game) -> dict:
