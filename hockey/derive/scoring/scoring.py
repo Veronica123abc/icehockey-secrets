@@ -33,32 +33,17 @@ The group machinery itself lives in ``hockey.derive.filter_group``.
 """
 from __future__ import annotations
 
-from pathlib import Path
 from collections.abc import Iterable
 
 from hockey.model.events import Event
-from hockey.config.settings import Settings
 from hockey.io.raw_game import RawGame
 from hockey.normalize.build_game import build_game
 from hockey.model.game import Game
 from hockey.derive.filter_group import FilterGroups, Predicate, for_team
 
-_SETTINGS: Settings | None = None
-
-
-def _settings() -> Settings:
-    """Settings, resolved on first use rather than at import.
-
-    Settings.from_env raises when DATA_ROOT_DIR is unset, and this module
-    is imported by the game canvas through hockey.derive.metric_catalog.
-    The canvas must keep working in db_only deployments, where that
-    variable is deliberately absent -- so nothing here may touch the
-    filesystem just to be imported.
-    """
-    global _SETTINGS
-    if _SETTINGS is None:
-        _SETTINGS = Settings.from_env(project_root=Path(__file__).resolve().parent)
-    return _SETTINGS
+# Settings, resolved on first use rather than at import -- see
+# hockey.config.settings.settings for why this must not be eager.
+from hockey.config.settings import settings as _settings
 
 
 # --- Predicates -----------------------------------------------------------

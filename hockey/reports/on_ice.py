@@ -116,7 +116,7 @@ from hockey.model.events import Event
 from hockey.model.roster import Roster
 from hockey.model.toi import ToIInterval
 from hockey.metrics.player.on_ice_spans import SituationTimeline, skater_spans
-
+import time
 #: EVEN STRENGTH AS THE SUPPLIER COUNTS IT: even manpower, whatever the
 #: goalies are doing. ``ctx.DEFAULT`` is NOT this -- it also demands both
 #: goalies on the ice, which is the right default for the game canvas (you are
@@ -299,23 +299,15 @@ class PlayerRow:
 
 # --- Gathering -------------------------------------------------------------
 
-def _load_env() -> None:
-    """Read .env without demanding DATA_ROOT_DIR.
-
-    ``Settings.from_env`` raises when that variable is unset, and nothing here
-    reads the filesystem -- but the database credentials live in the same file,
-    so the loading half is still wanted.
-    """
-    from hockey.config.settings import _find_dotenv, _load_dotenv_if_present
-    dotenv = _find_dotenv(Path(__file__).resolve().parents[2])
-    if dotenv:
-        _load_dotenv_if_present(dotenv)
-
-
 def open_connection():
-    """A database connection, with .env loaded first."""
+    """A database connection.
+
+    ``open_database_azure`` loads the .env itself, so this needs no ceremony
+    of its own -- it used to carry a private copy of that loading, which was
+    a third spelling of something that belongs next to the variables it
+    reads.
+    """
     from hockey.db.database import open_database_azure
-    _load_env()
     return open_database_azure()
 
 
@@ -512,8 +504,13 @@ def _credit(events: Sequence[Event], spans: dict[int, list[tuple[float, float]]]
     reference player's season. Checked rather than argued -- see the module
     docstring for the numbers it reconciles.
     """
+
     for event in events:
-        if event.t is None or event.team_id is None:
+        # Asked once per event, not once per credited player: the inner loop
+        # below is the P x E term, and a call in it is paid a few million
+        # times over a season.
+        event_team = ctx.team_of(event)
+        if event.t is None or event_team is None:
             continue
         if not context.matches(event):
             continue
@@ -535,7 +532,7 @@ def _credit(events: Sequence[Event], spans: dict[int, list[tuple[float, float]]]
             if not (index > 0 and player_spans[index - 1][0] <= event.t
                     < player_spans[index - 1][1]):
                 continue
-            side = FOR if team_id == event.team_id else AGAINST
+            side = FOR if team_id == event_team else AGAINST
             totals = rows[player_id].totals
             for column in hits:
                 if column.side not in (side, BOTH):

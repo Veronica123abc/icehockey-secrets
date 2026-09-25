@@ -3,6 +3,7 @@ from urllib.parse import quote_plus
 
 import mysql.connector
 import mysql
+from hockey.config.settings import load_dotenv
 from hockey.helpers.pretty_print import *
 from sqlalchemy import create_engine
 
@@ -19,6 +20,10 @@ def open_database(db_name="hockeystats_v2"):
 
 
 def open_database_azure(db_name: str | None = None):
+    # The .env is read here rather than left to whatever the caller imported:
+    # every one of the variables below comes from it, and a caller that has
+    # not built a Settings object is not a caller that should fail.
+    load_dotenv()
     stats_db = mysql.connector.connect(
         host=os.environ["DATABASE_HOST_AZURE"],
         user=os.environ["DATABASE_USERNAME_AZURE"],
@@ -35,6 +40,7 @@ def sqlalchemy_engine():
 
 
 def sqlalchemy_engine_azure():
+    load_dotenv()
     host = os.environ["DATABASE_HOST_AZURE"]
     user = os.environ["DATABASE_USERNAME_AZURE"]
     pwd = quote_plus(os.environ["DATABASE_PWD_AZURE"])

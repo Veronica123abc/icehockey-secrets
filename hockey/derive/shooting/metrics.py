@@ -23,10 +23,8 @@ The group machinery itself lives in ``hockey.derive.filter_group``.
 from __future__ import annotations
 
 from collections.abc import Iterable
-from pathlib import Path
 
 from hockey.model.events import Event
-from hockey.config.settings import Settings
 from hockey.io.raw_game import RawGame
 from hockey.normalize.build_game import build_game
 from hockey.normalize.build_game_db import build_game_from_db
@@ -36,22 +34,9 @@ from hockey.derive.filter_group import FilterGroups, Predicate, for_team
 
 
 
-_SETTINGS: Settings | None = None
-
-
-def _settings() -> Settings:
-    """Settings, resolved on first use rather than at import.
-
-    Settings.from_env raises when DATA_ROOT_DIR is unset, and this module
-    is imported by the game canvas through hockey.derive.metric_catalog.
-    The canvas must keep working in db_only deployments, where that
-    variable is deliberately absent -- so nothing here may touch the
-    filesystem just to be imported.
-    """
-    global _SETTINGS
-    if _SETTINGS is None:
-        _SETTINGS = Settings.from_env(project_root=Path(__file__).resolve().parent)
-    return _SETTINGS
+# Settings, resolved on first use rather than at import -- see
+# hockey.config.settings.settings for why this must not be eager.
+from hockey.config.settings import settings as _settings
 
 INNER_SLOT_SECTION = 'innerSlot'
 OUTER_SLOT_SECTIONS = frozenset({'eastOuterSlot', 'westOuterSlot'})
@@ -265,6 +250,7 @@ if __name__ == "__main__":
     #exit(0)
     GAME_ID = 191848
     GAME_ID = 186461
+    GAME_ID = 186451
     # raw = RawGame(game_id=GAME_ID, root_dir=_settings().data_root_dir,
     #               playsequence_source="playsequence_compiled")
     # game = build_game(raw)

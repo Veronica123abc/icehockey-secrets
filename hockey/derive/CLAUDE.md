@@ -255,10 +255,16 @@ Two habits that make it useful:
 1. Write the hockey definitions in `<module>/CLAUDE.md` first.
 2. Create `<module>/metrics.py` following §1. **Name the file `metrics.py`** —
    everything else in the tree does.
-3. Resolve `Settings` lazily (`_settings()`, not a module-level call).
+3. Resolve `Settings` lazily — `from hockey.config.settings import settings
+   as _settings`, never a module-level `Settings.from_env(...)`.
    `Settings.from_env` raises without `DATA_ROOT_DIR`, and the canvas imports
-   these modules through the catalog, so a module-level call breaks the canvas
-   in `db_only` deployments. Copy the `_settings()` helper from any sibling.
+   these modules through the catalog, so an eager call breaks the canvas in
+   `db_only` deployments. **Import the shared accessor; do not write a local
+   helper.** Every module used to carry its own 13-line copy — one constraint,
+   ten implementations — which is exactly the duplication this tree exists to
+   avoid elsewhere. A SCRIPT is different: something that genuinely needs
+   `DATA_ROOT_DIR` should keep the eager one-liner and die at startup without
+   it.
 4. Verify exhaustiveness on real games and record the counts in the module
    docstring — future readers need the evidence, not the assertion.
 5. **Register the populations in `metric_catalog._REGISTRY`**, or the module is

@@ -35,6 +35,62 @@ def _find_dotenv(start: Path) -> Path | None:
     return None
 
 
+def load_dotenv(start: Path | None = None) -> Path | None:
+    """Load the nearest .env walking up from ``start``; return its path.
+
+    THE CODE THAT READS A VARIABLE SHOULD MAKE SURE THE FILE HAS BEEN READ.
+    Loading the .env used to be a side effect of :meth:`Settings.from_env`,
+    so any entry point that reached the database without first building
+    Settings -- a module ``__main__`` with its Settings line commented out,
+    say -- met an empty ``os.environ`` and died on ``KeyError:
+    'DATABASE_HOST_AZURE'``. Whether it worked depended on what else the
+    process happened to import, which is not a property anyone can reason
+    about.
+
+    Idempotent and cheap: the file is small, and ``_load_dotenv_if_present``
+    uses ``setdefault``, so a real environment -- Azure App Settings -- is
+    never overridden by a file that happens to be lying around next to the
+    code.
+    """
+    dotenv = _find_dotenv(start or Path(__file__).resolve().parent)
+    if dotenv:
+        _load_dotenv_if_present(dotenv)
+    return dotenv
+
+
+#: The repo root: this file is hockey/config/settings.py, so two levels up.
+#: Relative paths in .env (OUTPUT_DIR defaults to "./output") resolve against
+#: it, which is what makes them mean the same thing to every caller.
+_REPO_ROOT = Path(__file__).resolve().parents[2]
+
+_CACHED: "Settings | None" = None
+
+
+def settings() -> "Settings":
+    """The repo's Settings, resolved on FIRST USE and cached.
+
+    Why this exists rather than a module-level ``Settings.from_env(...)`` in
+    each file: ``from_env`` RAISES when DATA_ROOT_DIR is unset, and
+    ``metric_catalog`` imports every metric module, and the game canvas
+    imports ``metric_catalog`` -- but a ``db_only`` deployment deliberately
+    has no DATA_ROOT_DIR. An eager call in any of those modules means the
+    canvas cannot import at all.
+
+    That constraint needs ONE lazy accessor, not one per module. The nine
+    metric modules used to carry a 13-line private copy each; they now import
+    this.
+
+    A SCRIPT SHOULD STILL CALL ``Settings.from_env`` EAGERLY. Something that
+    genuinely requires DATA_ROOT_DIR ought to die at startup when it is
+    missing, with the one-liner saying so at the top of the file. This is for
+    library modules that must stay importable without it.
+    """
+    global _CACHED
+    if _CACHED is None:
+        _CACHED = Settings.from_env(project_root=_REPO_ROOT)
+    return _CACHED
+
+
 @dataclass(frozen=True, slots=True)
 class Settings:
     data_root_dir: Path
@@ -46,9 +102,7 @@ class Settings:
     @classmethod
     def from_env(cls, *, project_root: Path | None = None) -> "Settings":
         if project_root is not None:
-            dotenv = _find_dotenv(project_root)
-            if dotenv:
-                _load_dotenv_if_present(dotenv)
+            load_dotenv(project_root)
 
         data_root = os.getenv("DATA_ROOT_DIR") or os.getenv("DATA_ROOT")
         if not data_root:
