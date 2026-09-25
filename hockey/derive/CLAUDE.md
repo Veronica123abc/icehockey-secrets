@@ -232,12 +232,25 @@ There is no test suite. This is what stands in for one:
 python -m hockey.regression.golden capture     # freeze the baseline
 python -m hockey.regression.golden compare     # what changed?
 python -m hockey.regression.golden crosscheck --sources playsequence_compiled database
+python -m hockey.regression.golden crosspath   # do both access paths agree?
 ```
 
 It sweeps every module's `get_full_data()` over 20 games × 2 sources and
 records a COUNT **and a SIGNATURE** (a hash of the matched events' identities)
 for each metric. The signature is the point: a refactor can easily return the
 right number of the wrong events.
+
+**What `capture`/`compare` does NOT cover, and why `crosspath` exists.** The
+sweep calls `get_full_data`, which reaches the predicates through a module's
+base set and `FilterGroups.matching`. No consumer does that: the canvas, the
+reports and `game_metrics` all go through `catalog.lanes_for_event`
+(`BY_EVENT` + `Lane.matches`), which a sweep instrumented over two games calls
+**0 times**. The two paths share only the predicates, so the snapshot protects
+what anyone sees only if they agree — and nothing asserted that until
+`crosspath`. Demonstrated: deleting `shot` from `BY_EVENT` zeroes every shot
+lane on the canvas and in every report without touching a predicate; `compare`
+says IDENTICAL, `crosspath` flags all 17 shot lanes. Run `crosspath` after
+touching the catalog, a base set, or a `get_full_data`.
 
 Two habits that make it useful:
 

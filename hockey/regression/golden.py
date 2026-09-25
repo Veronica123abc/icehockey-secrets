@@ -21,6 +21,20 @@ than against a frozen file: it sweeps both sources in one run and asserts they
 agree metric for metric. A "compare" says "I changed nothing since last
 time"; a "crosscheck" says "these two ways of loading a game agree".
 
+    python -m hockey.regression.golden crosspath          # do the two paths agree?
+
+``crosspath`` closes the blind spot the other two share. Everything above
+sweeps ``get_full_data``, which reaches the predicates through a module's own
+base set and ``FilterGroups.matching``. NOTHING IN PRODUCTION GOES THAT WAY:
+the canvas, the reports and ``game_metrics`` all use
+``catalog.lanes_for_event`` -- the ``BY_EVENT`` index plus ``Lane.matches`` --
+and a sweep instrumented over two games calls those 0 times. So the snapshot
+protects what anyone actually sees only if the two paths agree, and until
+``crosspath`` nothing asserted that. Deleting 'shot' from ``BY_EVENT`` zeroes
+every shot lane on the canvas and in every report while touching no
+predicate; ``compare`` reports IDENTICAL, and ``crosspath`` flags all 17 shot
+lanes. Run it after touching the catalog, a base set, or ``get_full_data``.
+
 Each metric records a COUNT and a SIGNATURE -- a hash over the identities of
 the matched events. The signature is what makes this useful: a refactor can
 easily return the right number of the wrong events, and a count alone would
@@ -242,6 +256,86 @@ def crosscheck(snapshot: dict, source_a: str, source_b: str) -> dict[str, list]:
     return report
 
 
+def _lane_events_by_path(game) -> tuple[dict[str, list], dict[str, list]]:
+    """One game's lanes computed BOTH ways: (production path, harness path).
+
+    THE TWO DOORWAYS. Every metric module can be reached two ways, and until
+    this existed only one of them was ever checked:
+
+    * The PRODUCTION path -- ``catalog.lanes_for_event``, i.e. the ``BY_EVENT``
+      index plus ``Lane.matches``. The game canvas, the reports and
+      ``game_metrics`` all use this and nothing else.
+    * The HARNESS path -- a module's own base set (a scan for the supplier
+      event name) plus ``FilterGroups.matching``, which is what
+      ``FilterGroups.rows`` and therefore ``get_full_data`` are built from.
+      This is the one :func:`capture` snapshots.
+
+    They share the predicates and nothing else, so the snapshot only protects
+    what anyone actually sees IF the two agree. Nothing asserted that. A
+    sweep instrumented on two games called ``lanes_for_event`` 0 times and
+    ``Lane.matches`` 0 times, and deleting 'shot' from ``BY_EVENT`` -- which
+    zeroes every shot lane on the canvas and in every report, touching no
+    predicate -- left ``compare`` reporting IDENTICAL.
+    """
+    from collections import defaultdict
+    from hockey.derive import metric_catalog as catalog
+
+    production: dict[str, list] = defaultdict(list)
+    for event in game.events:
+        for key in catalog.lanes_for_event(event):
+            production[key].append(event)
+
+    harness: dict[str, list] = {}
+    for section in catalog.TREE:
+        for population in section.populations:
+            module = _load_module(population.module)
+            # _find_groups rather than a second copy of the same scan: it is
+            # how the catalog itself locates a population's FilterGroups.
+            groups = catalog._find_groups(module, population.event_name)
+            events = [e for e in game.events if e.name == groups.name]
+            harness[population.all_lane.key] = events
+            for group, lanes in population.groups:
+                for lane in lanes:
+                    harness[lane.key] = groups.matching(events, group, lane.item)
+    return production, harness
+
+
+def crosscheck_paths(game_ids: Iterable[str | int], sources: Iterable[str],
+                     conn=None) -> dict[str, list]:
+    """Compare the production path against the harness path, lane by lane.
+
+    Same report shape as :func:`diff`, so :func:`print_diff` renders it. A
+    disagreement means either a predicate moved or the catalog wiring broke --
+    and either way the golden snapshot has stopped describing what the canvas
+    and the reports compute.
+    """
+    report: dict[str, list] = {
+        'count_changed': [], 'events_changed': [], 'removed': [],
+        'added': [], 'errors_new': [], 'errors_fixed': [],
+    }
+    for source in sources:
+        for game_id in game_ids:
+            try:
+                game, _ = _load(int(game_id), source, conn)
+                production, harness = _lane_events_by_path(game)
+            except Exception as exc:
+                report['errors_new'].append(
+                    (f"{source}/{game_id}/!load",
+                     {'error': f"{type(exc).__name__}: {exc}"}))
+                continue
+            for lane_key in sorted(set(production) | set(harness)):
+                a = list(production.get(lane_key, []))
+                b = list(harness.get(lane_key, []))
+                key = f"{source}/{game_id}/{lane_key}"
+                va = {'n': len(a), 'sig': signature(a)}
+                vb = {'n': len(b), 'sig': signature(b)}
+                if len(a) != len(b):
+                    report['count_changed'].append((key, va, vb))
+                elif va['sig'] != vb['sig']:
+                    report['events_changed'].append((key, va, vb))
+    return report
+
+
 def db_connection(args):
     """Connect for the 'database' source. Azure env by default."""
     import os
@@ -289,7 +383,8 @@ def default_game_ids(limit: int) -> list[int]:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('command', choices=('capture', 'compare', 'crosscheck'))
+    parser.add_argument('command',
+                        choices=('capture', 'compare', 'crosscheck', 'crosspath'))
     parser.add_argument('--snapshot', type=Path, default=DEFAULT_SNAPSHOT)
     parser.add_argument('--games', type=int, default=20,
                         help='how many games to sweep (default 20)')
@@ -318,6 +413,18 @@ def main() -> int:
     if not game_ids:
         print("no games available in every requested source")
         return 2
+
+    if args.command == 'crosspath':
+        # No snapshot involved: this compares two ways of computing the same
+        # lanes right now, so capturing one would only be slow.
+        started = time.perf_counter()
+        report = crosscheck_paths(game_ids, args.sources, conn)
+        print(f"checked {len(game_ids)} games x {len(args.sources)} sources "
+              f"in {time.perf_counter() - started:.1f}s")
+        ok_ = print_diff(report, args.limit,
+                         "IDENTICAL — the production path (catalog) and the "
+                         "harness path (get_full_data) agree on every lane.")
+        return 0 if ok_ else 1
 
     started = time.perf_counter()
     snapshot = capture(game_ids, args.sources, conn)
