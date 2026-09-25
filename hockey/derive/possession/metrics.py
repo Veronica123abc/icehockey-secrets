@@ -91,11 +91,6 @@ def possessions(game: Game, team_id: int | str | None = None) -> list[Event]:
 
 # --- Filtering ------------------------------------------------------------
 
-def possessions_matching(events: Iterable[Event], group: str, item: str) -> list[Event]:
-    """Possessions passing one named filter item."""
-    return POSSESSIONS.matching(events, group, item)
-
-
 def filter_possessions(events: Iterable[Event], **selections: Iterable[str]) -> list[Event]:
     """Apply a checkbox-style selection: OR within a group, AND across groups.
 
@@ -108,11 +103,6 @@ def filter_possessions(events: Iterable[Event], **selections: Iterable[str]) -> 
     exhaustive.
     """
     return POSSESSIONS.filter(events, **selections)
-
-
-def group_breakdown(events: Iterable[Event]) -> dict[str, dict[str, list[Event]]]:
-    """Every group and item, applied to the given possessions."""
-    return POSSESSIONS.breakdown(events)
 
 
 def check_groups_exhaustive(events: Iterable[Event]) -> dict[str, bool]:

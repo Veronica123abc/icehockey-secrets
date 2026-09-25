@@ -161,11 +161,6 @@ def all_controlled_entries(game: Game, team_id: int | str | None = None) -> list
 
 # --- Filtering ------------------------------------------------------------
 
-def entries_matching(entries: Iterable[Event], group: str, item: str) -> list[Event]:
-    """Entries passing one named filter item."""
-    return ENTRIES.matching(entries, group, item)
-
-
 def filter_entries(entries: Iterable[Event], **selections: Iterable[str]) -> list[Event]:
     """Apply a checkbox-style selection: OR within a group, AND across groups.
 
@@ -174,11 +169,6 @@ def filter_entries(entries: Iterable[Event], **selections: Iterable[str]) -> lis
         filter_entries(entries, Result=['Successful'], Type=['Carry'])
     """
     return ENTRIES.filter(entries, **selections)
-
-
-def group_breakdown(entries: Iterable[Event]) -> dict[str, dict[str, list[Event]]]:
-    """Every group and item, applied to the given entries."""
-    return ENTRIES.breakdown(entries)
 
 
 def check_groups_exhaustive(entries: Iterable[Event]) -> dict[str, bool]:

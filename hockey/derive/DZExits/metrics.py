@@ -126,11 +126,6 @@ def all_dumpouts(game: Game, team_id: int | str | None = None) -> list[Event]:
 
 # --- Filtering ------------------------------------------------------------
 
-def exits_matching(exits: Iterable[Event], group: str, item: str) -> list[Event]:
-    """Controlled exits passing one named filter item."""
-    return EXITS.matching(exits, group, item)
-
-
 def filter_exits(exits: Iterable[Event], **selections: Iterable[str]) -> list[Event]:
     """Apply a checkbox-style selection: OR within a group, AND across groups.
 
@@ -145,26 +140,9 @@ def filter_exits(exits: Iterable[Event], **selections: Iterable[str]) -> list[Ev
     return EXITS.filter(exits, **selections)
 
 
-def group_breakdown(exits: Iterable[Event]) -> dict[str, dict[str, list[Event]]]:
-    """Every group and item, applied to the given exits."""
-    return EXITS.breakdown(exits)
-
-
 def check_groups_exhaustive(exits: Iterable[Event]) -> dict[str, bool]:
     """Whether each group's items together cover every exit."""
     return EXITS.check_exhaustive(exits)
-
-
-def dumpouts_matching(dumpouts: Iterable[Event], group: str, item: str) -> list[Event]:
-    return DUMPOUTS.matching(dumpouts, group, item)
-
-
-def filter_dumpouts(dumpouts: Iterable[Event], **selections: Iterable[str]) -> list[Event]:
-    return DUMPOUTS.filter(dumpouts, **selections)
-
-
-def dumpout_group_breakdown(dumpouts: Iterable[Event]) -> dict[str, dict[str, list[Event]]]:
-    return DUMPOUTS.breakdown(dumpouts)
 
 
 def check_dumpout_groups_exhaustive(dumpouts: Iterable[Event]) -> dict[str, bool]:

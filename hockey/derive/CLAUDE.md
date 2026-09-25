@@ -40,14 +40,27 @@ def all_shots(game, team_id=None) -> list[Event]:
     events = [e for e in game.events if e.name == 'shot']
     return for_team(events, team_id) if team_id else events
 
-# 5. Thin public wrappers, so callers never touch FilterGroups directly.
-def filter_shots(shots, **selections):  return SHOTS.filter(shots, **selections)
-def group_breakdown(shots):             return SHOTS.breakdown(shots)
+# 5. check_groups_exhaustive -- the evidence for the docstring's counts, and
+#    what the module's __main__ re-verifies. Write this one.
 def check_groups_exhaustive(shots):     return SHOTS.check_exhaustive(shots)
 
 # 6. get_full_data(game) -> {team_id: {label: [events]}} -- what the golden
 #    harness sweeps. 'All X' plus SHOTS.rows(shots).
 ```
+
+**Do NOT add a per-population wrapper for every FilterGroups method.** This
+tree used to prescribe a `<population>_matching`, a `filter_<population>` and
+a `<population>_group_breakdown` beside each binding, "so callers never touch
+FilterGroups directly". The callers never arrived: 37 of them were deleted
+with nothing pointing at them, including all fourteen `*_matching` and all
+nine `group_breakdown`. Consumers reach a metric through the catalog
+(`lane.matches`), not through a module's aliases, and the one place that does
+want the raw method — `golden.py`'s `crosspath` — calls
+`FilterGroups.matching` directly and is better for it.
+
+Write a `filter_<population>` only when something calls it. Four do today,
+each used by its own module or by `skater.py`; `filter_shots` is the only one
+reaching outside `derive/`.
 
 Modules that own two populations (dumpins, DZExits, passing, defensive_events)
 bind two `FilterGroups` and prefix the second one's rows: `SHOTS.rows(x)` and

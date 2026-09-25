@@ -101,23 +101,6 @@ def second_assists(game: Game, team_id: int | str | None = None) -> list[Event]:
 
 # --- Filtering ------------------------------------------------------------
 
-def goals_matching(goals: Iterable[Event], group: str, item: str) -> list[Event]:
-    """Goals passing one named filter item. The goal population defines no
-    groups, so this raises until one is added."""
-    return GOALS.matching(goals, group, item)
-
-
-def filter_goals(goals: Iterable[Event], **selections: Iterable[str]) -> list[Event]:
-    """Apply a checkbox-style selection to goals. With no groups defined, any
-    selection is unknown and an empty one returns every goal."""
-    return GOALS.filter(goals, **selections)
-
-
-def assists_matching(assists: Iterable[Event], group: str, item: str) -> list[Event]:
-    """Assists passing one named filter item."""
-    return ASSISTS.matching(assists, group, item)
-
-
 def filter_assists(assists: Iterable[Event], **selections: Iterable[str]) -> list[Event]:
     """Apply a checkbox-style selection: OR within a group, AND across groups.
 
@@ -130,11 +113,6 @@ def filter_assists(assists: Iterable[Event], **selections: Iterable[str]) -> lis
     exhaustive.
     """
     return ASSISTS.filter(assists, **selections)
-
-
-def group_breakdown(assists: Iterable[Event]) -> dict[str, dict[str, list[Event]]]:
-    """Every group and item, applied to the given assists."""
-    return ASSISTS.breakdown(assists)
 
 
 def check_groups_exhaustive(assists: Iterable[Event]) -> dict[str, bool]:

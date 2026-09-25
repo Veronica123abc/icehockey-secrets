@@ -235,11 +235,6 @@ def all_checks(game: Game, team_id: int | str | None = None) -> list[Event]:
 
 # --- Filtering ------------------------------------------------------------
 
-def entries_against_matching(entries: Iterable[Event], group: str, item: str) -> list[Event]:
-    """Entries against passing one named filter item."""
-    return ENTRIES_AGAINST.matching(entries, group, item)
-
-
 def filter_entries_against(entries: Iterable[Event], **selections: Iterable[str]) -> list[Event]:
     """Apply a checkbox-style selection: OR within a group, AND across groups.
 
@@ -255,42 +250,17 @@ def filter_entries_against(entries: Iterable[Event], **selections: Iterable[str]
     return ENTRIES_AGAINST.filter(entries, **selections)
 
 
-def group_breakdown(entries: Iterable[Event]) -> dict[str, dict[str, list[Event]]]:
-    """Every group and item, applied to the given entries against."""
-    return ENTRIES_AGAINST.breakdown(entries)
-
-
 def check_groups_exhaustive(entries: Iterable[Event]) -> dict[str, bool]:
     """Whether each group's items together cover every entry against."""
     return ENTRIES_AGAINST.check_exhaustive(entries)
-
-
-def blocks_matching(blocks: Iterable[Event], group: str, item: str) -> list[Event]:
-    return BLOCKS.matching(blocks, group, item)
 
 
 def filter_blocks(blocks: Iterable[Event], **selections: Iterable[str]) -> list[Event]:
     return BLOCKS.filter(blocks, **selections)
 
 
-def block_group_breakdown(blocks: Iterable[Event]) -> dict[str, dict[str, list[Event]]]:
-    return BLOCKS.breakdown(blocks)
-
-
 def check_block_groups_exhaustive(blocks: Iterable[Event]) -> dict[str, bool]:
     return BLOCKS.check_exhaustive(blocks)
-
-
-def checks_matching(checks: Iterable[Event], group: str, item: str) -> list[Event]:
-    return CHECKS.matching(checks, group, item)
-
-
-def filter_checks(checks: Iterable[Event], **selections: Iterable[str]) -> list[Event]:
-    return CHECKS.filter(checks, **selections)
-
-
-def check_group_breakdown(checks: Iterable[Event]) -> dict[str, dict[str, list[Event]]]:
-    return CHECKS.breakdown(checks)
 
 
 def check_checks_groups_exhaustive(checks: Iterable[Event]) -> dict[str, bool]:

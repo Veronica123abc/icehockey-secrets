@@ -267,11 +267,6 @@ def all_dumpin_recoveries(game: Game, team_id: int | str | None = None) -> list[
 
 # --- Filtering ------------------------------------------------------------
 
-def dumpins_matching(dumpins: Iterable[Event], group: str, item: str) -> list[Event]:
-    """Dump-ins passing one named filter item."""
-    return DUMPINS.matching(dumpins, group, item)
-
-
 def filter_dumpins(dumpins: Iterable[Event], **selections: Iterable[str]) -> list[Event]:
     """Apply a checkbox-style selection: OR within a group, AND across groups.
 
@@ -286,43 +281,13 @@ def filter_dumpins(dumpins: Iterable[Event], **selections: Iterable[str]) -> lis
     return DUMPINS.filter(dumpins, **selections)
 
 
-def group_breakdown(dumpins: Iterable[Event]) -> dict[str, dict[str, list[Event]]]:
-    """Every group and item, applied to the given dump-ins."""
-    return DUMPINS.breakdown(dumpins)
-
-
 def check_groups_exhaustive(dumpins: Iterable[Event]) -> dict[str, bool]:
     """Whether each group's items together cover every dump-in."""
     return DUMPINS.check_exhaustive(dumpins)
 
 
-def entries_matching(entries: Iterable[Event], group: str, item: str) -> list[Event]:
-    return DUMPIN_ENTRIES.matching(entries, group, item)
-
-
-def filter_dumpin_entries(entries: Iterable[Event],
-                          **selections: Iterable[str]) -> list[Event]:
-    return DUMPIN_ENTRIES.filter(entries, **selections)
-
-
-def entry_group_breakdown(entries: Iterable[Event]) -> dict[str, dict[str, list[Event]]]:
-    return DUMPIN_ENTRIES.breakdown(entries)
-
-
 def check_entry_groups_exhaustive(entries: Iterable[Event]) -> dict[str, bool]:
     return DUMPIN_ENTRIES.check_exhaustive(entries)
-
-
-def recoveries_matching(recoveries: Iterable[Event], group: str, item: str) -> list[Event]:
-    return RECOVERIES.matching(recoveries, group, item)
-
-
-def filter_recoveries(recoveries: Iterable[Event], **selections: Iterable[str]) -> list[Event]:
-    return RECOVERIES.filter(recoveries, **selections)
-
-
-def recovery_group_breakdown(recoveries: Iterable[Event]) -> dict[str, dict[str, list[Event]]]:
-    return RECOVERIES.breakdown(recoveries)
 
 
 def check_recovery_groups_exhaustive(recoveries: Iterable[Event]) -> dict[str, bool]:

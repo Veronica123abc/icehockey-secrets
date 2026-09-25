@@ -165,11 +165,6 @@ def expected_goals_on_net(game: Game) -> list[Event]:
 
 # --- Filtering ------------------------------------------------------------
 
-def chances_matching(chances: Iterable[Event], group: str, item: str) -> list[Event]:
-    """Scoring chances passing one named filter item."""
-    return CHANCES.matching(chances, group, item)
-
-
 def filter_chances(chances: Iterable[Event], **selections: Iterable[str]) -> list[Event]:
     """Apply a checkbox-style selection: OR within a group, AND across groups.
 
@@ -182,11 +177,6 @@ def filter_chances(chances: Iterable[Event], **selections: Iterable[str]) -> lis
     exhaustive.
     """
     return CHANCES.filter(chances, **selections)
-
-
-def group_breakdown(chances: Iterable[Event]) -> dict[str, dict[str, list[Event]]]:
-    """Every group and item, applied to the given chances."""
-    return CHANCES.breakdown(chances)
 
 
 def check_groups_exhaustive(chances: Iterable[Event]) -> dict[str, bool]:

@@ -267,11 +267,6 @@ def receptions(game: Game, team_id: int | str | None = None) -> list[Event]:
 
 # --- Filtering ------------------------------------------------------------
 
-def passes_matching(events: Iterable[Event], group: str, item: str) -> list[Event]:
-    """Passes passing one named filter item."""
-    return PASSES.matching(events, group, item)
-
-
 def filter_passes(events: Iterable[Event], **selections: Iterable[str]) -> list[Event]:
     """Apply a checkbox-style selection: OR within a group, AND across groups.
 
@@ -286,26 +281,9 @@ def filter_passes(events: Iterable[Event], **selections: Iterable[str]) -> list[
     return PASSES.filter(events, **selections)
 
 
-def group_breakdown(events: Iterable[Event]) -> dict[str, dict[str, list[Event]]]:
-    """Every group and item, applied to the given passes."""
-    return PASSES.breakdown(events)
-
-
 def check_groups_exhaustive(events: Iterable[Event]) -> dict[str, bool]:
     """Whether each group's items together cover every pass."""
     return PASSES.check_exhaustive(events)
-
-
-def receptions_matching(events: Iterable[Event], group: str, item: str) -> list[Event]:
-    return RECEPTIONS.matching(events, group, item)
-
-
-def filter_receptions(events: Iterable[Event], **selections: Iterable[str]) -> list[Event]:
-    return RECEPTIONS.filter(events, **selections)
-
-
-def reception_group_breakdown(events: Iterable[Event]) -> dict[str, dict[str, list[Event]]]:
-    return RECEPTIONS.breakdown(events)
 
 
 def check_reception_groups_exhaustive(events: Iterable[Event]) -> dict[str, bool]:

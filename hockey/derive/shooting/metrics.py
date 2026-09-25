@@ -33,7 +33,6 @@ from hockey.db.database import open_database_azure
 from hockey.derive.filter_group import FilterGroups, Predicate, for_team
 
 
-
 # Settings, resolved on first use rather than at import -- see
 # hockey.config.settings.settings for why this must not be eager.
 from hockey.config.settings import settings as _settings
@@ -165,11 +164,6 @@ def all_shots(game: Game, team_id: int | str | None = None) -> list[Event]:
 
 # --- Filtering ------------------------------------------------------------
 
-def shots_matching(shots: Iterable[Event], group: str, item: str) -> list[Event]:
-    """Shots passing one named filter item."""
-    return SHOTS.matching(shots, group, item)
-
-
 def filter_shots(shots: Iterable[Event], **selections: Iterable[str]) -> list[Event]:
     """Apply a checkbox-style selection: OR within a group, AND across groups.
 
@@ -182,11 +176,6 @@ def filter_shots(shots: Iterable[Event], **selections: Iterable[str]) -> list[Ev
     exhaustive.
     """
     return SHOTS.filter(shots, **selections)
-
-
-def group_breakdown(shots: Iterable[Event]) -> dict[str, dict[str, list[Event]]]:
-    """Every group and item, applied to the given shots."""
-    return SHOTS.breakdown(shots)
 
 
 def check_groups_exhaustive(shots: Iterable[Event]) -> dict[str, bool]:
@@ -220,8 +209,6 @@ def print_res(res):
         print(f"\nSHOT STATS FOR {k}")
         for key in list(res[k].keys()):
             print(key, ' ', len(res[k][key]))
-
-
 
 
 def season_stats(league: int, season: str):
@@ -260,7 +247,6 @@ if __name__ == "__main__":
     # print_res(res)
 
     shots = all_shots(game)
-    p = shots_matching(shots,"Shot Location", "Inner Slot")
     print("\nexhaustiveness:", check_groups_exhaustive(shots))
     print("inner-slot 1-timers on net:",
           len(filter_shots(shots, Shot_Location=['Inner Slot'],
