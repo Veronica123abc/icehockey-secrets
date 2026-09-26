@@ -94,9 +94,6 @@ def player_entries_report(players: Iterable, league: int, season: str, *,
     sheet, render the sheet. Nothing but :data:`COLUMNS` and the naming is
     specific to this report.
     """
-    import time
-
-    t=time.time()
     opened = conn is None
     conn = conn or open_connection()
     try:
@@ -106,7 +103,7 @@ def player_entries_report(players: Iterable, league: int, season: str, *,
     finally:
         if opened:
             conn.close()
-    print(time.time() - t)
+
     sheet = to_sheet(rows, missing, columns=COLUMNS,
                      title=title or "Entries and dump-ins — even strength",
                      league=league, season=season, stage=stage,
