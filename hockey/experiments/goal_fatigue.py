@@ -4,7 +4,7 @@ from pathlib import Path
 from hockey.io.raw_game import RawGame
 from hockey.normalize.build_game import build_game
 #from hockey.derive.entries import zone_entries
-from hockey.derive.OZEntries.entries import zone_entries
+from hockey.metrics.OZEntries.entries import zone_entries
 from hockey.catalog import DataCatalog
 from hockey.config.settings import Settings
 from hockey.derive.current_shift import current_shift_toi_series

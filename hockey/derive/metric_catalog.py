@@ -38,8 +38,10 @@ rather than a call into each module. Anything a module computes that is NOT an
 event-level predicate over one population -- playmaking's OGP categories,
 possession's base-event breakdown, the goal marker that lives on a scoring
 chance's base shot -- has no lane, because a consumer can only draw events it
-can test one at a time. ``OZEntries`` is absent for the same reason: it returns
-``ZoneEntry`` dataclasses, not ``Event -> bool`` predicates.
+can test one at a time. ``OZEntries`` was absent for the same reason -- it
+returns ``ZoneEntry`` dataclasses, not ``Event -> bool`` predicates -- and now
+lives in ``hockey/metrics/OZEntries/`` rather than under ``derive/``, since
+what it does is assemble entries rather than filter events.
 
 Event names no module covers (goal, assist, faceoff, penalty, icing, offside,
 lpr, carry, ...) contribute no lane at all: roughly a third of a game's events.

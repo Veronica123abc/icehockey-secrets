@@ -278,6 +278,7 @@ def game_metrics(game, context=None) -> LaneCounts:
                f"{getattr(away, 'name', away.id)} (away)"))
 
 
+
 if __name__ == "__main__":
     GAME_ID = 186451
     HIDE_EMPTY = False          # True for the canvas rail's view

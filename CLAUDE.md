@@ -228,6 +228,16 @@ gunicorn --bind=0.0.0.0:8000 --timeout 300 --workers 2 app:app
 
 Game data lives in `/home/data` on Azure (persistent across restarts and redeployments).
 
+## `testzone/`
+
+Ad-hoc scripts, experiments and vendor API examples, kept out of the package
+so that `hockey/` is only code something depends on. Nothing under `hockey/`
+may import from here. It holds the SportLogIQ v1/v3 API examples, the playlist
+script, and one-off metric probes.
+
+Not to be confused with `hockey/experiments/`, which is exploratory analysis
+that still reads the real metric layer (fatigue vs grade, entry fatigue).
+
 ## Personal Dev Notes
 
 `.dev-notes/` is a gitignored directory for personal, repo-specific notes (connection strings, curl commands, scratchpad docs). It lives inside the repo for discoverability but is never committed. Add new notes there instead of committing them to `hockey/docs/` or similar.
@@ -235,6 +245,6 @@ Game data lives in `/home/data` on Azure (persistent across restarts and redeplo
 ## Other Modules
 
 - `hockey/db/` — seed scripts for ingesting data into an Azure MySQL database; `build_game_from_db` in `hockey/normalize/build_game_db.py` is the DB-backed game loader used by the Flask app
-- `hockey/metrics/` — aggregation **across games**, where `hockey/derive/` filters the events of one. `player/skater.py` returns one line per skater over a list of games (goals, assists, shot attempts, shots on net, TOI, and goals for/against while on ice) — the same numbers the game canvas puts in its player report, as a function you can call without the GUI. It takes `Game` objects rather than ids, so it works with either loader, and it reads every metric from `hockey/derive/` rather than restating any. Alongside it sit older standalone scripts (cross-center passes, faceoffs, pass length)
-- `hockey/experiments/` — exploratory analyses (e.g. fatigue/grade correlation)
+- `hockey/metrics/` — aggregation **across games** (including `on_ice.py`, the catalog lanes per player or team, and `OZEntries/`, which assembles `ZoneEntry` objects rather than filtering events), where `hockey/derive/` filters the events of one. `player/skater.py` returns one line per skater over a list of games (goals, assists, shot attempts, shots on net, TOI, and goals for/against while on ice) — the same numbers the game canvas puts in its player report, as a function you can call without the GUI. It takes `Game` objects rather than ids, so it works with either loader, and it reads every metric from `hockey/derive/` rather than restating any. Alongside it sit older standalone scripts (cross-center passes, faceoffs, pass length)
+- `hockey/experiments/` — exploratory analyses (e.g. fatigue/grade correlation). Ad-hoc scripts and vendor API examples live in `testzone/` instead
 - `hockey/io/blob_upload.py` — Azure Blob Storage upload utility

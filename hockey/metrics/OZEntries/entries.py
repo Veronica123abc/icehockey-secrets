@@ -39,7 +39,7 @@ def _classify_entry(event, faceoff_as_entry: bool=False) -> str | None:
     """
     Classify an offensive-zone entry from a compiled playsequence event.
 
-    Definitions (see hockey/derive/OZEntries/CLAUDE.md):
+    Definitions (see hockey/metrics/OZEntries/CLAUDE.md):
       - carry:  name == "controlledentry", type "carry..."
       - pass:   name == "controlledentry", type "pass..."
       - dumpin: name == "dumpinentry"
@@ -62,7 +62,7 @@ def _classify_exit(event):
         return event.name
 
 # Events that end the current OZ possession (a DZ exit by the defending team).
-# Per hockey/derive/OZEntries/CLAUDE.md: name "dumpout" or "controlledexit".
+# Per hockey/metrics/OZEntries/CLAUDE.md: name "dumpout" or "controlledexit".
 # (The CLAUDE.md spells it "dumout"; the actual compiled event name is "dumpout".)
 _ZONE_EXIT_NAMES = frozenset({"zoneexit", "controlledexit"})
 

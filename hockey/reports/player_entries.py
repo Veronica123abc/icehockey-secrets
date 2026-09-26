@@ -51,7 +51,7 @@ from __future__ import annotations
 from collections.abc import Iterable
 from pathlib import Path
 
-from hockey.reports.on_ice import (FOR, Column, ColumnSet, EVEN_STRENGTH,
+from hockey.reports.on_ice import (FOR, AGAINST, Column, ColumnSet, EVEN_STRENGTH,
                                    REGULAR, open_connection, output_path,
                                    player_rows, to_sheet)
 from hockey.reports.sheet import render_pdf
@@ -94,6 +94,9 @@ def player_entries_report(players: Iterable, league: int, season: str, *,
     sheet, render the sheet. Nothing but :data:`COLUMNS` and the naming is
     specific to this report.
     """
+    import time
+
+    t=time.time()
     opened = conn is None
     conn = conn or open_connection()
     try:
@@ -103,7 +106,7 @@ def player_entries_report(players: Iterable, league: int, season: str, *,
     finally:
         if opened:
             conn.close()
-
+    print(time.time() - t)
     sheet = to_sheet(rows, missing, columns=COLUMNS,
                      title=title or "Entries and dump-ins — even strength",
                      league=league, season=season, stage=stage,
