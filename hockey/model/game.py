@@ -47,14 +47,31 @@ class Game:
     def events_enriched_df(self) -> pd.DataFrame:
         """
         Supplier event payload plus normalized convenience columns from Event.
+
+        WHERE THE TWO COLLIDE, THE NORMALIZED COLUMN WINS. The compiled
+        playsequence carries team_id and player_id in its own payload as
+        STRINGS ('1397') where Event has them as ints (1397) -- the same
+        identity typed differently, on every event. Keeping both is not
+        possible (pandas refuses a duplicate name, which is how this surfaced)
+        and keeping the supplier's would make one column name mean a str on
+        one source and an int on another. So the raw copy is dropped here.
+        The uncompiled and database payloads carry neither and are unaffected.
+
+        The supplier's own values are still there untouched in
+        :meth:`events_supplier_df`.
         """
         if "events_enriched" not in self._dfs:
             df = self.events_supplier_df().copy()
-            df.insert(0, "game_id", [e.game_id for e in self.events])
-            df.insert(1, "t", [e.t for e in self.events])
-            df.insert(2, "team_id_in_possession", [e.team_id_in_possession for e in self.events])
-            df.insert(3, "team_id", [e.team_id for e in self.events])
-            df.insert(4, "player_id", [e.player_id for e in self.events])
+            normalized = {
+                "game_id": [e.game_id for e in self.events],
+                "t": [e.t for e in self.events],
+                "team_id_in_possession": [e.team_id_in_possession for e in self.events],
+                "team_id": [e.team_id for e in self.events],
+                "player_id": [e.player_id for e in self.events],
+            }
+            df = df.drop(columns=[c for c in normalized if c in df.columns])
+            for position, (name, values) in enumerate(normalized.items()):
+                df.insert(position, name, values)
 
             self._dfs["events_enriched"] = df
 
