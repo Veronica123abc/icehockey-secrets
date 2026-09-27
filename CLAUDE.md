@@ -48,7 +48,7 @@ hockey/normalize/build_game.py             # Transforms raw JSON → domain mode
     ↓
 hockey/model/                              # Game, Event, ToIInterval, Roster dataclasses
     ↓
-hockey/derive/current_shift.py             # Computes per-second shift TOI series
+hockey/model/current_shift.py              # Computes per-second shift TOI series
     ↓
 hockey/visualize/shift_toi.py              # Generates Plotly figure
     ↓
@@ -57,7 +57,11 @@ app.py + templates/                        # Flask routes + Jinja2 HTML
 
 ### The `derive/` Layer
 
-This is the computational core between model and visualization. `current_shift_toi_series()` in `hockey/derive/current_shift.py` takes a list of query times and efficiently returns per-team snapshots of which players are on ice and their current shift duration. It uses a sweep-line algorithm (`find_intervals`) rather than per-second brute force.
+This is the computational core between model and visualization. Shift TOI is
+the exception that proves the rule: it sweeps `ToIInterval`s rather than
+filtering events, and `Game` exposes it as a method, so it lives in
+`hockey/model/` — `derive/` would have meant the model importing a layer above
+it. `current_shift_toi_series()` in `hockey/model/current_shift.py` takes a list of query times and efficiently returns per-team snapshots of which players are on ice and their current shift duration. It uses a sweep-line algorithm (`find_intervals`) rather than per-second brute force.
 
 `Game.shift_toi_series(queries)` delegates directly to this function. The visualization calls it once for the full game (`range(end_time)`) to build all three line traces.
 
@@ -167,7 +171,7 @@ Grades A/B/C map to colors green/orange/red. Home chances appear above the x-axi
 | `hockey/io/raw_game.py` | Lazy JSON loader; `RawGame` dataclass |
 | `hockey/normalize/build_game.py` | Orchestrates normalization into `Game` |
 | `hockey/model/game.py` | `Game` dataclass; DataFrame exports; shift series methods |
-| `hockey/derive/current_shift.py` | `find_intervals` sweep-line + `current_shift_toi_series` + single-time `current_shift_toi` |
+| `hockey/model/current_shift.py` | `find_intervals` sweep-line + `current_shift_toi_series` + single-time `current_shift_toi` |
 | `hockey/derive/CLAUDE.md` | **Metrics/filters architecture — read before touching either** |
 | `hockey/derive/filter_group.py` | The single implementation of the filter-group machinery; `FilterGroups` |
 | `hockey/derive/metric_catalog.py` | Section → population → group → item tree; what the canvas rail is built from |

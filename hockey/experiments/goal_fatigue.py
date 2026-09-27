@@ -4,10 +4,10 @@ from pathlib import Path
 from hockey.io.raw_game import RawGame
 from hockey.normalize.build_game import build_game
 #from hockey.derive.entries import zone_entries
-from hockey.metrics.OZEntries.entries import zone_entries
+from hockey.experiments.OZEntries.entries import zone_entries
 from hockey.catalog import DataCatalog
 from hockey.config.settings import Settings
-from hockey.derive.current_shift import current_shift_toi_series
+from hockey.model.current_shift import current_shift_toi_series
 settings = Settings.from_env(project_root=Path(__file__).resolve().parent)
 
 '''

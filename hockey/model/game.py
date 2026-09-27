@@ -7,8 +7,7 @@ from hockey.model.events import Event
 from hockey.model.game_info import GameInfo
 from hockey.model.toi import ToIInterval
 from hockey.model.roster import Roster
-from hockey.derive.current_shift import current_shift_toi, current_shift_toi_series
-#from hockey.derive.current_shift_series import current_shift_toi_series
+from hockey.model.current_shift import current_shift_toi, current_shift_toi_series
 
 @dataclass
 class Game:
@@ -80,38 +79,14 @@ class Game:
             )
         return self._dfs["toi"]
 
-    def current_shift_toi(self, game_time: float, *, include_goalies: bool = False, reset_on_whistle: bool = False) -> dict:
-
-        return current_shift_toi(self, game_time, include_goalies=include_goalies, reset_on_whistle=reset_on_whistle)
-
-    #def shift_toi_series_old(self, *, start_time: int = 0, end_time: int = 3600, include_goalies: bool = False, reset_on_whistle: bool = False):
-    #    return current_shift_toi_series_old(self, start_time=start_time, end_time=end_time, include_goalies=include_goalies, reset_on_whistle=reset_on_whistle)
+    def current_shift_toi(self, game_time: float, *,
+                          include_goalies: bool = False,
+                          reset_on_whistle: bool = False) -> dict:
+        """Who is on the ice at ``game_time``, and how long their shift is."""
+        return current_shift_toi(self, game_time,
+                                 include_goalies=include_goalies,
+                                 reset_on_whistle=reset_on_whistle)
 
     def shift_toi_series(self, queries):
-        return current_shift_toi_series(self, query_times=queries)#, include_goalies=include_goalies, reset_on_whistle=reset_on_whistle)
-
-
-
-    # def shift_toi_series_2(self, *, start_time: int = 0, end_time: int = 3600, include_goalies: bool = False, reset_on_whistle: bool = False):
-    #     return current_shift_toi_series_2(self, start_time=start_time, end_time=end_time, include_goalies=include_goalies, reset_on_whistle=reset_on_whistle)
-    #
-    # def shift_toi_series_3(self, *, start_time: int = 0, end_time: int = 3600, include_goalies: bool = False, reset_on_whistle: bool = False):
-    #     return current_shift_toi_series_3(self, start_time=start_time, end_time=end_time, include_goalies=include_goalies, reset_on_whistle=reset_on_whistle)
-    #
-    # def shift_toi_series_3(self, *, start_time: int = 0, end_time: int = 3600, include_goalies: bool = False, reset_on_whistle: bool = False):
-    #     return current_shift_toi_series_3(self, start_time=start_time, end_time=end_time, include_goalies=include_goalies, reset_on_whistle=reset_on_whistle)
-
-
-    # def current_shift_toi(
-    #         self,
-    #         game_time: float,
-    #         *,
-    #         include_goalies: bool = False,
-    #         reset_on_whistle: bool = True,
-    # ) -> dict:
-    #     return current_shift_toi(
-    #         self,
-    #         game_time,
-    #         include_goalies=include_goalies,
-    #         reset_on_whistle=reset_on_whistle,
-    #     )
+        """The same at many times at once -- one sweep, not one per query."""
+        return current_shift_toi_series(self, query_times=queries)

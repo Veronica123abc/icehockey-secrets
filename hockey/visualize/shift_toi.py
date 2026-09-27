@@ -10,7 +10,6 @@ from hockey.io.raw_game import RawGame
 from hockey.normalize.build_game import  build_game
 from hockey.model.game import Game
 from pathlib import Path
-# from hockey.derive.current_shift_series import find_intervals, find_intervals, current_shift_toi_series
 
 PLOT_VERSION = 5  # bump to invalidate _plotly_cache after visualization changes
 
