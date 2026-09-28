@@ -109,7 +109,7 @@ the slices his team's situation is selected for. Period boundaries join the
 cut list defensively: no shift straddles one in the games checked, but a slice
 spanning two periods would otherwise be credited entirely to one of them.
 
-That sweep is :mod:`hockey.metrics.player.on_ice_spans`, not this file --
+That sweep is :mod:`hockey.metrics.on_ice_spans`, not this file --
 ``woi.py`` asks the same two questions of every shot in a season, and one
 implementation of "who was on, in what situation" is the whole point.
 
@@ -137,7 +137,7 @@ from hockey.model.toi import ToIInterval
 from hockey.derive import context_filter as ctx
 from hockey.derive.scoring import scoring
 from hockey.derive.shooting import metrics as shooting
-from hockey.metrics.player.on_ice_spans import (GOALIE, SituationTimeline,
+from hockey.metrics.on_ice_spans import (GOALIE, SituationTimeline,
                                                 on_ice_at, skater_spans)
 
 #: The counted metrics, in report order. games_played and the TOI columns

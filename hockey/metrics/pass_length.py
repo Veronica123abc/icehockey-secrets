@@ -1,7 +1,10 @@
 from __future__ import annotations
+from pathlib import Path
 from hockey.model.game import Game
 import numpy as  np
 import pandas as pd
+from hockey.config.settings import Settings
+settings = Settings.from_env(project_root=Path(__file__).resolve().parent)
 
 def _successful_pass_reception_pairs(df: pd.DataFrame, team_id: int) -> tuple[pd.DataFrame, pd.DataFrame]:
     team_events = df.loc[df["team_id"] == team_id]

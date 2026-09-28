@@ -6,6 +6,11 @@ from hockey.db import event_query
 from hockey.derive import metric_catalog as catalog
 from hockey.derive import context_filter as ctx
 
+from hockey.metrics.on_ice import (AGAINST, BOTH, CREDITED, FOR, Column,
+                                   ColumnSet, EVEN_STRENGTH, PlayerRow,
+                                   REGULAR, WEIGHTS, lane_counts,
+                                   open_connection, player_rows, team_labels)
+
 def metric_test():
     LEAGUE_SL_ID = 17
     SEASON = "20252026"
@@ -48,6 +53,49 @@ def metric_test():
         print(sys.exc_info()[1])
 
 
+ENTRIES = "Controlled entries"
+RECOVERIES = "Dump-in recoveries"
+
+COLUMNS = ColumnSet((
+    Column("Entries", f"{ENTRIES} · Successful", FOR),
+    Column("w/ play", (f"{ENTRIES} · Successful",
+                       f"{ENTRIES} · With Play After"), FOR),
+    Column("w/ shot", (f"{ENTRIES} · Successful",
+                       f"{ENTRIES} · With Shot On Net",
+                       f"{ENTRIES} · With Slot Shot"), FOR),
+    Column("Dump-ins", "Dump-ins · Successful", FOR),
+    Column("Recoveries", (f"{RECOVERIES} · Successful",
+                          f"{RECOVERIES} · Offensive"), FOR),
+))
+
+def metric_test_2():
+    LEAGUE_SL_ID = 17
+    SEASON = "20252026"
+    PLAYER_SL_ID = 24417        # None for every player
+    TEAM_SL_ID = None
+    ON_ICE_PLAYER_SL_ID = 24417
+    PLAYER_IDS = [24417]
+    conn = open_connection()
+
+    C2 = ColumnSet((
+        Column("Entries", f"{ENTRIES} · Successful", AGAINST),
+    ))
+    C3 = ColumnSet((
+        Column("Shooting", f"Shots · All", AGAINST),
+    ))
+    rows, missing = player_rows(conn,
+                                PLAYER_IDS,
+                                LEAGUE_SL_ID,
+                                SEASON,
+                                columns=C3, #COLUMNS,
+                                context=ctx.DEFAULT.with_values(ctx.MANPOWER,[ctx.SH1,ctx.SH2]), #.with_values(ctx.TEAM,[1396]),
+                                #context=EVEN_STRENGTH,
+                                #stage=REGULAR,
+                                min_toi=1.0)
+
+    print(rows)
+
+
 def test():
     req = requests.Session()
     username = 'veronica.eriksson580@gmail.com' #your email address
@@ -78,4 +126,4 @@ def test():
 
 if __name__=='__main__':
     # test()
-    metric_test()
+    metric_test_2()
