@@ -37,6 +37,7 @@ from dataclasses import dataclass, field
 from datetime import date
 from pathlib import Path
 
+from hockey.db.game_query import query_game_ids
 from hockey.derive import context_filter as ctx
 from hockey.derive import metric_catalog as catalog
 from hockey.model.events import Event
@@ -518,28 +519,16 @@ def _credit(events: Sequence[Event], spans: dict[int, list[tuple[float, float]]]
 def _narrow_to_stage(conn, shifts, league: int, season: str, stage: str):
     """Drop shifts from games outside one stage ('regular' / 'playoffs').
 
-    A NULL `stage` counts as regular season. That is an ingestion gap, not a
-    third kind of game: league 17's 2025/26 has two of them, 186449 and 186461,
-    and the schedule manifest gives both as 'regular'. Leaving them out put the
-    reference player 16 even-strength minutes and 10 shot attempts short of the
-    supplier's published season.
+    The schedule itself lives in :func:`~hockey.db.game_query.query_game_ids`,
+    including the rule that a NULL stage counts as regular season; this is only
+    the intersection of it with shifts the caller already has.
 
-    Resolved against the database rather than the manifest on purpose -- these
-    reports have to work in a db_only deployment, where DATA_ROOT_DIR is unset
-    and there is no manifest to read. If preseason games ever arrive with a
-    null stage, this is where that assumption breaks.
+    ``played_only=False`` because a shift is evidence the game was played --
+    narrowing again by `event_status` could only drop a game that is still
+    'live', whose shifts are real.
     """
-    null_is_regular = "OR g.stage IS NULL" if stage == REGULAR else ""
-    cursor = conn.cursor()
-    try:
-        cursor.execute(
-            f"""SELECT g.sl_id FROM game g
-                WHERE g.league_id = (SELECT id FROM league WHERE sl_id = %s)
-                  AND g.season = %s AND (g.stage = %s {null_is_regular})""",
-            (int(league), str(season), stage))
-        keep = {int(row[0]) for row in cursor.fetchall()}
-    finally:
-        cursor.close()
+    keep = set(query_game_ids(conn, league_sl_id=league, season=season,
+                              stage=stage, played_only=False))
     return [shift for shift in shifts if shift.game_id in keep]
 
 
@@ -621,7 +610,9 @@ def team_rows(conn, teams: Iterable[int] | None = None, league: int | None = Non
     with no context it is simply the length of each game.
 
     ``teams`` selects which teams to report, as SportLogIQ ids; None is every
-    team appearing in the games.
+    team appearing in the games. ``games`` names the games outright and is the
+    way to report on part of a season -- a month, a stretch, a team's last
+    twenty; :func:`~hockey.db.game_query.query_game_ids` builds those lists.
     """
     from hockey.db.event_query import query_events
     from hockey.db.roster_query import query_rosters
@@ -632,13 +623,16 @@ def team_rows(conn, teams: Iterable[int] | None = None, league: int | None = Non
         raise ValueError(f"CREDITED is a player attribution and has no team "
                          f"meaning; columns {bad} must use FOR, AGAINST or BOTH")
 
+    # 1. Which games. The schedule answers this directly -- a team, unlike a
+    #    player, has no shifts of its own to narrow by, and reading the whole
+    #    season's shifts to recover 364 game ids cost 2.5s for a list the
+    #    `game` table gives in milliseconds. Pass ``games`` for part of a
+    #    season; :func:`~hockey.db.game_query.query_game_ids` builds those too.
     if games is not None:
         game_ids = sorted({int(g) for g in games})
     else:
-        shifts = query_shifts(conn, league_sl_id=league, season=season)
-        if stage:
-            shifts = _narrow_to_stage(conn, shifts, league, season, stage)
-        game_ids = sorted({s.game_id for s in shifts})
+        game_ids = sorted(query_game_ids(conn, league_sl_id=league,
+                                         season=season, stage=stage))
     if not game_ids:
         return []
 
