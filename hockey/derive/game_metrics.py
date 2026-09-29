@@ -284,6 +284,20 @@ if __name__ == "__main__":
     HIDE_EMPTY = False          # True for the canvas rail's view
     CONTEXT = None              # or ctx.DEFAULT for even strength
 
+
+    # from hockey.db.event_query import query_events
+    # from hockey.db.database import open_database_azure
+    #
+    # conn = open_database_azure()
+    # events = query_events(conn, league_sl_id=17, season="20262027",
+    #                       names=["shot", "goal", "controlledentry"],
+    #                       with_on_ice=True)
+    # m = event_metrics(events, title="league 17, 2026/27")
+    #
+    # print(m)
+    # exit(0)
+
+
     from hockey.io.raw_game import RawGame
     from hockey.normalize.build_game import build_game
 

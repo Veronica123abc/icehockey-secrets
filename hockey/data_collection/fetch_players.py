@@ -40,4 +40,4 @@ def download_players(
 
 if __name__ == "__main__":
     catalog = DataCatalog(settings.data_root_dir)
-    download_players(catalog, leagues_filter=[213], season_filter=["20242025"])
+    download_players(catalog, leagues_filter=[17], season_filter=["20262027"])

@@ -39,7 +39,7 @@ stage, what even strength means, and strict shift containment -- are documented
 where they are made, in ``on_ice.py``.
 '''
 from __future__ import annotations
-
+from hockey.reports.helpers.get_roster import get_roster
 from collections.abc import Iterable
 from pathlib import Path
 
@@ -103,7 +103,7 @@ def player_woi_report(players: Iterable, league: int, season: str, *,
                      title=title or "On-ice report — even strength",
                      league=league, season=season, stage=stage,
                      context=context, min_toi=min_toi, note_extra=_NOTE)
-    return render_pdf(sheet, output or output_path("player_woi", league,
+    return render_pdf(sheet, output or output_path("shooting_player_woi", league,
                                                    season, stage))
 
 
@@ -111,25 +111,11 @@ if __name__ == "__main__":
     LEAGUE = 17
     SEASON = "20262027"
     # Ids and names both work; the last one is a deliberate miss, so the
-    # "not in the table" footnote is visible in the demo output.
-    PLAYERS = [24417, 6970, "Tom Hedberg", "Zach Wytinck", "Jonathan Wikström",
-               "Carl Wäng", "Linus Skager", "Nobody Atall"]
+    # # "not in the table" footnote is visible in the demo output.
+    # PLAYERS = [24417, 6970, "Tom Hedberg", "Zach Wytinck", "Jonathan Wikström",
+    #            "Carl Wäng", "Linus Skager", "Nobody Atall"]
 
-    conn = open_connection()
-
-    cursor = conn.cursor()
-    cursor.execute(
-        """SELECT DISTINCT p.sl_id
-           FROM affiliation a
-                    JOIN player p ON p.id = a.player_id
-                    JOIN game g ON g.id = a.game_id
-                    JOIN team t ON t.id = a.team_id
-           WHERE t.sl_id = 1395
-             AND g.season = '20262027'
-           ORDER BY p.sl_id;""")
-
-    players = cursor.fetchall()
-    PLAYERS = [k[0] for k in players]
+    PLAYERS = get_roster(1395,'20262027')
 
     import time
     started = time.perf_counter()

@@ -70,12 +70,33 @@ COLUMNS = ColumnSet((
 
 def metric_test_2():
     LEAGUE_SL_ID = 17
-    SEASON = "20252026"
+    SEASON = "20262027"
     PLAYER_SL_ID = 24417        # None for every player
     TEAM_SL_ID = None
     ON_ICE_PLAYER_SL_ID = 24417
     PLAYER_IDS = [24417]
     conn = open_connection()
+
+    cursor = conn.cursor()
+    try:
+        cursor.execute(
+            """SELECT DISTINCT p.sl_id
+                FROM affiliation a
+                JOIN player p ON p.id = a.player_id
+                JOIN game   g ON g.id = a.game_id
+                JOIN team   t ON t.id = a.team_id
+                WHERE t.sl_id = 1395
+                  AND g.season = '20262027'
+                ORDER BY p.sl_id;""")
+
+        players = cursor.fetchall()
+        PLAYER_IDS = [k[0] for k in players]
+        #print(players)
+    finally:
+        cursor.close()
+
+
+
 
     C2 = ColumnSet((
         Column("Entries", f"{ENTRIES} · Successful", AGAINST),
@@ -88,8 +109,8 @@ def metric_test_2():
                                 LEAGUE_SL_ID,
                                 SEASON,
                                 columns=C3, #COLUMNS,
-                                context=ctx.DEFAULT.with_values(ctx.MANPOWER,[ctx.SH1,ctx.SH2]), #.with_values(ctx.TEAM,[1396]),
-                                #context=EVEN_STRENGTH,
+                                #context=ctx.DEFAULT.with_values(ctx.MANPOWER,[ctx.SH1,ctx.SH2]), #.with_values(ctx.TEAM,[1396]),
+                                context=EVEN_STRENGTH,
                                 #stage=REGULAR,
                                 min_toi=1.0)
 
