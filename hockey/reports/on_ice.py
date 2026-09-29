@@ -21,8 +21,12 @@ from typing import Sequence
 
 from hockey.metrics.on_ice import (AGAINST, BOTH, CREDITED, FOR, Column,
                                    ColumnSet, EVEN_STRENGTH, PlayerRow,
-                                   REGULAR, WEIGHTS, lane_counts,
+                                   REGULAR, WEIGHTS, lane_counts, team_rows,
                                    open_connection, player_rows, team_labels)
+
+
+#from hockey.metrics.on_ice import (AGAINST, BOTH, FOR, ColumnSet, EVEN_STRENGTH, PlayerRow,
+#                                   team_labels)
 
 # --- Handing the numbers to a page -----------------------------------------
 # This module does not draw. It turns its own result into a
@@ -36,13 +40,26 @@ from hockey.metrics.on_ice import (AGAINST, BOTH, CREDITED, FOR, Column,
 #: much sample is behind the rates. Widths are in inches -- a player name needs
 #: about two, a position needs a third of one -- and the metric columns that
 #: follow share whatever is left.
-_IDENTITY: tuple[tuple[str, float, str], ...] = (
-    ("Player", 1.95, "left"),
-    ("Team", 0.70, "left"),
-    ("Pos", 0.36, "left"),
-    ("GP", 0.36, "right"),
-    ("TOI", 0.66, "right"),
-    ("TOI/GP", 0.62, "right"),
+#: (heading, width, alignment, cell) for the columns that are not metrics.
+#: The cell is a function of the row, so a team sheet can drop Pos and widen
+#: the name without the metric half knowing anything changed.
+PLAYER_IDENTITY: tuple[tuple[str, float, str, object], ...] = (
+    ("Player", 1.95, "left",  lambda row, teams: row.name),
+    ("Team",   0.70, "left",  lambda row, teams: teams.get(row.team_id,
+                                                           str(row.team_id or ""))),
+    ("Pos",    0.36, "left",  lambda row, teams: row.position),
+    ("GP",     0.36, "right", lambda row, teams: str(row.games_played)),
+    ("TOI",    0.66, "right", lambda row, teams: f"{row.minutes:.1f}"),
+    ("TOI/GP", 0.62, "right", lambda row, teams: _mmss(row.toi_per_game)),
+)
+
+#: A team row needs no position, and its name IS the club, so the separate
+#: Team column would repeat it. TOI here is game time, not ice time.
+TEAM_IDENTITY: tuple[tuple[str, float, str, object], ...] = (
+    ("Team",   2.20, "left",  lambda row, teams: row.name),
+    ("GP",     0.40, "right", lambda row, teams: str(row.games_played)),
+    ("TOI",    0.70, "right", lambda row, teams: f"{row.minutes:.1f}"),
+    ("TOI/GP", 0.65, "right", lambda row, teams: _mmss(row.toi_per_game)),
 )
 
 #: A side is a meaning; the tone is how a page should say it. For and against
@@ -57,19 +74,19 @@ def _mmss(minutes: float) -> str:
     return f"{seconds // 60}:{seconds % 60:02d}"
 
 
-def _units_phrase(columns: ColumnSet) -> str:
+def _units_phrase(columns: ColumnSet, denominator: str = "ice time") -> str:
     """How to describe the mixture of totals and rates in the subtitle."""
     totals = [column.heading for column in columns if not column.rate]
     rates = [column for column in columns if column.rate]
     if not totals:
-        return "rates per 60 minutes of ice time in that situation"
+        return f"rates per 60 minutes of {denominator} in that situation"
     if not rates:
         return "season totals"
     return (f"{', '.join(dict.fromkeys(totals))} are season totals, the rest "
-            f"are per 60 minutes of ice time in that situation")
+            f"are per 60 minutes of {denominator} in that situation")
 
 
-def _bands(columns: ColumnSet) -> tuple:
+def _bands(columns: ColumnSet, offset: int) -> tuple:
     """One band per run of columns sharing a side, in column order.
 
     Read off the columns rather than hardcoded, so re-ordering or adding one
@@ -85,7 +102,7 @@ def _bands(columns: ColumnSet) -> tuple:
             out[-1] = Band(previous.label, previous.start, previous.span + 1,
                            previous.tone)
         else:
-            out.append(Band(column.side.capitalize(), len(_IDENTITY) + index, 1,
+            out.append(Band(column.side.capitalize(), offset + index, 1,
                             _TONES[column.side]))
     return tuple(out)
 
@@ -95,7 +112,11 @@ def to_sheet(rows: Sequence[PlayerRow], missing: Sequence[str] = (), *,
              league: int | None = None, season: str | None = None,
              stage: str | None = None, context=EVEN_STRENGTH,
              min_toi: float = 0.0, subtitle: Sequence[str] | None = None,
-             note: str | None = None, note_extra: str = ""):
+             note: str | None = None, note_extra: str = "",
+             identity=PLAYER_IDENTITY, row_noun: str = "players",
+             denominator: str = "ice time",
+             note_lead: str = "events that happened while the player was on "
+                              "the ice"):
     """The computed rows as a :class:`~hockey.reports.sheet.Sheet`.
 
     Every cell comes out a string, so the page never has to know what a number
@@ -118,34 +139,29 @@ def to_sheet(rows: Sequence[PlayerRow], missing: Sequence[str] = (), *,
         subtitle = tuple(line for line in (
             where,
             "Situation: " + " · ".join(context.describe()),
-            f"{len(rows)} players · {_units_phrase(columns)}"
+            f"{len(rows)} {row_noun} · {_units_phrase(columns, denominator)}"
             + (f" · at least {min_toi:g} min" if min_toi else ""),
         ) if line)
     if note is None:
-        note = ("Every column counts events that happened while the player was "
-                "on the ice, from the metric catalog: "
+        note = (f"Every column counts {note_lead}, from the metric catalog: "
                 + "; ".join(dict.fromkeys(column.describe() for column in columns))
                 + ". " + (note_extra + " " if note_extra else "")
                 + "TOI is in minutes, TOI/GP as mm:ss. "
                 f"Generated {date.today():%Y-%m-%d}.")
 
     fields = tuple(Field(heading, width, align)
-                   for heading, width, align in _IDENTITY)
+                   for heading, width, align, _ in identity)
     fields += tuple(Field(column.heading) for column in columns)
 
     table = tuple(
-        (row.name,
-         teams.get(row.team_id, str(row.team_id or "")),
-         row.position,
-         str(row.games_played),
-         f"{row.minutes:.1f}",
-         _mmss(row.toi_per_game))
+        tuple(cell(row, teams) for _, _, _, cell in identity)
         + tuple(row.cell(column) for column in columns)
         for row in rows
     )
 
     return Sheet(title=title, fields=fields, rows=table,
-                 subtitle=tuple(subtitle), note=note, bands=_bands(columns),
+                 subtitle=tuple(subtitle), note=note,
+                 bands=_bands(columns, len(identity)),
                  footnote_heading="Not in the table",
                  footnotes=tuple(missing))
 
