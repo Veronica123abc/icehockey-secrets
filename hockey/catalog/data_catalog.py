@@ -135,19 +135,32 @@ class DataCatalog:
             data = json.load(f)
         return data if isinstance(data, list) else data.get("leagues", [])
 
+    #: Every team the supplier knows, in one file. It moved from the data
+    #: root into teams/ and the root copy is now stale -- 2333 teams against
+    #: 2395, missing the ones promoted for 2026/27 -- so reading the old path
+    #: silently loses new clubs rather than failing.
+    TEAMS_FILE = ("teams", "teams.json")
+
     def teams(self) -> list[dict]:
-        """Team list — suitable for ingest_teams()."""
-        path = self._root / "teams.json"
+        """Every team in the file — suitable for ingest_teams()."""
+        path = self._root.joinpath(*self.TEAMS_FILE)
         with path.open("r", encoding="utf-8") as f:
             data = json.load(f)
         return data.get("teams", data) if isinstance(data, dict) else data
 
+    def league_teams(self, league_id: int) -> list[dict]:
+        """Just one league's teams — 26 for league 17, against 2395 in all.
+
+        The whole file is rarely what an ingest wants: `team` is referenced by
+        foreign key from `game`, so it only has to hold the clubs whose games
+        are loaded.
+        """
+        return [t for t in self.teams() if int(t.get("leagueId", -1)) == int(league_id)]
+
     def season_teams(self, league_id: int, season: str) -> list[dict]:
-        """Team list — suitable for ingest_teams()."""
-        path = self._root / "teams.json"
-        with path.open("r", encoding="utf-8") as f:
-            data = json.load(f)
-        return data.get("teams", data) if isinstance(data, dict) else data
+        """One league's teams. ``season`` is accepted and ignored: the file
+        carries no per-season membership, so this is :meth:`league_teams`."""
+        return self.league_teams(league_id)
 
     # ── Writes ───────────────────────────────────────────────────────────────
 

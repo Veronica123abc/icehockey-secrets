@@ -38,26 +38,33 @@ def ingest_teams(teams: List[Dict]):
     cursor = db.cursor()
     ctr=0
 
-    columns = get_table_columns(cursor, 'team')
-
-    columns = [
-        'league_id',
-        'name',
-        'location',
-        'logo_source',
-        'shorthand',
-        'display_name',
-        'default_venue_id',
-        'past_team_id',
-        'sl_id'
-    ]
+    # The supplier sends more than the schema keeps. v1 stored league_id,
+    # logo_source, shorthand, display_name, default_venue_id and past_team_id;
+    # v2's `team` is just id, sl_id, name and location. Intersecting with the
+    # live table rather than hard-coding either list keeps this working across
+    # a schema change instead of failing on the first INSERT.
+    table_columns = set(get_table_columns(cursor, 'team'))
+    supplied = {
+        'league_id':        'leagueId',
+        'name':             'name',
+        'location':         'location',
+        'logo_source':      'logoSource',
+        'shorthand':        'shorthand',
+        'display_name':     'displayName',
+        'default_venue_id': 'defaultVenueId',
+        'past_team_id':     'pastTeamId',
+        'sl_id':            'id',
+    }
+    dropped = sorted(set(supplied) - table_columns)
+    columns = [c for c in supplied if c in table_columns]
+    if dropped:
+        print(f"  not columns of `team` in this schema, not written: "
+              f"{', '.join(dropped)}")
     cols = ', '.join(columns)
     placeholders = ', '.join(['%s'] * len(columns))
 
     for team in tqdm(teams):
-        values = [
-            team['leagueId'], team['name'], team['location'], team['logoSource'], team['shorthand'], team['displayName'], team['defaultVenueId'], team['pastTeamId'], team['id']
-        ]
+        values = [team[supplied[c]] for c in columns]
         try:
             updates = ', '.join(f"{col}=VALUES({col})" for col in columns if col != 'id')
             sql = f"INSERT INTO team ({cols}) VALUES ({placeholders}) ON DUPLICATE KEY UPDATE {updates}"
@@ -73,9 +80,10 @@ def ingest_teams(teams: List[Dict]):
 
 if __name__ == "__main__":
     from hockey.catalog import DataCatalog
-    LEAGUE_ID = 39
-    SEASON = "20252026"
+    LEAGUE_ID = 17
 
+    # One league's clubs, not all 2395: `team` is referenced by foreign key
+    # from `game`, so it only has to hold the teams whose games are loaded.
+    # catalog.teams() is the whole file if you do want everything.
     catalog = DataCatalog(settings.data_root_dir)
-    ingest_teams(catalog.teams())
-    #ingest_teams(catalog.season_teams(LEAGUE_ID, SEASON))
+    ingest_teams(catalog.league_teams(LEAGUE_ID))

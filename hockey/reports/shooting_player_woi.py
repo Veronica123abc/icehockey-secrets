@@ -43,7 +43,7 @@ from __future__ import annotations
 from collections.abc import Iterable
 from pathlib import Path
 
-from hockey.reports.on_ice import (AGAINST, BOTH, FOR, Column, ColumnSet,
+from hockey.reports.on_ice import (AGAINST, FOR, Column, ColumnSet,
                                    EVEN_STRENGTH, REGULAR, open_connection,
                                    output_path, player_rows, to_sheet)
 from hockey.reports.sheet import render_pdf
@@ -57,8 +57,8 @@ from hockey.reports.sheet import render_pdf
 #: was on the ice, and SA (woi) the shot attempts -- both countable from the
 #: events directly, and both what the canvas shows for one game.
 COLUMNS = ColumnSet((
-    Column("G (woi)",  "Goals · All", BOTH, rate=False),
-    Column("SA (woi)", "Shots · All", BOTH, rate=False),
+    #Column("G (woi)",  "Goals · All", BOTH, rate=False),
+    #Column("SA (woi)", "Shots · All", BOTH, rate=False),
     Column("G",    "Goals · All",    FOR),
     Column("xG",   "Shots · All",    FOR,     weight="xg"),
     Column("SA",   "Shots · All",    FOR),
@@ -109,11 +109,27 @@ def player_woi_report(players: Iterable, league: int, season: str, *,
 
 if __name__ == "__main__":
     LEAGUE = 17
-    SEASON = "20252026"
+    SEASON = "20262027"
     # Ids and names both work; the last one is a deliberate miss, so the
     # "not in the table" footnote is visible in the demo output.
     PLAYERS = [24417, 6970, "Tom Hedberg", "Zach Wytinck", "Jonathan Wikström",
                "Carl Wäng", "Linus Skager", "Nobody Atall"]
+
+    conn = open_connection()
+
+    cursor = conn.cursor()
+    cursor.execute(
+        """SELECT DISTINCT p.sl_id
+           FROM affiliation a
+                    JOIN player p ON p.id = a.player_id
+                    JOIN game g ON g.id = a.game_id
+                    JOIN team t ON t.id = a.team_id
+           WHERE t.sl_id = 1395
+             AND g.season = '20262027'
+           ORDER BY p.sl_id;""")
+
+    players = cursor.fetchall()
+    PLAYERS = [k[0] for k in players]
 
     import time
     started = time.perf_counter()

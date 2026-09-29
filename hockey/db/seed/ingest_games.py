@@ -18,33 +18,36 @@ def get_table_columns(cursor, table_name):
 
 
 
-def ingest_participation(cursor, league_id: int, season: str, team_map: dict, games: list) -> None:
-    seen = set()
-    for record in games:
-        for sl_team_id in (int(record['home_team_id']), int(record['away_team_id'])):
-            if sl_team_id in seen:
-                continue
-            seen.add(sl_team_id)
-            team_id = team_map.get(sl_team_id)
-            if team_id is None:
-                err(f"No team mapping for sl_team_id {sl_team_id}, skipping participation entry")
-                continue
-            cursor.execute(
-                "INSERT IGNORE INTO participation (league_id, team_id, season, sl_team_id) "
-                "VALUES (%s, %s, %s, %s)",
-                (league_id, team_id, season, sl_team_id),
-            )
-
-
 def ingest_game(games):
-    db = database.open_database_azure("sportlogiq")
+    """Insert or update one season's schedule.
+
+    THE SUPPLIER SENDS MORE THAN THE SCHEMA KEEPS. v1 stored venue_id,
+    sl_reference_id, sl_reference_name, scheduled_venue_time and
+    last_metrics_full_process_time; v2 deliberately does not. Rather than
+    hard-coding either list, the record is intersected with the live table's
+    own columns and the dropped names are reported once -- so this keeps
+    working across a schema change instead of failing on the first INSERT.
+    """
+    db = database.open_database_azure()
     cursor = db.cursor()
+    table_columns = set(get_table_columns(cursor, 'game'))
     team_map = database.create_map('team', cursor)
     league_map = database.create_map('league', cursor)
     league_id = league_map[int(games['competition_id'])]
     season = games['season']
     error_ctr = 0
+    skipped_teams: set[int] = set()
+    dropped_fields: set[str] = set()
     for record in tqdm(games['games']):
+        # A team the `team` table does not know cannot be referenced -- the
+        # foreign key would reject it. Skip the game and name the team, rather
+        # than dying on a KeyError partway through the season.
+        unknown = [int(record[k]) for k in ('home_team_id', 'away_team_id')
+                   if int(record[k]) not in team_map]
+        if unknown:
+            skipped_teams.update(unknown)
+            error_ctr += 1
+            continue
 
         record_data = {
             'sl_id': record['id'],
@@ -63,6 +66,8 @@ def ingest_game(games):
             'home_team_goals': record['score'][record['home_team_id']] if record['score'] else None,
             'away_team_goals': record['score'][record['away_team_id']] if record['score'] else None,
         }
+        dropped_fields.update(k for k in record_data if k not in table_columns)
+        record_data = {k: v for k, v in record_data.items() if k in table_columns}
         try:
             cols = ', '.join(record_data.keys())
             placeholders = ', '.join(['%s'] * len(record_data))
@@ -73,8 +78,13 @@ def ingest_game(games):
             err(f"Error inserting game record: {e}")
             error_ctr += 1
 
-    ingest_participation(cursor, league_id, season, team_map, games['games'])
-
+    if dropped_fields:
+        warn(f"not columns of `game` in this schema, not written: "
+             f"{', '.join(sorted(dropped_fields))}")
+    if skipped_teams:
+        err(f"{len(skipped_teams)} team(s) missing from the `team` table, so "
+            f"their games were skipped: {sorted(skipped_teams)}. "
+            f"Refresh teams.json and run ingest_teams.py first.")
     try:
         db.commit()
         ok(f"Successfully inserted {len(games['games']) - error_ctr} of {len(games['games'])} games")
@@ -89,7 +99,7 @@ if __name__ == "__main__":
     from hockey.catalog import DataCatalog
 
     LEAGUE_ID = 17
-    SEASON = "20252026"
+    SEASON = "20262027"
 
     catalog = DataCatalog(settings.data_root_dir)
     games = catalog.season_schedule(LEAGUE_ID, SEASON)

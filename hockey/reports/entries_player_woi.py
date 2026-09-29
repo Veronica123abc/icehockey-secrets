@@ -51,7 +51,7 @@ from __future__ import annotations
 from collections.abc import Iterable
 from pathlib import Path
 
-from hockey.reports.on_ice import (FOR, AGAINST, Column, ColumnSet, EVEN_STRENGTH,
+from hockey.reports.on_ice import (FOR, Column, ColumnSet, EVEN_STRENGTH,
                                    REGULAR, open_connection, output_path,
                                    player_rows, to_sheet)
 from hockey.reports.sheet import render_pdf
