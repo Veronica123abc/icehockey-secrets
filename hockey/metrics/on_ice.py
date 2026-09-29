@@ -568,6 +568,147 @@ def team_labels() -> dict[int, str]:
     return out
 
 
+# --- Teams --------------------------------------------------------------
+
+@dataclass
+class TeamRow:
+    """One team's line. Same shape as :class:`PlayerRow`, so a sheet built for
+    one renders the other: ``name`` is the club, ``position`` is empty."""
+    team_id: int
+    name: str
+    games_played: int = 0
+    toi: float = 0.0                    # seconds of GAME time in the situation
+    totals: dict[str, float] = field(default_factory=dict)
+    position: str = ""
+
+    @property
+    def player_id(self) -> int:         # so callers can key rows uniformly
+        return self.team_id
+
+    @property
+    def minutes(self) -> float:
+        return self.toi / 60.0
+
+    @property
+    def toi_per_game(self) -> float:
+        return self.minutes / self.games_played if self.games_played else 0.0
+
+    per60 = PlayerRow.per60
+    cell = PlayerRow.cell
+
+
+def team_rows(conn, teams: Iterable[int] | None = None, league: int | None = None,
+              season: str | None = None, *, columns: ColumnSet,
+              context=EVEN_STRENGTH, stage: str | None = REGULAR,
+              games: Iterable[int] | None = None,
+              min_toi: float = 0.0) -> list[TeamRow]:
+    """One row per team, with the same columns a player report uses.
+
+    The team answer to :func:`player_rows`, and a simpler computation: no
+    shift containment and no per-player attribution, because a team is on the
+    ice for every event of its own games. FOR is the team's own events and
+    AGAINST the opponent's, exactly as for a player -- which is why the same
+    :class:`ColumnSet` works unchanged.
+
+    CREDITED HAS NO MEANING HERE and is rejected rather than quietly counted
+    as FOR: it asks which PLAYER did it.
+
+    THE DENOMINATOR IS GAME TIME, NOT ICE TIME. A team's per-60 is per 60
+    minutes of hockey, so a whole game counts once rather than once per skater
+    -- a team's numbers are about a fifth of the same lane summed over its
+    players. With a ``context`` the shifts are still swept, because "even
+    strength" is a property of the game clock that only the shift data knows;
+    with no context it is simply the length of each game.
+
+    ``teams`` selects which teams to report, as SportLogIQ ids; None is every
+    team appearing in the games.
+    """
+    from hockey.db.event_query import query_events
+    from hockey.db.roster_query import query_rosters
+    from hockey.db.shift_query import query_shifts
+
+    bad = [c.heading for c in columns if c.side == CREDITED]
+    if bad:
+        raise ValueError(f"CREDITED is a player attribution and has no team "
+                         f"meaning; columns {bad} must use FOR, AGAINST or BOTH")
+
+    if games is not None:
+        game_ids = sorted({int(g) for g in games})
+    else:
+        shifts = query_shifts(conn, league_sl_id=league, season=season)
+        if stage:
+            shifts = _narrow_to_stage(conn, shifts, league, season, stage)
+        game_ids = sorted({s.game_id for s in shifts})
+    if not game_ids:
+        return []
+
+    shifts_by_game = _by_game(query_shifts(conn, game_sl_ids=game_ids))
+    rosters = query_rosters(conn, game_sl_ids=game_ids)
+    events_by_game = defaultdict(list)
+    for event in query_events(conn, game_sl_ids=game_ids,
+                              names=list(columns.event_names), with_on_ice=True):
+        events_by_game[event.game_id].append(event)
+
+    wanted = {int(t) for t in teams} if teams is not None else None
+    rows: dict[int, TeamRow] = {}
+    labels = team_labels()
+
+    for game_id in game_ids:
+        toi = shifts_by_game.get(game_id, [])
+        roster = rosters.get(game_id)
+        if not toi or roster is None:
+            continue
+        # The two teams of this game, from the roster rather than a fourth query.
+        sides = sorted({p.team_id for p in roster.players.values()
+                        if p.team_id is not None})
+        if len(sides) != 2:
+            continue
+        end = max((x.end_t for x in toi if x.end_t is not None), default=0.0)
+        timeline = SituationTimeline(toi, roster) if context is not None else None
+
+        for team_id in sides:
+            if wanted is not None and team_id not in wanted:
+                continue
+            seconds = (end if timeline is None
+                       else timeline.selected_seconds([(0.0, end)], team_id, context))
+            if seconds <= 0:
+                continue
+            row = rows.get(team_id)
+            if row is None:
+                row = rows[team_id] = TeamRow(
+                    team_id=team_id, name=labels.get(team_id, str(team_id)),
+                    totals=dict.fromkeys((c.key for c in columns), 0.0))
+            row.games_played += 1
+            row.toi += seconds
+
+        for event in events_by_game.get(game_id, []):
+            event_team = ctx.team_of(event)
+            if event.t is None or event_team is None:
+                continue
+            if context is not None and not context.matches(event):
+                continue
+            lanes = catalog.BY_EVENT.get(event.name)
+            if not lanes:
+                continue
+            matched = {lane.key for lane in lanes if lane.matches(event)}
+            hits = columns.hits(matched) if matched else []
+            for team_id in sides:
+                row = rows.get(team_id)
+                if row is None:
+                    continue
+                side = FOR if team_id == event_team else AGAINST
+                for column in hits:
+                    if column.side not in (side, BOTH):
+                        continue
+                    weight = (WEIGHTS[column.weight](event) if column.weight
+                              else 1.0)
+                    row.totals[column.key] += weight
+
+    out = [row for row in rows.values() if row.minutes > min_toi]
+    out.sort(key=lambda row: row.toi, reverse=True)
+    return out
+
+
 # --- The short way in ------------------------------------------------------
 
 def lane_counts(conn, *, games: Iterable[int], lanes: Iterable[str],
