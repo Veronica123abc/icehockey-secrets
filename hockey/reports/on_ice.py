@@ -66,7 +66,11 @@ TEAM_IDENTITY: tuple[tuple[str, float, str, object], ...] = (
 #: are poles, so they take the ends of a diverging pair and the undivided
 #: total takes its neutral midpoint. Which hexes those are is the page's
 #: business, not this module's.
-_TONES = {FOR: "cool", AGAINST: "warm", BOTH: "neutral"}
+#:
+#: CREDITED is not a pole. It is not one side of a comparison at all -- it is
+#: what the player did himself -- so it takes the midpoint rather than borrow
+#: a colour that would read as "for" against an "against" that is not there.
+_TONES = {FOR: "cool", AGAINST: "warm", BOTH: "neutral", CREDITED: "neutral"}
 
 
 def _mmss(minutes: float) -> str:
