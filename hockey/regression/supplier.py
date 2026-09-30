@@ -91,8 +91,8 @@ def _woi(heading: str, lanes, side: str, weight: str | None = None) -> Column:
 WOI: tuple[Check, ...] = (
     Check("Total Goals For WOI",               _woi("GF",   "Goals · All",    FOR), 32),
     Check("Total Goals Against WOI",           _woi("GA",   "Goals · All",    AGAINST), 32),
-    Check("Expected Goals For WOI",            _woi("xGF",  "Shots · All",    FOR,     "xg"), 32),
-    Check("Expected Goals Against WOI",        _woi("xGA",  "Shots · All",    AGAINST, "xg"), 32),
+    Check("Expected Goals For WOI",            _woi("xGF",  "Shots · All",    FOR,     "xg_official"), 32),
+    Check("Expected Goals Against WOI",        _woi("xGA",  "Shots · All",    AGAINST, "xg_official"), 32),
     Check("Shot Attempts For WOI",             _woi("SAF",  "Shots · All",    FOR), 32),
     Check("Shot Attempts Against WOI",         _woi("SAA",  "Shots · All",    AGAINST), 32),
     Check("Shots On Net For WOI",              _woi("SOGF", "Shots · On Net", FOR), 32),
@@ -111,7 +111,7 @@ CREDITED: tuple[Check, ...] = (
     Check("Total Successful Shots Taken", _woi("SOG",  "Shots · On Net", _CRED), 2),
     Check("Total Regular Goals",          _woi("G",    "Goals · All",    _CRED), 2),
     Check("Total Shot From Slot Attempts",_woi("Slot", "Shots · Slot",   _CRED), 2),
-    Check("Expected Goals",               _woi("xG",   "Shots · All",    _CRED, "xg"), 7),
+    Check("Expected Goals",               _woi("xG",   "Shots · All",    _CRED, "xg_official"), 7),
 )
 
 MAPPINGS = {"woi": WOI, "credited": CREDITED}

@@ -90,8 +90,41 @@ def _xg(event: Event) -> float:
         return 0.0
 
 
+#: The supplier's grade C, and the floor an ungraded slot shot is raised to.
+GRADE_C = 0.04
+
+#: The lane that decides what "from the slot" means -- inner plus outer, the
+#: same predicate the Shots population uses everywhere else.
+_SLOT_LANE = "Shots · Slot"
+
+
+def _xg_official(event: Event) -> float:
+    """Expected goals as the SUPPLIER PUBLISHES THEM, not as the feed carries.
+
+    Their processing raises every shot from the slot to at least a grade C
+    chance, and that adjustment is made downstream of the event payload -- the
+    feed keeps the model's raw value, so summing it lands consistently low.
+
+    Measured, league 17 2025/26, even strength, every skater: the raw sum is
+    1,487.5 against the supplier's published 1,521.1, a 2.2% shortfall. Raising
+    UNGRADED slot shots to 0.04 brings it to 1,519.4 -- ratio 0.9779 to 0.9989,
+    and every player inside one goal. A slot shot that already carries a grade
+    is already a chance and keeps its value; only 0.98 of the league season is
+    left over, which is the size of the supplier's other published adjustment
+    (a breakaway is raised to grade A) but too small to pin its value down.
+
+    Kept as a SEPARATE weight rather than folded into :func:`_xg`, because the
+    two answer different questions: what the model said, and what the supplier
+    printed. A report picks one by naming it.
+    """
+    xg = _xg(event)
+    if xg >= GRADE_C or event.grade:
+        return xg
+    return GRADE_C if catalog.BY_KEY[_SLOT_LANE].matches(event) else xg
+
+
 #: Named weights a column may sum instead of counting events.
-WEIGHTS = {"xg": _xg}
+WEIGHTS = {"xg": _xg, "xg_official": _xg_official}
 
 
 @dataclass(frozen=True)
