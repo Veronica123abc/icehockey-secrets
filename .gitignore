@@ -112,3 +112,7 @@ lessons-learned/
 chat_sessions.db
 chat_sessions.db-shm
 chat_sessions.db-wal
+
+# Cached supplier metric snapshots (hockey/regression/supplier.py).
+# Their data, re-fetchable with --refresh; not ours to commit.
+hockey/regression/supplier_cache/
