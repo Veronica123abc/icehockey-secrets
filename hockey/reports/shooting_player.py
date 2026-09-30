@@ -42,6 +42,20 @@ an event of his there has nowhere to go. Summed over every player in league 17
 are credited, and 31,143 of 31,149 shot attempts. The six are six different
 players in six different games, each with no even-strength shift in the game he
 shot in.
+
+CHECKED AGAINST THE SUPPLIER, not only against ourselves --
+``hockey/regression/supplier.py`` compares every one of these columns to the
+numbers they publish, for every skater in the league season. Shots taken match
+exactly for 420 of 429 players and within one for 428; goals for 427 of 429 and
+within one for all of them. The one player beyond that, Alfred Hjalm, has
+shifts in 11 of the 20 games he dressed for, which is an ingestion gap rather
+than a disagreement about the metric.
+
+xG SUMS THE PUBLISHED VALUE, NOT THE RAW ONE -- ``weight="xg_official"``. The
+supplier raises every ungraded slot shot to a grade C chance downstream of the
+event feed, so summing the feed's own number lands 2.2% low: 1,487.5 against
+their 1,521.1 over the league season, 1,519.4 with the adjustment. See
+:func:`~hockey.metrics.on_ice._xg_official`.
 '''
 from __future__ import annotations
 
@@ -63,16 +77,18 @@ COLUMNS = ColumnSet((
     # Column("G (tot)",  "Goals · All", CREDITED, rate=False),
     # Column("SA (tot)", "Shots · All", CREDITED, rate=False),
     Column("G",    "Goals · All",    CREDITED),
-    Column("xG",   "Shots · All",    CREDITED, weight="xg"),
+    Column("xG",   "Shots · All",    CREDITED, weight="xg_official"),
     Column("SA",   "Shots · All",    CREDITED),
     Column("SOG",  "Shots · On Net", CREDITED),
     Column("Slot", "Shots · Slot",   CREDITED),
 ))
 
 _NOTE = ("xG is the supplier's expected_goals_all_shots summed over the "
-         "player's own shot attempts; SOG includes goals; Slot is inner + "
-         "outer slot. The denominator is his even-strength ice time, the same "
-         "one the on-ice report uses, so the two are comparable.")
+         "player's own shot attempts, with ungraded slot shots raised to a "
+         "grade C chance as the supplier's own published figures do; SOG "
+         "includes goals; Slot is inner + outer slot. The denominator is his "
+         "even-strength ice time, the same one the on-ice report uses, so the "
+         "two are comparable.")
 
 
 def player_report(players: Iterable, league: int, season: str, *,

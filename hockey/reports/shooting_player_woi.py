@@ -37,6 +37,16 @@ TIED TO THE SUPPLIER'S PUBLISHED NUMBERS. Player 24417, league 17, 2025/26:
 934.5 / 37 / 914 here. The three selection choices that reconcile them --
 stage, what even strength means, and strict shift containment -- are documented
 where they are made, in ``on_ice.py``.
+
+Checked against the supplier for EVERY skater in that league season, not just
+that one, by ``hockey/regression/supplier.py``: shot attempts 155,464 against
+their 155,682, on-ice goals 6,977 against 6,981, and 414 of 429 players inside
+a single event. Re-run it after changing anything here.
+
+xG SUMS THE PUBLISHED VALUE, NOT THE RAW ONE -- ``weight="xg_official"``. The
+supplier raises every ungraded slot shot to a grade C chance downstream of the
+event feed, so summing the feed's own number lands 2.2% low. See
+:func:`~hockey.metrics.on_ice._xg_official`.
 '''
 from __future__ import annotations
 from hockey.reports.helpers.get_roster import get_roster
@@ -60,19 +70,21 @@ COLUMNS = ColumnSet((
     #Column("G (woi)",  "Goals · All", BOTH, rate=False),
     #Column("SA (woi)", "Shots · All", BOTH, rate=False),
     Column("G",    "Goals · All",    FOR),
-    Column("xG",   "Shots · All",    FOR,     weight="xg"),
+    Column("xG",   "Shots · All",    FOR,     weight="xg_official"),
     Column("SA",   "Shots · All",    FOR),
     Column("SOG",  "Shots · On Net", FOR),
     Column("Slot", "Shots · Slot",   FOR),
     Column("G",    "Goals · All",    AGAINST),
-    Column("xG",   "Shots · All",    AGAINST, weight="xg"),
+    Column("xG",   "Shots · All",    AGAINST, weight="xg_official"),
     Column("SA",   "Shots · All",    AGAINST),
     Column("SOG",  "Shots · On Net", AGAINST),
     Column("Slot", "Shots · Slot",   AGAINST),
 ))
 
 _NOTE = ("xG is the supplier's expected_goals_all_shots summed over shot "
-         "attempts; SOG includes goals; Slot is inner + outer slot.")
+         "attempts, with ungraded slot shots raised to a grade C chance as "
+         "the supplier's own published figures do; SOG includes goals; Slot "
+         "is inner + outer slot.")
 
 
 def player_woi_report(players: Iterable, league: int, season: str, *,
@@ -109,7 +121,7 @@ def player_woi_report(players: Iterable, league: int, season: str, *,
 
 if __name__ == "__main__":
     LEAGUE = 17
-    SEASON = "20262027"
+    SEASON = "20252026"
     # Ids and names both work; the last one is a deliberate miss, so the
     # # "not in the table" footnote is visible in the demo output.
     # PLAYERS = [24417, 6970, "Tom Hedberg", "Zach Wytinck", "Jonathan Wikström",
