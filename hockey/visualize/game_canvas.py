@@ -41,7 +41,10 @@ _DIV_ID = "timeline"
 # 9: dumpinentry registered as the "Dump-in entries" population -- six more
 #    lanes under Entries, and the one whose Result says the dumping team
 #    recovered. Cached HTML has neither the lanes nor their segments.
-CANVAS_VERSION = 10
+# 11: the two combination lanes (union / intersection of the ticked lanes).
+#    Segments carry a per-event id the older cached HTML has no array for, and
+#    the figure gained the traces and the divider they are drawn with.
+CANVAS_VERSION = 11
 
 
 def _default_props(game: Game) -> dict:
@@ -99,6 +102,37 @@ _LANE_CHROME = 54
 # to click for a TOI readout, so short selections still get a usable strip.
 _MIN_LANE_AREA = 96
 
+# The two COMBINATION lanes, drawn below the ticked metric lanes: the union of
+# the selection (every event in at least one ticked lane) and its intersection
+# (the events in all of them).
+#
+# These are the lane NAMES; _redraw() appends the event count to the y-axis
+# label -- "ANY (452)". The count was an annotation inside the lane first,
+# which covered the leftmost ticks -- the one thing a lane is for -- and then
+# a second label row naming the lane count too, which was more words than a
+# lane label can carry beside its neighbour. The rail already says how many
+# lanes are ticked.
+#
+# They are not metrics and they are not in the catalog -- there is nothing to
+# register and no lane key to collide with. They are a reading of whatever is
+# currently ticked, computed in the browser from the same per-event arrays the
+# lanes themselves are drawn from, so they follow the team, player and context
+# filters without a second implementation of any of them.
+#
+# The intersection is meaningful because an event belongs to several lanes at
+# once -- its population's All lane plus one lane per matching filter item, the
+# groups being independent axes. So "LPRs · Successful" and "LPRs · Is
+# Contested" intersect in the successful contested recoveries. Across populations it is
+# empty by construction (no event is both a shot and a pass), which is the
+# honest answer rather than a bug: the catalog's groups are per population.
+_UNION_LANE = "ANY"
+_INTERSECTION_LANE = "ALL"
+_COMBO_LANES = (_UNION_LANE, _INTERSECTION_LANE)
+# Below two ticked lanes the pair says nothing the chart is not already
+# showing -- with one lane ticked both are copies of it -- so it stays hidden
+# rather than drawing the same ticks three times.
+_COMBO_MIN_LANES = 2
+
 
 # The lane tree comes from the metric layer, not from a table kept here.
 # hockey/derive/metric_catalog.py assembles it from the eight derive modules:
@@ -154,7 +188,11 @@ def _context_code(event: Event) -> int:
 # catalog does: defensive_events supplies controlledentryagainst, blocks and
 # checks as genuine events with their own filters, so a mirrored copy would be
 # a second, weaker version of a lane that already exists. _build_figure still
-# consults this, so restoring mirrors means filling this set -- nothing else.
+# consults this, so restoring mirrors means filling this set -- and settling
+# one question it raises for the combination lanes below, which treat an event
+# as one event however many lanes hold it: a mirrored event is the same event
+# seen from the other bench, so the pair draws it on whichever side the first
+# ticked lane holding it reported.
 _MIRRORED_LANES: frozenset = frozenset()
 
 _FLIP_SIDE = {_SIDE_HOME: _SIDE_AWAY, _SIDE_AWAY: _SIDE_HOME, _SIDE_NONE: _SIDE_NONE}
@@ -344,9 +382,16 @@ class GameCanvas:
 
         Also populates ``self._segments``: event type -> one entry per side,
         each carrying the two trace indices that render it (``l``ine and
-        ``h``over), the ``s``ide, and the event ``t``imes, ``p``layer ids and
-        ``c``ontext codes behind them. The browser re-derives the traces from
-        that whenever a filter changes.
+        ``h``over), the ``s``ide, and the event ``t``imes, ``p``layer ids,
+        ``c``ontext codes and ``e``vent ids behind them. The browser re-derives
+        the traces from that whenever a filter changes.
+
+        The event id is the event's position in ``game.events``, and it is what
+        makes the combination lanes possible: the same event appears in several
+        lanes, so union and intersection are set operations over these ids
+        rather than over times (two different events can share a time).
+        ``self._combo_segments`` holds the empty traces they are drawn into --
+        which lanes are ticked is only known in the browser.
         """
         end_time = self._end_time
         props = self._props
@@ -381,12 +426,18 @@ class GameCanvas:
         # so possessing-team coloring is preserved within a type.
         events_by_type: dict[str, list[Event]] = defaultdict(list)
         known = set(self._event_types)
-        for e in self._game.events:
+        # Identity for the combination lanes. Keyed on id() rather than on the
+        # Event itself: it is a frozen dataclass, but it carries the raw
+        # supplier dict, so it is not hashable. event_id is not used -- it is
+        # Optional and the two vocabularies number events differently.
+        event_ids: dict[int, int] = {}
+        for i, e in enumerate(self._game.events):
             if e.t is None or not e.name:
                 continue
             for lane in _display_lanes(e):
                 if lane in known:
                     events_by_type[lane].append(e)
+                    event_ids[id(e)] = i
 
         # Lanes: each visible type occupies one row of the y axis, so types
         # stay separable instead of overprinting each other. Lanes are packed
@@ -465,11 +516,42 @@ class GameCanvas:
                     "p": ([None] * len(group) if mirrored
                           else [e.player_id for e in group]),
                     "c": [_context_code(e) for e in group],
+                    "e": [event_ids[id(e)] for e in group],
                 })
 
             segments[etype] = specs
 
         self._segments = segments
+
+        # The combination lanes' traces: one line and one hover trace per side
+        # each, created EMPTY. What they hold depends on which lanes are
+        # ticked, which only the browser knows, so _redraw() fills them from
+        # the arrays above -- the same path every other filter already takes.
+        combo: dict[str, list[dict]] = {}
+        for label in _COMBO_LANES:
+            combo_specs: list[dict] = []
+            for side in _SIDES:
+                line_idx = len(fig.data)
+                fig.add_trace(go.Scatter(
+                    x=[], y=[], mode="lines",
+                    line=dict(color=self._side_color(side), width=1),
+                    name=label,
+                    hoverinfo="skip",
+                    visible=False,
+                    showlegend=False,
+                ))
+                hover_idx = len(fig.data)
+                fig.add_trace(go.Scatter(
+                    x=[], y=[], mode="markers",
+                    marker=dict(size=16, opacity=0),
+                    name=label,
+                    hovertemplate="%{hovertext}<extra></extra>",
+                    visible=False,
+                    showlegend=False,
+                ))
+                combo_specs.append({"l": line_idx, "h": hover_idx, "s": side})
+            combo[label] = combo_specs
+        self._combo_segments = combo
 
         period_annotations = [
             dict(
@@ -499,6 +581,18 @@ class GameCanvas:
             font=dict(color=props["background-color"], size=11),
             bgcolor=props["text-color"], borderpad=3,
             xanchor="center", yanchor="bottom",
+            visible=False,
+        ))
+
+        # Divider above the combination lanes, so they read as a summary of
+        # the lanes above rather than as two more metrics. Like the playhead,
+        # it lives in the layout from the start and _redraw() moves it to
+        # whatever row the pair ended up on.
+        self._combo_divider = len(shapes)
+        shapes.append(dict(
+            type="line", xref="paper", yref="y",
+            x0=0, x1=1, y0=0, y1=0,
+            line=dict(color=props["border-color"], width=1, dash="dot"),
             visible=False,
         ))
 
@@ -1025,8 +1119,13 @@ class GameCanvas:
         )
         # The plot is sized by this wrapper, not by the figure: a div with an
         # explicit height reserves the space in the flow, so the chart can't
-        # draw over the card below it when the lane count changes.
-        plot_height = self._chart_height(len(self._initial_lanes()))
+        # draw over the card below it when the lane count changes. The
+        # combination lanes count towards it whenever they will be showing, so
+        # a pre-selected canvas doesn't open two lanes short and resize.
+        initial = len(self._initial_lanes())
+        if initial >= _COMBO_MIN_LANES:
+            initial += len(_COMBO_LANES)
+        plot_height = self._chart_height(initial)
 
         toi_data, toi_names, toi_positions = self._toi_embed()
         toi_ceiling = self._toi_bar_ceiling()
@@ -1714,6 +1813,15 @@ var PLAYHEAD_SHAPE = {self._playhead_shape};
 var PLAYHEAD_NOTE = {self._playhead_note};
 var LANE_ORDER = {json.dumps(self._display_order)};
 var SEGMENTS = {json.dumps(self._segments)};
+// The combination lanes: label -> one {{l, h, s}} per side, whose two traces
+// _redraw() fills with the union / intersection of the ticked lanes. COMBO
+// carries no event arrays of its own -- there is one copy of each event's
+// time, player and context, in SEGMENTS, and these lanes are derived from it.
+var COMBO = {json.dumps(self._combo_segments)};
+var COMBO_LANES = {json.dumps(list(_COMBO_LANES))};
+var INTERSECTION_LANE = {json.dumps(_INTERSECTION_LANE)};
+var COMBO_DIVIDER = {self._combo_divider};
+var COMBO_MIN_LANES = {_COMBO_MIN_LANES};
 var LANE_HALF = {_LANE_HALF};
 var LANE_HEIGHT = {props['lane-height']};
 var LANE_CHROME = {_LANE_CHROME};
@@ -1984,9 +2092,14 @@ function _redraw() {{
   var hiddenIdx = [];
   var longest = 0;
   var lanes = {{}};
+  // What the combination lanes are built from, filled by the sweep below:
+  // event id -> how many ticked lanes it is DRAWN in, and the [time, player,
+  // side] to draw it with. Only events that survived the team, player and
+  // context filters get in here, so the pair inherits all three.
+  var hits = {{}}, where = {{}};
 
   on.forEach(function(type, lane) {{
-    if (type.length > longest) longest = type.length;
+    longest = Math.max(longest, type.length);
     lanes[type] = lane;
   }});
 
@@ -2008,6 +2121,9 @@ function _redraw() {{
         markX.push(t);
         markY.push(lane);
         hover.push(_hoverText(type, t, seg.p[i], seg.s));
+        var id = seg.e[i];
+        hits[id] = (hits[id] || 0) + 1;
+        if (where[id] === undefined) where[id] = [t, seg.p[i], seg.s];
       }}
       shownIdx.push(seg.l);
       xs.push(lineX); ys.push(lineY); texts.push([]);
@@ -2017,13 +2133,65 @@ function _redraw() {{
   }});
 
   var n = on.length;
+  // The union and intersection of the ticked lanes, on two lanes of their
+  // own below them. An event is in the union when it was drawn in at least
+  // one ticked lane and in the intersection when it was drawn in every one of
+  // them -- so ticking "LPRs · Successful" and "LPRs · Is Contested" puts
+  // the successful contested recoveries on the intersection lane.
+  var combo = n >= COMBO_MIN_LANES ? COMBO_LANES : [];
+  var comboTick = {{}};
+  COMBO_LANES.forEach(function(label) {{
+    var active = combo.indexOf(label) !== -1;
+    var lane = n + combo.indexOf(label);
+    var everywhere = label === INTERSECTION_LANE;
+    var members = [];
+    if (active) {{
+      Object.keys(hits).forEach(function(id) {{
+        if (!everywhere || hits[id] === n) members.push(id);
+      }});
+    }}
+    COMBO[label].forEach(function(seg) {{
+      if (!active) {{
+        hiddenIdx.push(seg.l, seg.h);
+        return;
+      }}
+      var low = lane - LANE_HALF, high = lane + LANE_HALF;
+      var lineX = [], lineY = [], markX = [], markY = [], hover = [];
+      members.forEach(function(id) {{
+        var rec = where[id];
+        if (rec[2] !== seg.s) return;
+        lineX.push(rec[0], rec[0], null);
+        lineY.push(low, high, null);
+        markX.push(rec[0]);
+        markY.push(lane);
+        hover.push(_hoverText(label, rec[0], rec[1], rec[2]));
+      }});
+      shownIdx.push(seg.l);
+      xs.push(lineX); ys.push(lineY); texts.push([]);
+      shownIdx.push(seg.h);
+      xs.push(markX); ys.push(markY); texts.push(hover);
+    }});
+    // The lane's own label carries the count: which operation, over how many
+    // events. Kept to one short row -- these two lanes sit next to each
+    // other, and anything longer reads as a paragraph in the tick labels.
+    comboTick[label] = label + ' (' + _fmtCount(members.length) + ')';
+    if (active) longest = Math.max(longest, comboTick[label].length);
+  }});
+
+  var rows = on.concat(combo.map(function(label) {{ return comboTick[label]; }}));
+  var total = rows.length;
   var layout = {{
-    'yaxis.range': n ? [n - 0.5, -0.5] : [0, 1],
-    'yaxis.tickvals': n ? on.map(function(_, i) {{ return i; }}) : [],
-    'yaxis.ticktext': on,
-    'yaxis.showticklabels': n > 0,
-    'margin.l': n ? Math.min(220, Math.max(60, longest * 7 + 16)) : 12
+    'yaxis.range': total ? [total - 0.5, -0.5] : [0, 1],
+    'yaxis.tickvals': rows.map(function(_, i) {{ return i; }}),
+    'yaxis.ticktext': rows,
+    'yaxis.showticklabels': total > 0,
+    'margin.l': total ? Math.min(220, Math.max(60, longest * 7 + 16)) : 12
   }};
+  layout['shapes[' + COMBO_DIVIDER + '].visible'] = combo.length > 0;
+  if (combo.length) {{
+    layout['shapes[' + COMBO_DIVIDER + '].y0'] = n - 0.5;
+    layout['shapes[' + COMBO_DIVIDER + '].y1'] = n - 0.5;
+  }}
   // Height is driven by the wrapper, not by layout.height: the wrapper
   // reserves the space in the document flow, so a taller chart pushes the
   // cards below it down instead of drawing over them.
@@ -2031,7 +2199,7 @@ function _redraw() {{
     var wrap = document.getElementById('plot-wrap');
     if (wrap) {{
       wrap.style.height =
-        (LANE_CHROME + Math.max(MIN_LANE_AREA, n * LANE_HEIGHT)) + 'px';
+        (LANE_CHROME + Math.max(MIN_LANE_AREA, total * LANE_HEIGHT)) + 'px';
     }}
   }}
 

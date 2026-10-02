@@ -179,7 +179,7 @@ Grades A/B/C map to colors green/orange/red. Home chances appear above the x-axi
 | `hockey/derive/<module>/metrics.py` | One metric module per folder: predicates + `*_FILTERS` + `get_full_data` |
 | `hockey/regression/golden.py` | Stands in for a test suite: freezes counts **and event signatures** per metric |
 | `hockey/regression/supplier.py` | Validates those numbers against the supplier's published stats; caches one API call per topic |
-| `hockey/visualize/game_canvas.py` | Game canvas: metric rail, context bar, timeline, player report (`CANVAS_VERSION`) |
+| `hockey/visualize/game_canvas.py` | Game canvas: metric rail, context bar, timeline, union/intersection lanes, player report (`CANVAS_VERSION`) |
 | `hockey/visualize/shift_toi.py` | Main visualization: 3 line traces + chance markers |
 | `hockey/data_collection/sportlogiq_api.py` | `SportlogiqApi` client + `download_complete_game` |
 | `source_mode.py` | `GAME_SOURCE` mode switch: `game_source()`, `use_db()`, `use_files()` |

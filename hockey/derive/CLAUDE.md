@@ -213,6 +213,18 @@ Two things do, and neither defines a metric of its own.
 `metric_catalog`. Add a filter item to a module and it appears on the canvas;
 there is no second list to update.
 
+Below the ticked lanes it draws two more: the UNION of the selection
+(`ANY (472)`) and its INTERSECTION (`ALL (40)`), labelled with the count that
+went into each. They are **not** lanes in this sense -- no population, no
+predicate, nothing to register here, and no key that could collide in
+`flatten()`. They are a reading of whatever is
+ticked, computed in the browser as set operations over per-event ids, which
+works precisely because an event belongs to several lanes at once: ticking
+`LPRs · Successful` and `LPRs · Is Contested` intersects in the successful
+contested recoveries. Across populations the intersection is empty by
+construction -- a group is exhaustive over ONE population -- and that is the
+honest answer rather than a bug.
+
 **`hockey/metrics/player/skater.py`** is the same numbers without the GUI: one
 line per skater over a set of games, for prototyping. It calls the metric
 modules directly — `scoring.all_goals`, `shooting.filter_shots(shots,
