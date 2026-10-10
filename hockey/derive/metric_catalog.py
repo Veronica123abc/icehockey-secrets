@@ -80,7 +80,7 @@ PLAYMAKING_MODULE = "hockey.derive.playmaking.metrics"
 POSSESSION_MODULE = "hockey.derive.possession.metrics"
 DEFENSIVE_EVENTS_MODULE = "hockey.derive.defensive_events.metrics"
 FACEOFFS_MODULE = "hockey.derive.faceoffs.metrics"
-
+LPR_MODULE = "hockey.derive.lpr.metrics"
 
 @dataclass(frozen=True)
 class PopulationSpec:
@@ -141,6 +141,9 @@ _REGISTRY: tuple[SectionSpec, ...] = (
     )),
     SectionSpec("Faceoffs", (
         PopulationSpec(FACEOFFS_MODULE, "faceoff"),
+    )),
+    SectionSpec("Lpr", (
+        PopulationSpec(LPR_MODULE, "lpr"),
     )),
     SectionSpec("Defensive events", (
         PopulationSpec(DEFENSIVE_EVENTS_MODULE, "controlledentryagainst"),

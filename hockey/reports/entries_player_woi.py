@@ -51,10 +51,12 @@ from __future__ import annotations
 from collections.abc import Iterable
 from pathlib import Path
 
-from hockey.reports.on_ice import (FOR, Column, ColumnSet, EVEN_STRENGTH,
+from hockey.reports.on_ice import (FOR, AGAINST, Column, ColumnSet, EVEN_STRENGTH,
                                    REGULAR, open_connection, output_path,
                                    player_rows, to_sheet)
 from hockey.reports.sheet import render_pdf
+
+from hockey.reports.helpers.get_roster import get_roster
 
 ENTRIES = "Controlled entries"
 RECOVERIES = "Dump-in recoveries"
@@ -62,17 +64,54 @@ RECOVERIES = "Dump-in recoveries"
 #: The report, in one place. Lanes from the same filter group are alternatives
 #: (OR); lanes from different groups must both hold (AND) -- the metric layer's
 #: own contract, so nothing here restates a predicate.
+# COLUMNS = ColumnSet((
+#     Column("Controlled\nEntries", f"{ENTRIES} · Successful", FOR),
+#     Column("Controlled\nEntries\nWith play", (f"{ENTRIES} · Successful",
+#                        f"{ENTRIES} · With Play After"), FOR),
+#     Column("w/ shot", (f"{ENTRIES} · Successful",
+#                        f"{ENTRIES} · With Shot On Net",
+#                        f"{ENTRIES} · With Slot Shot"), FOR),
+#     Column("Dump-ins", "Dump-ins · Successful", FOR),
+#     Column("Recoveries", (f"{RECOVERIES} · Successful",
+#                           f"{RECOVERIES} · Offensive"), FOR),
+#
+#     Column("Controlled\nEntries", f"{ENTRIES} · Successful", AGAINST),
+#     Column("Controlled\nEntries\nWith play", (f"{ENTRIES} · Successful",
+#                                               f"{ENTRIES} · With Play After"), AGAINST),
+#     Column("w/ shot", (f"{ENTRIES} · Successful",
+#                        f"{ENTRIES} · With Shot On Net",
+#                        f"{ENTRIES} · With Slot Shot"), AGAINST),
+#     Column("Dump-ins", "Dump-ins · Successful", AGAINST),
+#     Column("Recoveries", (f"{RECOVERIES} · Successful",
+#                           f"{RECOVERIES} · Offensive"), AGAINST),
+# ))
+
+
 COLUMNS = ColumnSet((
-    Column("Entries", f"{ENTRIES} · Successful", FOR),
-    Column("w/ play", (f"{ENTRIES} · Successful",
+    #Column("Controlled\nEntries", f"{ENTRIES} · Successful", FOR),
+    Column("Contr\nSucc", (f"{ENTRIES} · Successful",
                        f"{ENTRIES} · With Play After"), FOR),
-    Column("w/ shot", (f"{ENTRIES} · Successful",
+    Column("Contr\nFail", (f"{ENTRIES} · Successful",
+                                      f"{ENTRIES} · With No Play After"), FOR),
+    Column("Contr\nWith\nShot", (f"{ENTRIES} · Successful",
                        f"{ENTRIES} · With Shot On Net",
                        f"{ENTRIES} · With Slot Shot"), FOR),
-    Column("Dump-ins", "Dump-ins · Successful", FOR),
-    Column("Recoveries", (f"{RECOVERIES} · Successful",
+    Column("Dumpin", "Dump-ins · Successful", FOR),
+    Column("Dumpin\nRec", (f"{RECOVERIES} · Successful",
                           f"{RECOVERIES} · Offensive"), FOR),
+
+    Column("Contr\nSucc", (f"{ENTRIES} · Successful",
+                       f"{ENTRIES} · With Play After"), AGAINST),
+    Column("Contr\nFail", (f"{ENTRIES} · Successful",
+                                      f"{ENTRIES} · With No Play After"), AGAINST),
+    Column("Contr\nWith\nShot", (f"{ENTRIES} · Successful",
+                       f"{ENTRIES} · With Shot On Net",
+                       f"{ENTRIES} · With Slot Shot"), AGAINST),
+    Column("Dumpin", "Dump-ins · Successful", AGAINST),
+    Column("Dumpin\nRec", (f"{RECOVERIES} · Successful",
+                          f"{RECOVERIES} · Offensive"), AGAINST),
 ))
+
 
 _NOTE = ("All columns are the player's own team's play while he was on the "
          "ice. \"w/ shot\" is an entry followed by a shot on net or a slot "
@@ -105,20 +144,20 @@ def player_entries_report(players: Iterable, league: int, season: str, *,
             conn.close()
 
     sheet = to_sheet(rows, missing, columns=COLUMNS,
-                     title=title or "Entries and dump-ins — even strength",
+                     title=title or "ENTRIES AND DUMPINS - WHILE ON ICE - EVEN STRENGTH PER 60",
                      league=league, season=season, stage=stage,
                      context=context, min_toi=min_toi, note_extra=_NOTE)
-    return render_pdf(sheet, output or output_path("player_entries", league,
+    return render_pdf(sheet, output or output_path("entries_player_woi", league,
                                                    season, stage))
 
 
 if __name__ == "__main__":
     LEAGUE = 17
-    SEASON = "20252026"
+    SEASON = "20262027"
     PLAYERS = [24417, 22782, "Tom Hedberg", "Zach Wytinck", "Jonathan Wikström",
                "Carl Wäng", "Linus Skager"]
-
+    PLAYERS = get_roster(1395, SEASON)
     import time
     started = time.perf_counter()
-    path = player_entries_report(PLAYERS, LEAGUE, SEASON, min_toi=20.0)
+    path = player_entries_report(PLAYERS, LEAGUE, SEASON, min_toi=1.0)
     print(f"{path}  ({time.perf_counter() - started:.1f}s)")

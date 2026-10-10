@@ -74,11 +74,13 @@ COLUMNS = ColumnSet((
     Column("SA",   "Shots · All",    FOR),
     Column("SOG",  "Shots · On Net", FOR),
     Column("Slot", "Shots · Slot",   FOR),
+    Column("Inner\nSlot", "Shots · Inner Slot",   FOR),
     Column("G",    "Goals · All",    AGAINST),
     Column("xG",   "Shots · All",    AGAINST, weight="xg_official"),
     Column("SA",   "Shots · All",    AGAINST),
     Column("SOG",  "Shots · On Net", AGAINST),
     Column("Slot", "Shots · Slot",   AGAINST),
+    Column("Inner\nSlot", "Shots · Inner Slot",   AGAINST),
 ))
 
 _NOTE = ("xG is the supplier's expected_goals_all_shots summed over shot "
@@ -112,7 +114,7 @@ def player_woi_report(players: Iterable, league: int, season: str, *,
             conn.close()
 
     sheet = to_sheet(rows, missing, columns=COLUMNS,
-                     title=title or "On-ice report — even strength",
+                     title=title or "SHOOTING - WHILE ON ICE - EVEN STRENGTH PER 60",
                      league=league, season=season, stage=stage,
                      context=context, min_toi=min_toi, note_extra=_NOTE)
     return render_pdf(sheet, output or output_path("shooting_player_woi", league,
@@ -121,15 +123,15 @@ def player_woi_report(players: Iterable, league: int, season: str, *,
 
 if __name__ == "__main__":
     LEAGUE = 17
-    SEASON = "20252026"
+    SEASON = "20262027"
     # Ids and names both work; the last one is a deliberate miss, so the
     # # "not in the table" footnote is visible in the demo output.
     # PLAYERS = [24417, 6970, "Tom Hedberg", "Zach Wytinck", "Jonathan Wikström",
     #            "Carl Wäng", "Linus Skager", "Nobody Atall"]
 
-    PLAYERS = get_roster(1395,'20262027')
+    PLAYERS = get_roster(1395, SEASON)
 
     import time
     started = time.perf_counter()
-    path = player_woi_report(PLAYERS, LEAGUE, SEASON, min_toi=20.0)
+    path = player_woi_report(PLAYERS, LEAGUE, SEASON, min_toi=1.0)
     print(f"{path}  ({time.perf_counter() - started:.1f}s)")

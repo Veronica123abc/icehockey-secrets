@@ -281,6 +281,7 @@ def game_metrics(game, context=None) -> LaneCounts:
 
 if __name__ == "__main__":
     GAME_ID = 186451
+    GAME_ID = 186802
     HIDE_EMPTY = False          # True for the canvas rail's view
     CONTEXT = None              # or ctx.DEFAULT for even strength
 

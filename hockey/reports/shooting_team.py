@@ -79,7 +79,7 @@ def team_report(league: int, season: str, *,
 if __name__ == "__main__":
     import time
     LEAGUE = 17
-    SEASON = "20252026"
+    SEASON = "20262027"
 
     started = time.perf_counter()
     path = team_report(LEAGUE, SEASON)

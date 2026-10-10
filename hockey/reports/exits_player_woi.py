@@ -81,17 +81,24 @@ EXITS = "Controlled exits"
 DUMPOUTS = "Dump-outs"
 
 COLUMNS = ColumnSet((
-    Column("Controlled Exit", f"{EXITS} · Successful", FOR),
-    Column("Carry+", (f"{EXITS} · Successful",
+    Column("Carry out", (f"{EXITS} · Successful",
                     f"{EXITS} · Carry"), FOR),
-    Column("Carry-", (f"{EXITS} · Failed",
-                      f"{EXITS} · Carry"), FOR),
 
-    Column("Pass+", (f"{EXITS} · Successful",
+    Column("Pass\nSucc", (f"{EXITS} · Successful",
                      f"{EXITS} · Pass"), FOR),
 
-    Column("Pass-", (f"{EXITS} · Failed",
-                     f"{EXITS} · Pass"), FOR)
+    Column("Pass\nFail", (f"{EXITS} · Failed",
+                     f"{EXITS} · Pass"), FOR),
+
+    Column("Carry out", (f"{EXITS} · Successful",
+                    f"{EXITS} · Carry"), AGAINST),
+
+    Column("Pass\nSucc", (f"{EXITS} · Successful",
+                     f"{EXITS} · Pass"), AGAINST),
+
+    Column("Pass\nFail", (f"{EXITS} · Failed",
+                     f"{EXITS} · Pass"), AGAINST),
+
     # Column("Pass", (f"{EXITS} · Successful",
     #                f"{EXITS} · Pass"), FOR),
 ))
@@ -140,7 +147,7 @@ def exits_player_woi_report(players: Iterable, league: int, season: str, *,
             conn.close()
 
     sheet = to_sheet(rows, missing, columns=COLUMNS,
-                     title=title or "Entries and dump-ins — even strength",
+                     title=title or "CONTROLLED EXITS - WHILE ON ICE — EVEN STRENGTH",
                      league=league, season=season, stage=stage,
                      context=context, min_toi=min_toi, note_extra=_NOTE)
     return render_pdf(sheet, output or output_path("exits_player_woi", league,
@@ -161,5 +168,5 @@ if __name__ == "__main__":
         import time
 
         started = time.perf_counter()
-        path = exits_player_woi_report(PLAYERS, LEAGUE, SEASON, min_toi=20.0)
+        path = exits_player_woi_report(PLAYERS, LEAGUE, SEASON, min_toi=1.0)
         print(f"{path}  ({time.perf_counter() - started:.1f}s)")
