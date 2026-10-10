@@ -40,10 +40,8 @@ from __future__ import annotations
 
 from collections.abc import Iterable, Sequence
 
+from hockey.model.roster import GOALIE
 from hockey.model.toi import ToIInterval, merge_spans
-
-#: Roster position marking a goalie, as `affiliation.position` spells it.
-GOALIE = "G"
 
 
 def _placeholders(values: Sequence) -> str:
@@ -140,7 +138,7 @@ def toi_seconds(shifts: Iterable[ToIInterval]) -> dict[int, float]:
     """player id -> seconds on the ice, summed over whatever games are given.
 
     Overlapping shifts of one player in one game are merged rather than added
-    by ``toi.merge_spans``, the same arithmetic ``skater._skater_spans`` uses.
+    by ``toi.merge_spans``, the same arithmetic ``toi.skater_spans`` uses.
     What differs from that function is policy, not maths: it drops goalies by
     roster (here that is ``include_goalies=False`` on the query) and closes an
     open shift at the end of ITS game, whereas an open shift here

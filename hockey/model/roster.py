@@ -3,6 +3,12 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Optional
 
+#: The ``position`` value marking a goalie. One literal, because "is this
+#: player a skater" is asked in four layers -- the span policy in
+#: ``model/toi.py``, the manpower timeline in ``metrics/on_ice_spans.py``, the
+#: shift query in ``hockey/db`` -- and each used to spell it itself.
+GOALIE = "G"
+
 
 @dataclass(frozen=True, slots=True)
 class Player:

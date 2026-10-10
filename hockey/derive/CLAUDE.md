@@ -115,6 +115,17 @@ named function, with a docstring saying why:
 - `defensive_events.dumpins_against` / `shot_pressure` — single-valued
   populations (one type, one outcome, one zone), so a group would be
   decoration rather than structure.
+- `lines.py` — not events at all. It sweeps `ToIInterval`s into the sets of
+  skaters that shared the ice (`LineCombination`: the skaters, their spans and
+  therefore their TOI), which is the denominator a per-line metric needs
+  before any event is credited to anything. Like `entries.py` it owns a
+  dataclass rather than a population, so there is nothing to register in the
+  catalog and nothing for `golden.py` to hash — its `__main__` re-checks its
+  own two invariants instead, the partition of ice time being the load-bearing
+  one. It reads `.toi` and `.roster`, so a `Game` and a `GameData` both work.
+  The spans themselves are `model/toi.skater_spans`, not its own: a line is
+  made of the same seconds a TOI denominator is made of. What it adds is which
+  bench each skater belongs to, and the sweep from spans to shared sets.
 
 ---
 

@@ -1,76 +1,49 @@
 #!/usr/bin/python
-"""Who was on the ice, and what situation was it from each bench's side.
+"""What situation was it, from each bench's side.
 
-Two questions have to be answered before any on-ice number exists, and neither
-is a metric:
+Two questions have to be answered before any on-ice number exists, and
+neither is a metric. One of them now lives a layer down:
 
-* :func:`skater_spans` -- the merged intervals each skater was on the ice for.
+* ``model/toi.skater_spans`` -- the merged intervals each skater was on the
+  ice for. It was here until ``derive/lines.py`` needed the same spans, which
+  ``metrics/`` cannot be imported from; it reads only a ``ToIInterval`` and a
+  ``Roster``, so the model is where it belongs. Import it from there.
 * :class:`SituationTimeline` -- the game cut into stretches of constant
-  situation, each stretch labelled from BOTH teams' points of view.
+  situation, each stretch labelled from BOTH teams' points of view. That one
+  stays: it is the only thing here that reads ``context_filter``.
 
 They were written for ``skater.py``'s goals-for/against and now also serve
 ``woi.py``, which asks them of every shot rather than of the half-dozen goals
 in a game. That change of scale is why this module exists separately and why
-both answers are indexed rather than scanned:
+the timeline is indexed rather than scanned:
 
-* the timeline is built with a difference array over the cut points instead of
+* it is built with a difference array over the cut points instead of
   re-counting every shift at every cut -- O(shifts log cuts) rather than
   O(shifts x cuts), which on a 410-game season is the difference between
   minutes and seconds;
-* :meth:`SituationTimeline.at` bisects, so classifying an event costs a lookup
-  and not a walk.
+* :meth:`SituationTimeline.at` bisects, so classifying an event costs a
+  lookup and not a walk.
 
-Both produce exactly what the straightforward loops produced -- verified
+It produces exactly what the straightforward loop produced -- verified
 against ``skater.py``'s own checks: the manpower partition still sums to each
 skater's total TOI, and the file and database paths still agree field for
 field on every skater.
 
-GOALIES ARE NOT SKATERS, but they are not absent either. :func:`skater_spans`
+GOALIES ARE NOT SKATERS, but they are not absent either. ``skater_spans``
 drops them, because a goalie is not a line to be credited; the timeline keeps
 them, because a pulled goalie is what separates 6v5 from a power play.
 """
 from __future__ import annotations
 
 from bisect import bisect_left, bisect_right
-from collections import defaultdict
 from collections.abc import Sequence
 
-from hockey.model.roster import Roster
-from hockey.model.toi import ToIInterval, merge_spans
+from hockey.model.roster import GOALIE, Roster
+from hockey.model.toi import Span, ToIInterval
 from hockey.derive import context_filter as ctx
-
-#: Roster position marking a goalie.
-GOALIE = "G"
 
 #: ``(period, manpower, goalies)`` -- one team's view of one moment.
 Situation = tuple[str, str, str]
-
-Span = tuple[float, float]
-
-
-def skater_spans(toi: Sequence[ToIInterval],
-                 roster: Roster) -> dict[int, list[Span]]:
-    """player id -> his on-ice spans in this game, merged and sorted.
-
-    Goalies are dropped. ``end_t`` is None when the supplier never recorded the
-    player coming off; it does not happen in the games checked, but the model
-    allows it, so an open shift is closed at the last time anything ends rather
-    than running to infinity.
-
-    Merging is ``toi.merge_spans``; what belongs here is the POLICY around it
-    -- dropping goalies and closing an open shift -- not the arithmetic.
-    """
-    end_of_game = max((x.end_t for x in toi if x.end_t is not None), default=0.0)
-    raw: dict[int, list[Span]] = defaultdict(list)
-    for interval in toi:
-        player = roster.players.get(interval.player_id)
-        if player is not None and player.position == GOALIE:
-            continue
-        end = end_of_game if interval.end_t is None else interval.end_t
-        if end > interval.start_t:
-            raw[interval.player_id].append((interval.start_t, end))
-
-    return {player_id: merge_spans(spans) for player_id, spans in raw.items()}
 
 
 def on_ice_at(spans: Sequence[Span], t: float) -> bool:

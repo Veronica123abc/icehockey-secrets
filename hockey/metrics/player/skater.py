@@ -72,9 +72,10 @@ the slices his team's situation is selected for. Period boundaries join the
 cut list defensively: no shift straddles one in the games checked, but a slice
 spanning two periods would otherwise be credited entirely to one of them.
 
-That sweep is :mod:`hockey.metrics.on_ice_spans`, not this file --
-``woi.py`` asks the same two questions of every shot in a season, and one
-implementation of "who was on, in what situation" is the whole point.
+That sweep is :class:`hockey.metrics.on_ice_spans.SituationTimeline`, not
+this file, and the spans it cuts are ``model/toi.skater_spans`` -- ``woi.py``
+asks the same two questions of every shot in a season, and one implementation
+of "who was on, in what situation" is the whole point.
 
 Numerator and denominator classify by slightly different means, deliberately.
 An event carries the supplier's own ``manpower_situation`` and uses it; a slice
@@ -100,8 +101,8 @@ from hockey.derive.scoring import scoring
 from hockey.derive.shooting import metrics as shooting
 from hockey.metrics.game_bundles import (available_games, from_database,
                                          from_games, load_games)
-from hockey.metrics.on_ice_spans import (SituationTimeline, on_ice_at,
-                                        skater_spans)
+from hockey.metrics.on_ice_spans import SituationTimeline, on_ice_at
+from hockey.model.toi import skater_spans
 
 #: The counted metrics, in report order. games_played and the TOI columns
 #: describe the sample rather than counting events, so they are not here.

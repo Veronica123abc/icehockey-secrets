@@ -43,7 +43,8 @@ from hockey.derive import metric_catalog as catalog
 from hockey.model.events import Event
 from hockey.model.roster import Roster
 from hockey.model.toi import ToIInterval
-from hockey.metrics.on_ice_spans import SituationTimeline, skater_spans
+from hockey.metrics.on_ice_spans import SituationTimeline
+from hockey.model.toi import skater_spans
 #: EVEN STRENGTH AS THE SUPPLIER COUNTS IT: even manpower, whatever the
 #: goalies are doing. ``ctx.DEFAULT`` is NOT this -- it also demands both
 #: goalies on the ice, which is the right default for the game canvas (you are

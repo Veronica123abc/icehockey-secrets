@@ -172,10 +172,12 @@ Grades A/B/C map to colors green/orange/red. Home chances appear above the x-axi
 | `hockey/normalize/build_game.py` | Orchestrates normalization into `Game` |
 | `hockey/model/game.py` | `Game` dataclass; DataFrame exports; shift series methods |
 | `hockey/model/current_shift.py` | `find_intervals` sweep-line + `current_shift_toi_series` + single-time `current_shift_toi` |
+| `hockey/model/toi.py` | `ToIInterval`; `merge_spans` (the arithmetic) + `skater_spans` (the one span policy: drop goalies, close an open shift, merge) |
 | `hockey/derive/CLAUDE.md` | **Metrics/filters architecture — read before touching either** |
 | `hockey/derive/filter_group.py` | The single implementation of the filter-group machinery; `FilterGroups` |
 | `hockey/derive/metric_catalog.py` | Section → population → group → item tree; what the canvas rail is built from |
 | `hockey/derive/context_filter.py` | Situation filter: team, period, manpower, goalie — reusable, no UI dependency |
+| `hockey/derive/lines.py` | Line combinations: which skaters shared the ice, their spans and TOI (`on_ice_stretches`, `line_combinations`) |
 | `hockey/derive/<module>/metrics.py` | One metric module per folder: predicates + `*_FILTERS` + `get_full_data` |
 | `hockey/regression/golden.py` | Stands in for a test suite: freezes counts **and event signatures** per metric |
 | `hockey/regression/supplier.py` | Validates those numbers against the supplier's published stats; caches one API call per topic |

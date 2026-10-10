@@ -127,9 +127,9 @@ def _database_bundles(conn, usable: Sequence[int],
 
     # Shifts come back already in SportLogIQ ids -- the space the events, the
     # roster and GameData.game_id all speak -- so grouping them is all that is
-    # left to do here. Goalies are kept: _skater_spans drops them by roster,
-    # and _situation_timeline needs them to tell a pulled goalie from a
-    # penalty.
+    # left to do here. Goalies are kept: toi.skater_spans drops them by
+    # roster, and the situation timeline needs them to tell a pulled goalie
+    # from a penalty.
     toi_by_game: dict[int, list[ToIInterval]] = defaultdict(list)
     for interval in query_shifts(conn, game_sl_ids=usable):
         toi_by_game[interval.game_id].append(interval)
