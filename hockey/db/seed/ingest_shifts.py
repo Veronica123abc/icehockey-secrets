@@ -24,8 +24,41 @@ def create_dataframe(game:Game):
     player_map = database.create_map('player', cursor=cursor, values=players)
 
     df = pd.DataFrame(records)
+    if df.empty:
+        cursor.close()
+        db.close()
+        return df
+    game_db_id = game_map.get(game.game_id)
+    if game_db_id is None:
+        raise ValueError(
+            f"Game {game.game_id} not in DB -- run ingest_game first.")
+
     df.player_id = df.player_id.map(player_map)
     df.game_id = df.game_id.map(game_map)
+    # A player the `player` table does not know cannot be referenced -- the
+    # foreign key would reject the row, and the batch with it.
+    unknown = df.player_id.isna()
+    if unknown.any():
+        print(f"Skipping {int(unknown.sum())} shifts of players missing from "
+              f"`player`; run ingest_players first")
+        df = df[~unknown]
+        if df.empty:
+            cursor.close()
+            db.close()
+            return df
+
+    # Shifts this game already has in the table are dropped rather than
+    # re-inserted: `to_sql(if_exists='append')` is one batch, so a single
+    # duplicate would otherwise take the whole game down with it.
+    existing = database.existing_shift_keys(game_db_id, cursor)
+    keep = [database.shift_key(r.player_id, r.in_time, r.out_time) not in existing
+            for r in df.itertuples()]
+    if not all(keep):
+        print(f"Skipping {len(df) - sum(keep)} shifts already in `shift` "
+              f"for game {game.game_id}")
+    df = df[keep]
+    cursor.close()
+    db.close()
     return df
 
 def normalize_df(df):
@@ -37,6 +70,8 @@ def ingest_shifts(game:Game):
     # engine = create_engine(
     #     "mysql+mysqlconnector://apa:apa@localhost:3306/hockeystats_ver3"
     # )
+    if df.empty:
+        return
     engine = database.sqlalchemy_engine_azure()
     df.to_sql('shift', engine, if_exists='append', index=False)
 

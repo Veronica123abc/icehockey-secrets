@@ -80,7 +80,7 @@ def ingest_teams(teams: List[Dict]):
 
 if __name__ == "__main__":
     from hockey.catalog import DataCatalog
-    LEAGUE_ID = 17
+    LEAGUE_ID = 39
 
     # One league's clubs, not all 2395: `team` is referenced by foreign key
     # from `game`, so it only has to hold the teams whose games are loaded.

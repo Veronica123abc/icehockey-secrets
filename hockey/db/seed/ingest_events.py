@@ -183,13 +183,23 @@ def ingest_shifts(cursor, game: Game, player_map, game_db_id) -> None:
     ``period`` is left NULL: Game.toi comes from playerTOI.json, which carries
     absolute game times but no period. shifts.json has it if it is ever wanted.
     """
+    # The game can already have shifts without having events -- ingest_shifts.py
+    # writes them on its own -- so the ones already stored are skipped here
+    # rather than inserted a second time.
+    existing = database.existing_shift_keys(game_db_id, cursor)
     rows = []
+    duplicates = 0
     for toi in game.toi:
         player_db_id = player_map.get(toi.player_id)
         if player_db_id is None:
             err(f"Skipping shift for player {toi.player_id}: not in player_map")
             continue
+        if database.shift_key(player_db_id, toi.start_t, toi.end_t) in existing:
+            duplicates += 1
+            continue
         rows.append((game_db_id, player_db_id, None, toi.start_t, toi.end_t))
+    if duplicates:
+        ok(f"{duplicates} shifts already in `shift`, not written again")
     if rows:
         cursor.executemany(
             "INSERT INTO shift (game_id, player_id, period, in_time, out_time) "
@@ -303,7 +313,7 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--game", type=int, help="ingest this one game and stop")
-    parser.add_argument("--league", type=int, default=17)
+    parser.add_argument("--league", type=int, default=1)
     parser.add_argument("--season", default="20262027")
     args = parser.parse_args()
 

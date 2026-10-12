@@ -78,14 +78,14 @@ def _fetch_events_with_retry(conn: SportlogiqApi, game_id: int) -> dict:
             retry_after = int(response.headers.get("Retry-After", 1))
             time.sleep(retry_after)
         elif response.status_code != 200:
-            raise ValueError(f"playsequence returned HTTP {response.status_code}")
+            raise ValueError(f"Game {game_id} playsequence returned HTTP {response.status_code}")
         else:
             return response.json()
 
 
-def _check_response(response, label: str) -> None:
+def _check_response(response, label: str, game_id: int=0) -> None:
     if response.status_code != 200:
-        raise ValueError(f"{label} returned HTTP {response.status_code}")
+        raise ValueError(f"Game {game_id} {label} returned HTTP {response.status_code}")
 
 
 def download_complete_game(
@@ -123,7 +123,7 @@ def download_complete_game(
             if verbose:
                 print(f"Fetching game info for {game_id}")
             data = conn.get_game_info(game_id)
-            _check_response(data, "game-info")
+            _check_response(data, "game-info", game_id)
             with open(filepath / "game-info.json", "w") as f:
                 json.dump(data.json(), f, indent=4)
 
@@ -131,7 +131,7 @@ def download_complete_game(
             if verbose:
                 print(f"Fetching roster for {game_id}")
             data = conn.get_roster(game_id)
-            _check_response(data, "roster")
+            _check_response(data, "roster",game_id)
             with open(filepath / "roster.json", "w") as f:
                 json.dump(data.json(), f, indent=4)
 
@@ -146,7 +146,7 @@ def download_complete_game(
             if verbose:
                 print(f"Fetching compiled events for {game_id}")
             data = conn.get_compiled_events(game_id)
-            _check_response(data, "playsequence_compiled")
+            _check_response(data, "playsequence_compiled", game_id)
             with open(filepath / "playsequence_compiled.json", "w") as f:
                 json.dump(data.json(), f, indent=4)
 
@@ -154,7 +154,7 @@ def download_complete_game(
             if verbose:
                 print(f"Fetching shifts for {game_id}")
             data = conn.get_shifts(game_id)
-            _check_response(data, "shifts")
+            _check_response(data, "shifts", game_id)
             with open(filepath / "shifts.json", "w") as f:
                 json.dump(data.json(), f, indent=4)
 
@@ -162,7 +162,7 @@ def download_complete_game(
             if verbose:
                 print(f"Fetching playerTOI for {game_id}")
             data = conn.get_player_toi(game_id)
-            _check_response(data, "playerTOI")
+            _check_response(data, "playerTOI", game_id)
             with open(filepath / "playerTOI.json", "w") as f:
                 json.dump(data.json(), f, indent=4)
 
@@ -212,7 +212,7 @@ def download_complete_games(
     game_ids: list[int] | None = None,
     root_dir: str | Path | None = None,
     update: bool = True,
-    max_workers: int = 4,
+    max_workers: int = 3, # Max allowed for events_full
     verbose: bool = True,
     game_info: bool = True,
     roster: bool = True,

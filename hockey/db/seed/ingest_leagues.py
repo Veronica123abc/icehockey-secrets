@@ -1,4 +1,6 @@
 import struct
+
+import mysql.connector
 from azure.identity import InteractiveBrowserCredential
 from typing import List, Dict
 from hockey.db import database
@@ -30,15 +32,25 @@ def ingest_leagues(league_records: List[Dict]):
     #db = database.open_database()
     db = database.open_database_azure()
     cursor = db.cursor()
+    inserted = 0
+    skipped = []
     try:
         for record in league_records:
 
             sql = "INSERT INTO league (sl_id, name, sl_name) VALUES (%s, %s, %s)"
-            cursor.execute(sql, (int(record['id']), record['name'], record['name']))
-
+            try:
+                cursor.execute(sql, (int(record['id']), record['name'], record['name']))
+            except mysql.connector.IntegrityError:
+                # The sl_id is already in the table: that league has been
+                # ingested before, so skip it rather than abort the run.
+                skipped.append(record['id'])
+                continue
+            inserted += 1
 
         db.commit()
-        print(f"Successfully inserted {len(league_records)} league records")
+        print(f"Successfully inserted {inserted} league records")
+        if skipped:
+            print(f"Skipped {len(skipped)} existing league records: {skipped}")
 
     except Exception as e:
         #cursor.rollback()

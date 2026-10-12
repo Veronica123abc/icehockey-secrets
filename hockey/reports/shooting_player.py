@@ -128,10 +128,10 @@ if __name__ == "__main__":
     import time
     from hockey.reports.helpers.get_roster import get_roster
 
-    LEAGUE = 17
-    SEASON = "20252026"
+    LEAGUE = 13
+    SEASON = "20262027"
     PLAYERS = get_roster(1395, SEASON)
-
+    PLAYERS = get_roster(323, SEASON)
     started = time.perf_counter()
     path = player_report(PLAYERS, LEAGUE, SEASON, min_toi=20.0)
     print(f"{path}  ({time.perf_counter() - started:.1f}s)")

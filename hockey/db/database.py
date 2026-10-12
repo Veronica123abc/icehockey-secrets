@@ -78,6 +78,33 @@ def get_table_columns(table, cursor=None):
     return columns
 
 
+def shift_key(player_id, in_time, out_time):
+    """The identity of a shift row, as a comparable tuple.
+
+    The times are rounded to the centisecond because v1 stores them in a
+    FLOAT column: a double written as 1234.567 reads back as 1234.5670166,
+    and an exact comparison would call that a different shift.
+    """
+    def t(v):
+        return None if v is None else round(float(v), 2)
+
+    return (int(player_id), t(in_time), t(out_time))
+
+
+def existing_shift_keys(game_db_id: int, cursor) -> set:
+    """`shift_key`s already stored for one game.
+
+    Both shift ingests filter against this instead of inserting blind. They
+    have to: v1's `shift` has a UNIQUE on (player, game, in, out), so a
+    re-run fails the whole batch, and v2 has no unique key at all, so the
+    same re-run silently doubles every shift of the game.
+    """
+    cursor.execute(
+        "SELECT player_id, in_time, out_time FROM shift WHERE game_id = %s",
+        (game_db_id,))
+    return {shift_key(*row) for row in cursor.fetchall()}
+
+
 if __name__ == "__main__":
     try:
         db = open_database()

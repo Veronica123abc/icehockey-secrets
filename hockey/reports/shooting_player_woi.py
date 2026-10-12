@@ -122,14 +122,14 @@ def player_woi_report(players: Iterable, league: int, season: str, *,
 
 
 if __name__ == "__main__":
-    LEAGUE = 17
+    LEAGUE = 13
     SEASON = "20262027"
     # Ids and names both work; the last one is a deliberate miss, so the
     # # "not in the table" footnote is visible in the demo output.
     # PLAYERS = [24417, 6970, "Tom Hedberg", "Zach Wytinck", "Jonathan Wikström",
     #            "Carl Wäng", "Linus Skager", "Nobody Atall"]
 
-    PLAYERS = get_roster(1395, SEASON)
+    PLAYERS = get_roster(323, SEASON)
 
     import time
     started = time.perf_counter()

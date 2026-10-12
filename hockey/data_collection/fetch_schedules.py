@@ -37,10 +37,11 @@ def download_all_game_indexes_per_season(
         conn = SportlogiqApi()
     if not seasons:
         seasons = catalog.raw_competition(league_id).info.get("seasons", [])
+        seasons = [s["name"] for s in seasons]
     comp = catalog.raw_competition(league_id)
     comp.load()
     for season in seasons: #in comp.info.get("seasons", []):
-        download_game_index(league_id, season["name"], catalog, conn=conn)
+        download_game_index(league_id, season, catalog, conn=conn)
 
 
 def download_all_game_indexes_per_stage(
@@ -58,7 +59,9 @@ def download_all_game_indexes_per_stage(
 
 
 if __name__ == "__main__":
-    LEAGUE_ID = 17
-    seasons = ["20262027"]
+
+    LEAGUE_IDS = [1,13,17,39,213]
+    SEASONS = ["20262027"]
     catalog = DataCatalog(settings.data_root_dir)
-    download_all_game_indexes_per_season(LEAGUE_ID, catalog)
+    for league_id in LEAGUE_IDS:
+        download_all_game_indexes_per_season(league_id, catalog, seasons=SEASONS)
