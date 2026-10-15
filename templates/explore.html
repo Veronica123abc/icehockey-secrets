@@ -1,0 +1,334 @@
+{% extends "base.html" %}
+{% block title %}Explore metrics{% endblock %}
+
+{% block extra_style %}
+  .explore { display: grid; grid-template-columns: 340px 1fr; gap: 1.5rem;
+             align-items: start; }
+  .pane { background: #1e293b; border: 1px solid #334155; border-radius: .5rem;
+          padding: 1rem; }
+  .pane h2 { font-size: 1rem; margin-bottom: .5rem; color: #f1f5f9; }
+  .hint { font-size: .8rem; color: #94a3b8; line-height: 1.45; }
+  .rail { max-height: 78vh; overflow-y: auto; }
+  .rail details { margin: .2rem 0; }
+  .rail summary { cursor: pointer; padding: .2rem 0; font-size: .9rem;
+                  color: #cbd5e1; }
+  .rail .pop > summary { font-weight: 600; color: #e2e8f0; }
+  .rail .grp > summary { color: #a5b4fc; font-size: .82rem;
+                         text-transform: uppercase; letter-spacing: .04em; }
+  .rail label { display: flex; gap: .4rem; align-items: baseline;
+                font-size: .85rem; padding: .12rem 0 .12rem .6rem;
+                color: #e2e8f0; cursor: pointer; }
+  .rail label:hover { background: #273449; border-radius: .25rem; }
+  .rail label.undescribed .name::after { content: " ?"; color: #f59e0b;
+                                         font-weight: 700; }
+  .rail .generic .name { border-bottom: 1px dotted #64748b; }
+  .desc { font-size: .78rem; color: #94a3b8; padding: 0 0 .3rem .6rem;
+          line-height: 1.4; }
+  .controls { display: flex; flex-wrap: wrap; gap: 1.25rem; }
+  .group { min-width: 150px; }
+  .group h3 { font-size: .72rem; text-transform: uppercase; color: #94a3b8;
+              letter-spacing: .05em; margin-bottom: .35rem; }
+  .group label { display: block; font-size: .86rem; padding: .1rem 0; }
+  .picker { max-height: 190px; overflow-y: auto; border: 1px solid #334155;
+            border-radius: .3rem; padding: .35rem; }
+  .picker label { font-size: .8rem; }
+  button, select { background: #334155; color: #e2e8f0; border: 1px solid #475569;
+                   border-radius: .3rem; padding: .3rem .6rem; font-size: .85rem;
+                   cursor: pointer; }
+  button:hover { background: #3f4e68; }
+  table { border-collapse: collapse; width: 100%; font-size: .85rem; }
+  th, td { padding: .35rem .5rem; text-align: right; border-bottom: 1px solid #334155;
+           white-space: nowrap; }
+  th { color: #cbd5e1; cursor: pointer; position: sticky; top: 0;
+       background: #1e293b; font-size: .75rem; }
+  th:hover { color: #fff; }
+  td:first-child, th:first-child { text-align: left; }
+  tbody tr:hover { background: #273449; }
+  .sample { color: #94a3b8; }
+  .wrap { max-height: 62vh; overflow: auto; }
+  .warn { color: #fbbf24; font-size: .82rem; }
+  .empty { color: #94a3b8; padding: 2rem 0; text-align: center; }
+{% endblock %}
+
+{% block content %}
+<div class="card">
+  <h2>Explore metrics</h2>
+  {% if cubes %}
+  <p class="hint">Tick metrics on the left, choose what to narrow them to, and
+  the table fills in. Everything here is pre-counted, so nothing takes longer
+  than a moment. <strong>Always read the GP and minutes columns</strong> — a
+  rate over two minutes of hockey is a real number and a meaningless one.</p>
+  {% else %}
+  <p class="hint">No cubes found in <code>{{ cube_dir }}</code>. Build one
+  first:<br>
+  <code>python -m hockey.metrics.cube</code> &nbsp;(or
+  <code>build_cube(conn, games, players=roster).save("{{ cube_dir }}/my_cube")</code>)</p>
+  {% endif %}
+</div>
+
+{% if cubes %}
+<div class="explore">
+  <div class="pane rail">
+    <h2>Metrics</h2>
+    <input id="search" placeholder="Search metrics…" style="width:100%;
+      background:#0f172a; color:#e2e8f0; border:1px solid #334155;
+      border-radius:.3rem; padding:.35rem .5rem; font-size:.85rem;">
+    <p class="hint" id="rail-meta" style="margin:.4rem 0;"></p>
+    <div id="tree"></div>
+  </div>
+
+  <div>
+    <div class="pane" style="margin-bottom:1.5rem;">
+      <div class="controls">
+        <div class="group">
+          <h3>Data set</h3>
+          <select id="cube">
+            {% for c in cubes %}
+            <option value="{{ c.name }}">{{ c.name }} — {{ c.games }} games</option>
+            {% endfor %}
+          </select>
+          <p class="hint" id="cube-meta" style="margin-top:.3rem;"></p>
+        </div>
+        <div class="group">
+          <h3>Situation</h3>
+          <div id="presets"></div>
+        </div>
+        <div class="group">
+          <h3>Count for</h3>
+          <label><input type="radio" name="attr" value="player" checked> Players</label>
+          <label><input type="radio" name="attr" value="team"> The team</label>
+        </div>
+        <div class="group" style="min-width:230px;">
+          <h3>Count whose events</h3>
+          <label><input type="radio" name="side" value="for" checked>
+            <span id="label-for">His team, while he was on the ice</span></label>
+          <label><input type="radio" name="side" value="against">
+            <span id="label-against">The opponents, while he was on the ice</span></label>
+          <label id="credited-wrap"><input type="radio" name="side" value="credited">
+            Only what he did himself</label>
+        </div>
+        <div class="group">
+          <h3>Show</h3>
+          <label><input type="radio" name="value" value="n" checked> Event counts</label>
+          <label><input type="radio" name="value" value="xg"> Expected goals</label>
+          <label style="margin-top:.3rem;"><input type="checkbox" id="per60"> Per 60 minutes</label>
+        </div>
+        <div class="group" style="min-width:220px;">
+          <h3>Games <button type="button" onclick="setAll('games', true)">all</button>
+            <button type="button" onclick="setAll('games', false)">none</button></h3>
+          <div class="picker" id="games"></div>
+        </div>
+        <div class="group" style="min-width:200px;">
+          <h3>Players <button type="button" onclick="setAll('players', true)">all</button>
+            <button type="button" onclick="setAll('players', false)">none</button></h3>
+          <div class="picker" id="players"></div>
+        </div>
+      </div>
+      <details style="margin-top:.75rem;">
+        <summary class="hint">Advanced: exact periods, manpower and goalies</summary>
+        <div class="controls" style="margin-top:.6rem;">
+          <div class="group"><h3>Periods</h3><div id="periods"></div></div>
+          <div class="group"><h3>Manpower</h3><div id="manpower"></div></div>
+          <div class="group" style="min-width:200px;"><h3>Goalies</h3><div id="goalies"></div></div>
+        </div>
+        <p class="hint">A situation preset above just ticks boxes in here.
+        Empty means "don't narrow on this at all".</p>
+      </details>
+    </div>
+
+    <div class="pane">
+      <h2 id="table-title">Pick a metric</h2>
+      <p class="hint" id="note"></p>
+      <div class="wrap"><table id="result"><thead></thead><tbody></tbody></table></div>
+      <p class="empty" id="empty">Tick something on the left.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+// Vanilla, like the game canvas: one fetch per change, no framework. The
+// server holds the cube; this file only turns clicks into a selection and a
+// selection into a table.
+let OPTIONS = null, SORT = {col: null, dir: -1}, LAST = null;
+
+function selected(id) {
+  return Array.from(document.querySelectorAll('#' + id + ' input:checked'))
+              .map(box => box.value);
+}
+function setAll(id, on) {
+  document.querySelectorAll('#' + id + ' input').forEach(b => b.checked = on);
+  run();
+}
+function checkboxes(container, items, {checked = false, numeric = false} = {}) {
+  container.innerHTML = items.map(item =>
+    `<label><input type="checkbox" value="${item.id}" ${checked ? 'checked' : ''}>` +
+    `<span>${item.label}${item.position ? ' <span class="sample">(' + item.position + ')</span>' : ''}</span></label>`
+  ).join('');
+  container.querySelectorAll('input').forEach(b => b.addEventListener('change', run));
+}
+
+// -- the metric tree, with its descriptions
+fetch('/api/explore/tree').then(r => r.json()).then(tree => {
+  document.getElementById('rail-meta').textContent =
+    `${tree.lanes} metrics · ${tree.coverage} still without a description (marked ?)`;
+  const html = tree.sections.map(section => `
+    <details class="sec"><summary>${section.section}</summary>
+      ${section.populations.map(pop => `
+        <details class="pop"><summary>${pop.label}</summary>
+          ${pop.description ? `<p class="desc">${pop.description}</p>` : ''}
+          ${lane(pop.all)}
+          ${pop.groups.map(g => `
+            <details class="grp"><summary>${g.group}</summary>
+              ${g.description ? `<p class="desc">${g.description}</p>` : ''}
+              ${g.items.map(lane).join('')}
+            </details>`).join('')}
+        </details>`).join('')}
+    </details>`).join('');
+  document.getElementById('tree').innerHTML = html;
+  document.querySelectorAll('#tree input').forEach(b =>
+    b.addEventListener('change', run));
+});
+
+function lane(item) {
+  const cls = item.described === '' ? 'undescribed'
+            : item.described === 'item' ? 'generic' : '';
+  const tip = item.description || 'No description written yet.';
+  return `<label class="${cls}" title="${tip.replace(/"/g, '&quot;')}">` +
+         `<input type="checkbox" class="lane" value="${item.key}">` +
+         `<span class="name">${item.item}</span></label>`;
+}
+
+// -- what this cube can be narrowed by
+function loadCube() {
+  const name = document.getElementById('cube').value;
+  fetch(`/api/explore/cubes/${name}/options`).then(r => r.json()).then(data => {
+    OPTIONS = data;
+    checkboxes(document.getElementById('games'), data.games, {checked: true});
+    checkboxes(document.getElementById('players'), data.players, {checked: true});
+    checkboxes(document.getElementById('periods'), data.periods);
+    checkboxes(document.getElementById('manpower'), data.manpower);
+    checkboxes(document.getElementById('goalies'), data.goalies);
+    document.getElementById('presets').innerHTML = data.presets.map(p =>
+      `<label title="${p.hint}"><input type="radio" name="preset" value="${p.id}"` +
+      `${p.default ? ' checked' : ''}> ${p.label}</label>`).join('');
+    document.querySelectorAll('#presets input').forEach(radio =>
+      radio.addEventListener('change', () => applyPreset(radio.value)));
+    document.getElementById('cube-meta').textContent =
+      `${data.games.length} games · ${data.players.length} players`;
+    applyPreset(data.presets.find(p => p.default).id);
+  });
+}
+
+function applyPreset(id) {
+  const preset = OPTIONS.presets.find(p => p.id === id);
+  if (!preset) return;
+  document.querySelectorAll('#manpower input').forEach(
+    box => box.checked = preset.manpower.includes(box.value));
+  document.querySelectorAll('#goalies input').forEach(
+    box => box.checked = preset.goalies.includes(box.value));
+  run();
+}
+
+// -- the table
+let timer = null;
+function run() { clearTimeout(timer); timer = setTimeout(query, 60); }
+
+function query() {
+  const lanes = Array.from(document.querySelectorAll('#tree .lane:checked'))
+                     .map(b => b.value);
+  const attribution = document.querySelector('[name=attr]:checked').value;
+  document.getElementById('credited-wrap').style.display =
+    attribution === 'team' ? 'none' : 'block';
+  // The same two sides read differently for a team, where "on the ice" is
+  // every minute of the game.
+  document.getElementById('label-for').textContent = attribution === 'team'
+    ? "The team's own events" : 'His team, while he was on the ice';
+  document.getElementById('label-against').textContent = attribution === 'team'
+    ? "The opponents' events" : 'The opponents, while he was on the ice';
+  if (attribution === 'team' &&
+      document.querySelector('[name=side]:checked').value === 'credited') {
+    document.querySelector('[name=side][value=for]').checked = true;
+  }
+  document.getElementById('players').parentElement.style.display =
+    attribution === 'team' ? 'none' : 'block';
+  if (!lanes.length) {
+    document.getElementById('empty').textContent = 'Tick something on the left.';
+    document.getElementById('empty').style.display = 'block';
+    document.querySelector('#result thead').innerHTML = '';
+    document.querySelector('#result tbody').innerHTML = '';
+    document.getElementById('table-title').textContent = 'Pick a metric';
+    return;
+  }
+  const body = {
+    lanes: lanes, attribution: attribution,
+    side: document.querySelector('[name=side]:checked').value,
+    value: document.querySelector('[name=value]:checked').value,
+    per60: document.getElementById('per60').checked,
+    games: selected('games').map(Number),
+    players: attribution === 'player' ? selected('players').map(Number) : null,
+    periods: selected('periods'), manpower: selected('manpower'),
+    goalies: selected('goalies'),
+  };
+  fetch(`/api/explore/cubes/${document.getElementById('cube').value}/query`, {
+    method: 'POST', headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(body),
+  }).then(r => r.json()).then(draw);
+}
+
+function draw(data) {
+  const empty = document.getElementById('empty');
+  if (data.error) {
+    empty.textContent = data.error;
+    empty.style.display = 'block';
+    return;
+  }
+  LAST = data;
+  document.getElementById('table-title').textContent =
+    `${data.rows.length} row(s) · ${data.units}`;
+  document.getElementById('note').textContent = data.note;
+  empty.style.display = data.rows.length ? 'none' : 'block';
+  if (!data.rows.length) empty.textContent = 'Nothing matches that selection.';
+  render();
+}
+
+function render() {
+  const data = LAST;
+  const rows = data.rows.slice();
+  if (SORT.col !== null) {
+    rows.sort((a, b) => {
+      const x = a[SORT.col], y = b[SORT.col];
+      return (typeof x === 'number' ? x - y : String(x).localeCompare(String(y)))
+             * SORT.dir;
+    });
+  }
+  document.querySelector('#result thead').innerHTML = '<tr>' +
+    data.columns.map((c, i) =>
+      `<th onclick="sortBy(${i})">${c}${SORT.col === i ? (SORT.dir < 0 ? ' ▼' : ' ▲') : ''}</th>`
+    ).join('') + '</tr>';
+  document.querySelector('#result tbody').innerHTML = rows.map(row =>
+    '<tr>' + row.map((cell, i) =>
+      `<td class="${i < data.lead ? 'sample' : ''}">${cell}</td>`
+    ).join('') + '</tr>').join('');
+}
+
+function sortBy(index) {
+  SORT.dir = SORT.col === index ? -SORT.dir : -1;
+  SORT.col = index;
+  render();
+}
+
+document.getElementById('cube').addEventListener('change', loadCube);
+document.getElementById('search').addEventListener('input', event => {
+  const needle = event.target.value.toLowerCase();
+  document.querySelectorAll('#tree label').forEach(label => {
+    const hit = !needle || label.textContent.toLowerCase().includes(needle);
+    label.style.display = hit ? 'flex' : 'none';
+  });
+  if (needle) document.querySelectorAll('#tree details').forEach(d => d.open = true);
+});
+document.querySelectorAll('[name=attr],[name=side],[name=value],#per60')
+        .forEach(input => input.addEventListener('change', run));
+loadCube();
+</script>
+{% endif %}
+{% endblock %}

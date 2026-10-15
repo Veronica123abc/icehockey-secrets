@@ -46,6 +46,17 @@ app = Flask(__name__)
 from filter_api import filter_bp  # noqa: E402  (must follow the .env load)
 app.register_blueprint(filter_bp)
 
+# The cube explorer is optional: it needs pandas and a directory of built
+# cubes, and neither is required to serve a game. A deployment without them
+# loses /explore and nothing else, which is why this is guarded rather than a
+# plain import -- the chart is the app, the explorer is an extra.
+try:
+    from cube_api import cube_bp  # noqa: E402
+    app.register_blueprint(cube_bp)
+except Exception as _cube_problem:                      # pragma: no cover
+    logging.getLogger(__name__).warning(
+        "cube explorer unavailable (%s); /explore is disabled", _cube_problem)
+
 # Keyed by source mode: the id list differs per backend, so a switch must not
 # hand back the previous mode's answer.
 _game_ids_cache: dict[str, list[int]] = {}

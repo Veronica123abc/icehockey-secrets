@@ -32,6 +32,13 @@ The one rule: within a single registry a population must appear in exactly one
 section. Listing the same population twice collides on its keys --
 deliberately, because two checkboxes sharing a key would not stay in sync.
 
+WHAT A LANE MEANS IS NOT HERE EITHER. A lane carries its name and its
+predicate; the sentence explaining it to someone who did not choose it lives
+in ``lane_docs.py`` and its JSON file, reached through :attr:`Lane.description`
+and loaded lazily so that importing this module still touches no filesystem.
+Prose has a different author and a different review from a predicate, and the
+``*_FILTERS`` contract is group -> item -> predicate for all fifteen modules.
+
 WHAT IS NOT HERE. The population base sets are exactly ``event.name ==
 <FilterGroups.name>`` for every population, which is what lets this be a lookup
 rather than a call into each module. Anything a module computes that is NOT an
@@ -166,6 +173,24 @@ class Lane:
 
     def matches(self, event: Event) -> bool:
         return self.predicate is None or self.predicate(event)
+
+    # The description is a PROPERTY, not a field: it is prose about the lane
+    # rather than part of its identity, it is written and reviewed by whoever
+    # knows the hockey rather than by whoever binds the predicates, and
+    # reading it must not happen while this module is being imported. See
+    # lane_docs for all three reasons. Empty until someone writes it.
+
+    @property
+    def description(self) -> str:
+        """One sentence a selector can show, or "" if nobody has written it."""
+        from hockey.derive import lane_docs
+        return lane_docs.for_lane(self)
+
+    @property
+    def description_source(self) -> str:
+        """Whether that sentence is this lane's own or borrowed by item name."""
+        from hockey.derive import lane_docs
+        return lane_docs.source_for(self)
 
 
 @dataclass(frozen=True)

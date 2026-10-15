@@ -1,21 +1,33 @@
-"""Faceoff metrics. One group: who won the draw.
+"""Loose puck recovery metrics. Five groups: outcome, zone and three tags.
 
-THE TWO VOCABULARIES DISAGREE ON HOW MANY EVENTS A DRAW IS, and the group has
-to cover both. Verified over games 186449 + 186461 + 191848:
+An ``lpr`` event is a loose puck recovery -- a player taking possession of a
+puck that belonged to neither team. It is the most common event this tree
+covers after the pass: 1391 of them in three games.
 
-* ``playsequence_compiled`` -- 328 faceoffs, TWO per draw: 164 'successful'
-  (the winner) and 164 'failed' (the loser). Nothing else.
-* ``playsequence`` -- 492, THREE per draw: the same 164 + 164, plus 164
-  carrying no outcome at all. That third one is the puck drop itself -- no
-  team_id, no player_id, and a ``type`` that is the zone ('nz', 'hoz', 'hdz')
-  rather than a result. All three share a timestamp.
+WHICH FIELD EACH GROUP READS. The supplier is not consistent about where a
+property lives, and ``hockey/derive/CLAUDE.md`` makes recording it a rule:
 
-So 'Untagged' is not decoration: without it Result would cover 328 of 492 on
-the uncompiled path and the lane counts would silently disagree between
-sources. With it, Result totals 328 and 492 respectively -- exhaustive on
-both. The untagged events carry no team, so ``for_team`` drops them from
-either side of :func:`get_full_data`; they are visible only in the whole-
-population lanes.
+* Outcome      -- ``event.outcome``, 'successful' or 'failed'
+* Zone         -- ``event.zone``, 'dz' / 'nz' / 'oz'
+* Contested    -- 'contested' as a substring of ``event.type``
+* Along Boards -- 'alongboards' in ``event.flags``
+* Rebound      -- 'rebound' as a substring of ``event.type``
+
+Along Boards is the one taken from the flags; the other two tags are inside
+the type string.
+
+ALL FIVE GROUPS ARE EXHAUSTIVE, AND NONE NEEDS A COMPLEMENT ITEM. Verified
+over games 186451 + 186461 + 191848, 1391 recoveries: every group covers
+1391 of 1391. Outcome 1038 successful / 353 failed; Zone 627 DZ / 193 NZ /
+571 OZ; Contested 472 / 919; Along Boards 938 / 453; Rebound 79 / 1312.
+
+The three tag groups are exhaustive by construction -- each is a predicate
+and its negation -- so it is Outcome and Zone that are worth re-checking on
+new data. ``faceoffs`` is the cautionary case: there the uncompiled
+vocabulary carries a third event per draw with no outcome at all, and its
+Result group needs an explicit 'Untagged' item to stay exhaustive. Nothing
+like that has turned up here, but an untagged outcome or a missing zone would
+drop silently out of every lane except ``LPRs · All``.
 """
 from __future__ import annotations
 from collections.abc import Iterable
