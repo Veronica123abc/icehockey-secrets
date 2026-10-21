@@ -127,11 +127,20 @@ def player_report(players: Iterable, league: int, season: str, *,
 if __name__ == "__main__":
     import time
     from hockey.reports.helpers.get_roster import get_roster
-
+    from hockey.derive import context_filter as ctx
     LEAGUE = 13
     SEASON = "20262027"
     PLAYERS = get_roster(1395, SEASON)
     PLAYERS = get_roster(323, SEASON)
     started = time.perf_counter()
+    min_toi = 20.0
+    stage="REGULAR"
+
+    EVEN_STRENGTH = ctx.DEFAULT.with_values(ctx.GOALIES, ctx.GOALIE_SITUATIONS)
+    conn = open_connection()
+    rows, missing = player_rows(conn, PLAYERS, LEAGUE, SEASON,
+                                columns=COLUMNS, context=EVEN_STRENGTH,
+                                stage=stage, min_toi=min_toi)
+
     path = player_report(PLAYERS, LEAGUE, SEASON, min_toi=20.0)
     print(f"{path}  ({time.perf_counter() - started:.1f}s)")

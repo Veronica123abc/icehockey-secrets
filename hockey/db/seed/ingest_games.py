@@ -98,8 +98,8 @@ def ingest_game(games):
 if __name__ == "__main__":
     from hockey.catalog import DataCatalog
 
-    LEAGUE_ID = 1
-    SEASON = "20262027"
+    LEAGUE_ID = 13
+    SEASON = "20242025"
 
     catalog = DataCatalog(settings.data_root_dir)
     games = catalog.season_schedule(LEAGUE_ID, SEASON)
