@@ -711,7 +711,7 @@ def main() -> None:
     from hockey.db.game_query import query_game_ids
     from hockey.metrics.on_ice import (EVEN_STRENGTH, open_connection,
                                        player_rows, team_rows)
-    from hockey.reports.helpers.get_roster import get_roster
+    from hockey.helpers.get_roster import get_roster
     from hockey.reports.shooting_player_woi import COLUMNS as SHOOTING
 
     LEAGUE, SEASON, TEAM = 13, "20262027", 323
@@ -731,7 +731,7 @@ def main() -> None:
     print(f"{len(games)} games for team {TEAM}, {SEASON}, chronological: "
           f"{games[:5]}{' ...' if len(games) > 5 else ''}")
     started = time.perf_counter()
-    cube = build_cube(conn, games, players=get_roster(TEAM, SEASON))
+    cube = build_cube(conn, games, players=[p.player_id for p in get_roster(TEAM, SEASON, conn)])
     build_seconds = time.perf_counter() - started
     print(f"\n{cube}")
     print(f"built in {build_seconds:.1f}s  "

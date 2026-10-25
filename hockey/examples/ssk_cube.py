@@ -15,7 +15,7 @@ from pathlib import Path
 from hockey.db.game_query import query_game_ids
 from hockey.metrics.cube import Cube, build_cube
 from hockey.metrics.on_ice import EVEN_STRENGTH, open_connection
-from hockey.reports.helpers.get_roster import get_roster
+from hockey.helpers.get_roster import get_roster
 
 LEAGUE, SEASON, TEAM = 17, "20252026", 1396       # Allsvenskan, SSK
 OUT = Path("output/cubes/ssk_2526")
@@ -30,7 +30,7 @@ def build() -> Cube:
         # players= limits WHO is credited, not what is counted: the opponents'
         # events are still there, on the 'against' side. Omit it and all forty
         # skaters on the ice get their own rows, which is several times larger.
-        cube = build_cube(conn, games, players=get_roster(TEAM, SEASON))
+        cube = build_cube(conn, games, players=[p.player_id for p in get_roster(TEAM, SEASON, conn)])
     finally:
         conn.close()
     cube.save(OUT)

@@ -56,7 +56,7 @@ from hockey.reports.on_ice import (FOR, AGAINST, Column, ColumnSet, EVEN_STRENGT
                                    player_rows, to_sheet)
 from hockey.reports.sheet import render_pdf
 
-from hockey.reports.helpers.get_roster import get_roster
+from hockey.helpers.get_roster import get_roster
 
 ENTRIES = "Controlled entries"
 RECOVERIES = "Dump-in recoveries"

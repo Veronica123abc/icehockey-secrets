@@ -126,7 +126,7 @@ def player_report(players: Iterable, league: int, season: str, *,
 
 if __name__ == "__main__":
     import time
-    from hockey.reports.helpers.get_roster import get_roster
+    from hockey.helpers.get_roster import get_roster
     from hockey.derive import context_filter as ctx
     LEAGUE = 13
     SEASON = "20262027"

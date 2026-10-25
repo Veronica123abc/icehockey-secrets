@@ -49,7 +49,7 @@ event feed, so summing the feed's own number lands 2.2% low. See
 :func:`~hockey.metrics.on_ice._xg_official`.
 '''
 from __future__ import annotations
-from hockey.reports.helpers.get_roster import get_roster
+from hockey.helpers.get_roster import get_roster
 from collections.abc import Iterable
 from pathlib import Path
 

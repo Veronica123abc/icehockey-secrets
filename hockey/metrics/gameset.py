@@ -179,9 +179,9 @@ def resolve(conn, config: dict) -> tuple[list[int], list[int] | None]:
 
     players = config.get("players")
     if players == "team":
-        from hockey.reports.helpers.get_roster import get_roster
-        players = [int(p) for p in get_roster(int(config["team"]),
-                                              str(config["season"]))]
+        from hockey.helpers.get_roster import get_roster
+        players = [p.player_id for p in get_roster(int(config["team"]),
+                                                   str(config["season"]), conn)]
     elif isinstance(players, list):
         players = [int(p) for p in players]
     else:
