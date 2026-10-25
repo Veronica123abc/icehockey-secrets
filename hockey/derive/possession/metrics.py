@@ -64,6 +64,11 @@ def in_nz(event: Event) -> bool:
 def in_oz(event: Event) -> bool:
     return event.zone == 'oz'
 
+def is_deke(event: Event) -> bool:
+    return event.type == 'deke'
+
+def is_body(event: Event) -> bool:
+    return event.type == 'body'
 
 # --- Filter groups --------------------------------------------------------
 
@@ -79,8 +84,20 @@ POSSESSION_FILTERS: dict[str, dict[str, Predicate]] = {
     },
 }
 
-POSSESSIONS = FilterGroups('possession', POSSESSION_FILTERS, 'Possessions')
+PUCK_PROTECTION_FILTERS: dict[str, dict[str, Predicate]] = {
+    'Result': {
+        'Successful': is_successful,
+        'Failed': is_failed,
+    },
+    'Type': {
+        'deke': is_deke,
+        'body': is_body,
+    }
+}
 
+
+POSSESSIONS = FilterGroups('possession', POSSESSION_FILTERS, 'Possessions')
+PUCK_PROTECTIONS = FilterGroups('puckprotection', PUCK_PROTECTION_FILTERS, 'Puck Protections')
 
 # --- Base sets ------------------------------------------------------------
 
@@ -88,6 +105,9 @@ def possessions(game: Game, team_id: int | str | None = None) -> list[Event]:
     events = [e for e in game.events if e.name == 'possession']
     return for_team(events, team_id) if team_id else events
 
+def puck_protections(game: Game, team_id: int | str | None = None) -> list[Event]:
+    events = [e for e in game.events if e.name == 'puckprotection']
+    return for_team(events, team_id) if team_id else events
 
 # --- Filtering ------------------------------------------------------------
 
@@ -104,11 +124,16 @@ def filter_possessions(events: Iterable[Event], **selections: Iterable[str]) -> 
     """
     return POSSESSIONS.filter(events, **selections)
 
+def filter_puck_protections(events: Iterable[Event], **selections: Iterable[str]) -> list[Event]:
+    return PUCK_PROTECTIONS.filter(events, **selections)
 
 def check_groups_exhaustive(events: Iterable[Event]) -> dict[str, bool]:
     """Whether each group's items together cover every possession."""
     return POSSESSIONS.check_exhaustive(events)
 
+def check_puck_protection_exhaustive(events: Iterable[Event]) -> dict[str, bool]:
+    """Whether each group's items together cover every puck protection."""
+    return PUCK_PROTECTIONS.check_exhaustive(events)
 
 # --- Base-event-dependent sets -------------------------------------------
 # These need the base event and so cannot be predicates in the dictionary.
@@ -168,6 +193,7 @@ def get_full_data(game: Game) -> dict:
     successful = successful_possessions(game)
     failed = failed_possessions(game)
     all_turnovers = turnovers(game)
+    all_puck_protections = puck_protections(game)
 
     for team_id in team_ids:
         team_possessions = for_team(all_possessions, team_id)
@@ -178,6 +204,7 @@ def get_full_data(game: Game) -> dict:
             'Successful Possessions': for_team(successful, team_id),
             'Failed Possessions': for_team(failed, team_id),
             'Turnovers': for_team(all_turnovers, team_id),
+            'Puckprotections': for_team(all_puck_protections, team_id),
             **{f'Base Event - {name}': events
                for name, events in base_event_breakdown(game, team_id).items()},
         }
