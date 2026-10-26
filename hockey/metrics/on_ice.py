@@ -30,6 +30,7 @@ long way, adding ice time and per-60 rates, which is what a report wants.
 from __future__ import annotations
 
 import os
+import numbers
 from bisect import bisect_right
 from collections import defaultdict
 from collections.abc import Iterable, Sequence
@@ -283,6 +284,22 @@ def open_connection():
     return open_database_azure()
 
 
+def _player_id(value) -> int | None:
+    """``value`` as a SportLogIQ id, or None when it is not one (a name).
+
+    Any integral number counts -- numpy and pandas ints included, which are
+    not ``int`` -- as does a string of digits. ``bool`` is integral too, but
+    nobody means player 1 by ``True``, so it is not an id.
+    """
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, numbers.Integral):
+        return int(value)
+    if isinstance(value, str) and value.isdigit():
+        return int(value)
+    return None
+
+
 def _resolve_players(conn, players: Iterable, league: int,
                      season: str) -> tuple[list[int], list[str]]:
     """Requested players -> (SportLogIQ ids, requests nothing answered).
@@ -323,8 +340,8 @@ def _resolve_players(conn, players: Iterable, league: int,
     missing: list[str] = []
     for request in players:
         value = getattr(request, "player_id", request)
-        if isinstance(value, int) or (isinstance(value, str) and value.isdigit()):
-            player_id = int(value)
+        player_id = _player_id(value)
+        if player_id is not None:
             if player_id in known:
                 wanted.append(player_id)
             else:
@@ -369,6 +386,12 @@ def player_rows(conn, players: Iterable, league: int | None = None,
     from hockey.db.roster_query import query_rosters
     from hockey.db.shift_query import query_shifts
 
+    # One player rather than a list would iterate silently into nonsense: a
+    # string by character ("893" -> players 8, 9 and 3), an id not at all.
+    if isinstance(players, (str, bytes, numbers.Number)):
+        raise TypeError(f"players must be a list of ids, names or players, "
+                        f"not a single {type(players).__name__}: {players!r}")
+
     if league is not None and season is not None:
         wanted, missing = _resolve_players(conn, players, league, season)
     else:
@@ -376,8 +399,8 @@ def player_rows(conn, players: Iterable, league: int | None = None,
         wanted, missing = [], []
         for request in players:
             value = getattr(request, "player_id", request)
-            if isinstance(value, int) or (isinstance(value, str) and str(value).isdigit()):
-                wanted.append(int(value))
+            if _player_id(value) is not None:
+                wanted.append(_player_id(value))
             else:
                 missing.append(f"{value} — a name needs a league and season to "
                                f"resolve; pass the player id instead")
