@@ -146,6 +146,7 @@ _REGISTRY: tuple[SectionSpec, ...] = (
     SectionSpec("Possession", (
         PopulationSpec(POSSESSION_MODULE, "possession"),
         PopulationSpec(POSSESSION_MODULE, "puckprotection"),
+        PopulationSpec(POSSESSION_MODULE, "carry"),
     )),
     SectionSpec("Faceoffs", (
         PopulationSpec(FACEOFFS_MODULE, "faceoff"),

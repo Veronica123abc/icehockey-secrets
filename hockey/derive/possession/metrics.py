@@ -21,6 +21,14 @@ the base event, which an ``Event -> bool`` predicate cannot reach:
 Group exhaustiveness, verified over the same two games (2475 possessions):
 Result 2134+341 and Zone 835+371+1269 each total 2475.
 
+CARRIES (name="carry") are a population of their own: a player skating the
+puck. Every one of the 312,254 carries in the database is successful and of
+type 'none', so an outcome or type group would be single-valued decoration;
+Zone is the only group. A DZ carry is the carry half of a controlled exit, an
+OZ carry the carry half of a controlled entry, and an NZ carry is what the
+supplier's glossary calls a "redline carry" -- one of the five parts of
+Possession Driving Plays (see ``hockey/predict/skating.py``).
+
 The group machinery itself lives in ``hockey.derive.filter_group``.
 """
 from __future__ import annotations
@@ -92,12 +100,27 @@ PUCK_PROTECTION_FILTERS: dict[str, dict[str, Predicate]] = {
     'Type': {
         'deke': is_deke,
         'body': is_body,
-    }
+    },
+    'Zone': {
+        'DZ': in_dz,
+        'NZ': in_nz,
+        'OZ': in_oz,
+    },
+}
+
+
+CARRY_FILTERS: dict[str, dict[str, Predicate]] = {
+    'Zone': {
+        'DZ': in_dz,
+        'NZ': in_nz,
+        'OZ': in_oz,
+    },
 }
 
 
 POSSESSIONS = FilterGroups('possession', POSSESSION_FILTERS, 'Possessions')
 PUCK_PROTECTIONS = FilterGroups('puckprotection', PUCK_PROTECTION_FILTERS, 'Puck Protections')
+CARRIES = FilterGroups('carry', CARRY_FILTERS, 'Carries')
 
 # --- Base sets ------------------------------------------------------------
 
@@ -107,6 +130,10 @@ def possessions(game: Game, team_id: int | str | None = None) -> list[Event]:
 
 def puck_protections(game: Game, team_id: int | str | None = None) -> list[Event]:
     events = [e for e in game.events if e.name == 'puckprotection']
+    return for_team(events, team_id) if team_id else events
+
+def carries(game: Game, team_id: int | str | None = None) -> list[Event]:
+    events = [e for e in game.events if e.name == 'carry']
     return for_team(events, team_id) if team_id else events
 
 # --- Filtering ------------------------------------------------------------
@@ -134,6 +161,10 @@ def check_groups_exhaustive(events: Iterable[Event]) -> dict[str, bool]:
 def check_puck_protection_exhaustive(events: Iterable[Event]) -> dict[str, bool]:
     """Whether each group's items together cover every puck protection."""
     return PUCK_PROTECTIONS.check_exhaustive(events)
+
+def check_carry_groups_exhaustive(events: Iterable[Event]) -> dict[str, bool]:
+    """Whether each group's items together cover every carry."""
+    return CARRIES.check_exhaustive(events)
 
 # --- Base-event-dependent sets -------------------------------------------
 # These need the base event and so cannot be predicates in the dictionary.
@@ -194,6 +225,7 @@ def get_full_data(game: Game) -> dict:
     failed = failed_possessions(game)
     all_turnovers = turnovers(game)
     all_puck_protections = puck_protections(game)
+    all_carries = carries(game)
 
     for team_id in team_ids:
         team_possessions = for_team(all_possessions, team_id)
@@ -205,6 +237,7 @@ def get_full_data(game: Game) -> dict:
             'Failed Possessions': for_team(failed, team_id),
             'Turnovers': for_team(all_turnovers, team_id),
             'Puckprotections': for_team(all_puck_protections, team_id),
+            **CARRIES.rows(for_team(all_carries, team_id)),
             **{f'Base Event - {name}': events
                for name, events in base_event_breakdown(game, team_id).items()},
         }

@@ -1,4 +1,4 @@
-"""Loose puck recovery metrics. Five groups: outcome, zone and three tags.
+"""Loose puck recovery metrics. Six groups: outcome, zone and four tags.
 
 An ``lpr`` event is a loose puck recovery -- a player taking possession of a
 puck that belonged to neither team. It is the most common event this tree
@@ -12,16 +12,29 @@ property lives, and ``hockey/derive/CLAUDE.md`` makes recording it a rule:
 * Contested    -- 'contested' as a substring of ``event.type``
 * Along Boards -- 'alongboards' in ``event.flags``
 * Rebound      -- 'rebound' as a substring of ``event.type``
+* Faceoff      -- 'faceoff' as a substring of ``event.type``
 
-Along Boards is the one taken from the flags; the other two tags are inside
-the type string.
+Along Boards is the one taken from the flags; the other three tags are inside
+the type string. The type is a prefix (none / error / faceoff / rebound) with
+'contested' optionally appended -- 'faceoffcontested', 'reboundcontested' --
+which is why every type tag is a substring test rather than an equality.
 
-ALL FIVE GROUPS ARE EXHAUSTIVE, AND NONE NEEDS A COMPLEMENT ITEM. Verified
+FACEOFF IS WHAT THE SUPPLIER'S "SUCCESSFUL OZ LPRs" LEAVES OUT. Their
+published per-player count is ``Successful`` + ``OZ`` + ``Is Not Faceoff``:
+removing the faceoff recoveries reproduces it exactly for nine SHL 2026/27
+forwards (13, 7, 51, 83, 46, 49, 66, 43 and 85 recoveries), where keeping
+them overcounts by up to 30 (player 1625: 115). A recovery straight off a draw
+is the faceoff's business, not the recoverer's.
+
+ALL SIX GROUPS ARE EXHAUSTIVE, AND NONE NEEDS A COMPLEMENT ITEM. Verified
 over games 186451 + 186461 + 191848, 1391 recoveries: every group covers
 1391 of 1391. Outcome 1038 successful / 353 failed; Zone 627 DZ / 193 NZ /
 571 OZ; Contested 472 / 919; Along Boards 938 / 453; Rebound 79 / 1312.
+Faceoff was added later and checked on the same three games from
+playsequence_compiled.json, which carries 2049 recoveries rather than 1391:
+every group covers 2049 of 2049, Faceoff 153 / 1896.
 
-The three tag groups are exhaustive by construction -- each is a predicate
+The four tag groups are exhaustive by construction -- each is a predicate
 and its negation -- so it is Outcome and Zone that are worth re-checking on
 new data. ``faceoffs`` is the cautionary case: there the uncompiled
 vocabulary carries a third event per draw with no outcome at all, and its
@@ -66,6 +79,14 @@ def is_rebound(event: Event) -> bool:
 def is_not_rebound(event: Event) -> bool:
     return not is_rebound(event)
 
+
+def is_faceoff(event: Event) -> bool:
+    return 'faceoff' in event.type
+
+
+def is_not_faceoff(event: Event) -> bool:
+    return not is_faceoff(event)
+
 def is_successful(event: Event) -> bool:
     return event.outcome == 'successful'
 
@@ -105,7 +126,12 @@ LPR_FILTERS: dict[str, dict[str, Predicate]] = {
     'Rebound': {
         'Is Rebound': is_rebound,
         'Is Not Rebound': is_not_rebound
-    }
+    },
+
+    'Faceoff': {
+        'Is Faceoff': is_faceoff,
+        'Is Not Faceoff': is_not_faceoff,
+    },
 }
 
 LPR = FilterGroups('lpr', LPR_FILTERS, 'LPRs')

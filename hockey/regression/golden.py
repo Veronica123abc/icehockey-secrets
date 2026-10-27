@@ -72,6 +72,7 @@ MODULES: list[tuple[str, str, bool]] = [
     ('dumpins',            'hockey.derive.dumpins.metrics',            False),
     ('DZExits',            'hockey.derive.DZExits.metrics',            False),
     ('faceoffs',           'hockey.derive.faceoffs.metrics',           False),
+    ('lpr',                'hockey.derive.lpr.metrics',                False),
     ('passing',            'hockey.derive.passing.metrics',            False),
     ('playmaking',         'hockey.derive.playmaking.metrics',         False),
     ('possession',         'hockey.derive.possession.metrics',         False),
