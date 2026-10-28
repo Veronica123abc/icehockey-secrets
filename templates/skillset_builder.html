@@ -1,0 +1,624 @@
+{% extends "base.html" %}
+{% block title %}Skill set builder{% endblock %}
+
+{% block extra_style %}
+  .builder { display: grid; grid-template-columns: 130px 1fr; gap: 1.25rem;
+             align-items: start; }
+  .sections { display: flex; flex-direction: column; gap: .7rem; align-items: center;
+              border-right: 1px solid #334155; padding-right: 1.25rem;
+              max-height: 86vh; overflow-y: auto; }
+  .sections button { width: 96px; height: 96px; border-radius: 50%; border: 2px solid #1e3a5f;
+                     background: #3b6fb0; color: #f8fafc; font-size: .8rem; line-height: 1.15;
+                     cursor: pointer; padding: .4rem; flex: none; }
+  .sections button:hover { background: #4a7fc2; }
+  .sections button.active { background: #8fbf7a; color: #0f172a; border-color: #b7e0a5; }
+  .stage { background: #1e293b; border: 1px solid #334155; border-radius: .5rem;
+           padding: 1rem 1.25rem; }
+  .stage h2 { text-align: center; font-size: 1.9rem; font-weight: 500; color: #f8fafc; }
+  .stage .crumb { text-align: center; min-height: 1.3rem; font-size: .85rem; color: #94a3b8; }
+  .stage .crumb a { cursor: pointer; }
+  svg { width: 100%; height: auto; max-height: 64vh; display: block; user-select: none; }
+  svg .edge { stroke: #5b7fae; stroke-width: 1.5; }
+  svg .box rect { fill: #3b6fb0; stroke: #1e3a5f; }
+  svg .box text, svg .leaf text { pointer-events: none; text-anchor: middle;
+                                  dominant-baseline: central; }
+  svg .box text { fill: #f8fafc; font-size: 15px; }
+  svg .pop { cursor: pointer; }
+  svg .pop:hover rect { fill: #4a7fc2; }
+  svg .pop text.sub { font-size: 12px; fill: #cbd5e1; }
+  svg .leaf { cursor: pointer; }
+  svg .leaf circle { fill: #8fbf7a; stroke: #4d7a3c; stroke-width: 1.5; }
+  svg .leaf:hover circle { fill: #a6d191; }
+  svg .leaf.on circle { stroke: #ef4444; stroke-width: 4; }
+  svg .leaf text { fill: #0f172a; font-size: 12.5px; }
+  .footer { display: grid; grid-template-columns: 1fr auto; gap: 1rem 2rem;
+            border-top: 1px solid #334155; margin-top: .75rem; padding-top: 1rem; }
+  .footer label.field { display: block; font-size: .8rem; color: #94a3b8; margin-bottom: .6rem; }
+  .footer input[type=text] { display: block; margin-top: .2rem; width: 22rem; max-width: 100%;
+                             background: #0f172a; color: #e2e8f0; border: 1px solid #475569;
+                             border-radius: .3rem; padding: .35rem .5rem; font-size: .9rem; }
+  fieldset { border: 1px solid #334155; border-radius: .4rem; padding: .4rem .7rem .55rem; }
+  legend { font-size: .8rem; color: #94a3b8; padding: 0 .3rem; }
+  fieldset label { display: block; font-size: .85rem; padding: .12rem 0; cursor: pointer; }
+  fieldset label span { color: #94a3b8; font-size: .78rem; }
+  .rule { font-size: 1rem; color: #f1f5f9; min-height: 1.4rem; margin: .2rem 0 .6rem; }
+  .rule.empty { color: #64748b; font-style: italic; }
+  .actions { display: flex; flex-direction: column; gap: .6rem; align-items: stretch;
+             justify-content: flex-end; }
+  .actions button { background: #3b6fb0; color: #f8fafc; border: 1px solid #1e3a5f;
+                    border-radius: .35rem; padding: .7rem 1.2rem; font-size: .95rem;
+                    cursor: pointer; }
+  .actions button.secondary { background: #334155; border-color: #475569; font-size: .85rem;
+                              padding: .4rem .8rem; }
+  .actions button:disabled { opacity: .45; cursor: not-allowed; }
+  .msg { font-size: .8rem; color: #f59e0b; min-height: 1rem; }
+  .draft { margin-top: 1rem; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+           gap: 1rem; }
+  .draft ul { list-style: none; }
+  .draft li { display: flex; justify-content: space-between; gap: .5rem; padding: .35rem .5rem;
+              border-bottom: 1px solid #334155; font-size: .85rem; }
+  .draft li .name { font-family: ui-monospace, monospace; color: #93c5fd; }
+  .draft li .side { color: #94a3b8; }
+  .draft li button { background: none; border: none; color: #f87171; cursor: pointer; }
+  pre { background: #0f172a; border: 1px solid #334155; border-radius: .4rem; padding: .7rem;
+        font-size: .78rem; overflow: auto; max-height: 22rem; color: #cbd5e1; }
+  .draft h3 { font-size: .8rem; text-transform: uppercase; letter-spacing: .05em;
+              color: #94a3b8; margin-bottom: .4rem; }
+  .formula { margin-top: 1.25rem; border-top: 1px solid #334155; padding-top: 1rem; }
+  .formula h3, .newinput h3 { font-size: .8rem; text-transform: uppercase; letter-spacing: .05em;
+                              color: #94a3b8; margin-bottom: .5rem; }
+  .formula .row { display: flex; flex-wrap: wrap; gap: 1rem 1.5rem; align-items: flex-end; }
+  .formula input[type=text], .formula input[type=number], .formula select {
+      background: #0f172a; color: #e2e8f0; border: 1px solid #475569; border-radius: .3rem;
+      padding: .3rem .45rem; font-size: .88rem; }
+  .formula input[type=number] { width: 7.5rem; }
+  .formula label.field { margin-bottom: 0; }
+  .formula .context { font-size: .8rem; color: #94a3b8; margin: .5rem 0 .9rem; line-height: 1.45; }
+  .newinput { margin-top: 1rem; background: #172033; border: 1px solid #334155;
+              border-radius: .4rem; padding: .75rem .9rem; }
+  .newinput .pick { display: flex; flex-wrap: wrap; gap: .2rem 1rem; max-height: 9rem;
+                    overflow-y: auto; margin-top: .3rem; }
+  .newinput .pick label { font-size: .84rem; font-family: ui-monospace, monospace; color: #93c5fd;
+                          cursor: pointer; }
+  .newinput .kind label { font-size: .85rem; margin-right: 1rem; cursor: pointer; }
+  .newinput button, .inputs button.add { background: #3b6fb0; color: #f8fafc;
+      border: 1px solid #1e3a5f; border-radius: .35rem; padding: .45rem 1rem; cursor: pointer; }
+  .newinput button:disabled { opacity: .45; cursor: not-allowed; }
+  table.inputs { width: 100%; border-collapse: collapse; font-size: .85rem; margin-top: .4rem; }
+  table.inputs th { text-align: left; font-size: .72rem; text-transform: uppercase; color: #94a3b8;
+                    font-weight: 500; padding: .3rem .4rem; border-bottom: 1px solid #334155; }
+  table.inputs td { padding: .35rem .4rem; border-bottom: 1px solid #334155; vertical-align: middle; }
+  table.inputs td.mono { font-family: ui-monospace, monospace; color: #93c5fd; }
+  table.inputs td.what { color: #cbd5e1; }
+  table.inputs td button { background: none; border: none; color: #f87171; cursor: pointer; }
+  @media (max-width: 900px) {
+    .builder { grid-template-columns: 1fr; }
+    .sections { flex-direction: row; flex-wrap: wrap; border-right: none; padding-right: 0;
+                justify-content: center; }
+    .sections button { width: 72px; height: 72px; font-size: .7rem; }
+    .footer, .draft { grid-template-columns: 1fr; }
+  }
+{% endblock %}
+
+{% block content %}
+<div class="builder">
+  <nav class="sections" id="sections" aria-label="Sections"></nav>
+
+  <section class="stage">
+    <h2 id="title">Pick a section</h2>
+    <div class="crumb" id="crumb"></div>
+    <svg id="canvas" viewBox="0 0 1000 800" role="img" aria-label="Metric tree"></svg>
+
+    <div class="footer">
+      <div>
+        <label class="field">Currently working with
+          <input type="text" id="skillset-name" value="my_skillset" spellcheck="false">
+        </label>
+        <div class="rule empty" id="rule">Tick leaves in the tree to describe a count.</div>
+        <label class="field">Count name
+          <input type="text" id="count-name" spellcheck="false" placeholder="e.g. screened_shots_on_net">
+        </label>
+      </div>
+      <div class="actions">
+        <fieldset>
+          <legend>Side</legend>
+          {% for value, label, hint in sides %}
+          <label><input type="radio" name="side" value="{{ value }}"
+                        {% if value == default_side %}checked{% endif %}>
+            {{ label }} <span>— {{ hint }}</span></label>
+          {% endfor %}
+        </fieldset>
+        <div class="msg" id="msg"></div>
+        <button id="add" disabled>ADD TO SKILLSET</button>
+        <button id="clear" class="secondary">Clear selection</button>
+      </div>
+    </div>
+
+    <div class="formula">
+      <h3>Formula</h3>
+      <div class="context" id="context-text"></div>
+      <div class="row">
+        <label class="field">Intercept
+          <input type="number" id="intercept" step="any" value="0">
+        </label>
+      </div>
+      <table class="inputs">
+        <thead><tr><th>Input</th><th>Value</th><th>Weight</th><th></th></tr></thead>
+        <tbody id="inputs"></tbody>
+      </table>
+
+      <div class="newinput">
+        <h3>New input</h3>
+        <div class="row">
+          <label class="field">Name
+            <input type="text" id="input-name" spellcheck="false" placeholder="e.g. screened_shots_per20">
+          </label>
+          <div class="kind">
+            <label><input type="radio" name="kind" value="per20" checked> Per 20 minutes</label>
+            <label><input type="radio" name="kind" value="ratio"> Ratio</label>
+          </div>
+          <label class="field">Weight
+            <input type="number" id="input-weight" step="any" value="1">
+          </label>
+        </div>
+        <div id="per20-pick">
+          <div class="context">Sum of the ticked counts, per 20 minutes of the context.</div>
+          <div class="pick" id="per20-counts"></div>
+        </div>
+        <div id="ratio-pick" hidden>
+          <div class="context">The numerator count as a share of the denominator (0 when it is 0).</div>
+          <div class="row">
+            <label class="field">Numerator <select id="ratio-num"></select></label>
+            <label class="field">Denominator <select id="ratio-den"></select></label>
+          </div>
+        </div>
+        <div class="msg" id="input-msg"></div>
+        <button id="add-input" disabled>Add input</button>
+      </div>
+    </div>
+
+    <div class="draft">
+      <div>
+        <h3>Counts in this skill set</h3>
+        <ul id="counts"></ul>
+      </div>
+      <div>
+        <h3>Draft JSON <button class="secondary" id="copy" style="float:right">Copy</button></h3>
+        <pre id="json"></pre>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script>
+const TREE = {{ tree | tojson }};
+const DEFAULT_SIDE = {{ default_side | tojson }};
+const CONTEXT = {{ context | tojson }};
+const STAGE = {{ stage | tojson }};
+const SVG_NS = "http://www.w3.org/2000/svg";
+const CX = 500, CY = 400, R_GROUP = 175, R_LEAF = 330, LEAF_R = 37;
+
+const state = {
+  section: null,      // section object
+  population: null,   // population object, once expanded
+  selected: new Set(),// lane keys
+  nameTouched: false,
+  inputNameTouched: false,
+  draft: loadDraft(),
+};
+
+// ---- persistence (per browser; a convenience, never the record) ------------
+function loadDraft() {
+  try {
+    const d = JSON.parse(localStorage.getItem("skillset-draft") || "null");
+    if (d && typeof d.name === "string" && d.counts)
+      return { intercept: 0, inputs: [], ...d };
+  } catch (e) {}
+  return { name: "my_skillset", counts: {}, intercept: 0, inputs: [] };
+}
+function saveDraft() {
+  try { localStorage.setItem("skillset-draft", JSON.stringify(state.draft)); } catch (e) {}
+}
+
+// ---- svg helpers -------------------------------------------------------------
+function el(tag, attrs = {}, parent) {
+  const node = document.createElementNS(SVG_NS, tag);
+  for (const [k, v] of Object.entries(attrs)) node.setAttribute(k, v);
+  if (parent) parent.appendChild(node);
+  return node;
+}
+function wrap(text, max) {
+  const words = text.split(/\s+/), lines = [];
+  let line = "";
+  for (const w of words) {
+    if (line && (line + " " + w).length > max) { lines.push(line); line = w; }
+    else line = line ? line + " " + w : w;
+  }
+  if (line) lines.push(line);
+  return lines.slice(0, 3);
+}
+function label(parent, x, y, text, max, size) {
+  const lines = wrap(text, max);
+  const t = el("text", { x, y }, parent);
+  lines.forEach((ln, i) => {
+    const span = el("tspan", { x, dy: i === 0 ? `${-(lines.length - 1) * 0.55}em` : "1.1em" }, t);
+    span.textContent = ln;
+  });
+  if (size) t.setAttribute("font-size", size);
+  return t;
+}
+function box(parent, x, y, text, cls = "box", sub) {
+  const g = el("g", { class: cls }, parent);
+  const w = Math.max(110, Math.min(220, text.length * 9 + 30), (sub || "").length * 7 + 24),
+        h = sub ? 62 : 48;
+  el("rect", { x: x - w / 2, y: y - h / 2, width: w, height: h, rx: 4 }, g);
+  label(g, x, sub ? y - 8 : y, text, 18);
+  if (sub) { const s = el("text", { x, y: y + 15, class: "sub" }, g); s.textContent = sub; }
+  return g;
+}
+function tip(node, text) { if (text) el("title", {}, node).textContent = text; }
+const polar = (r, a) => [CX + r * Math.cos(a), CY + r * Math.sin(a)];
+
+// ---- left rail ---------------------------------------------------------------
+function drawSections() {
+  const nav = document.getElementById("sections");
+  for (const section of TREE) {
+    const b = document.createElement("button");
+    b.textContent = section.section;
+    b.onclick = () => pickSection(section);
+    section._button = b;
+    nav.appendChild(b);
+  }
+}
+function pickSection(section) {
+  for (const s of TREE) s._button.classList.toggle("active", s === section);
+  state.section = section;
+  state.population = section.populations.length === 1 ? section.populations[0] : null;
+  state.selected.clear();
+  render();
+}
+
+// ---- canvas --------------------------------------------------------------------
+function render() {
+  const svg = document.getElementById("canvas");
+  svg.replaceChildren();
+  const title = document.getElementById("title"), crumb = document.getElementById("crumb");
+  crumb.replaceChildren();
+  if (!state.section) {
+    title.textContent = "Pick a section";
+    svg.setAttribute("viewBox", "0 0 1000 120");
+    updateFooter();
+    return;
+  }
+  title.textContent = state.section.section;
+  if (!state.population) drawPopulations(svg);
+  else {
+    if (state.section.populations.length > 1) {
+      const a = document.createElement("a");
+      a.textContent = "← all populations in " + state.section.section;
+      a.onclick = () => { state.population = null; state.selected.clear(); render(); };
+      crumb.appendChild(a);
+    }
+    drawPopulationTree(svg, state.population);
+  }
+  updateFooter();
+}
+
+function drawPopulations(svg) {
+  const pops = state.section.populations, n = pops.length;
+  pops.forEach((pop, i) => {
+    const x = 1000 * (i + 1) / (n + 1), y = 200;
+    const leaves = pop.groups.reduce((s, g) => s + g.items.length, 0) + 1;
+    const g = box(svg, x, y, pop.label, "box pop",
+                  `${pop.groups.length} branches · ${leaves} leaves`);
+    tip(g, pop.description);
+    g.onclick = () => { state.population = pop; state.selected.clear(); render(); };
+  });
+  svg.setAttribute("viewBox", "0 0 1000 340");
+  const t = el("text", { x: CX, y: 300, "text-anchor": "middle", fill: "#94a3b8",
+                         "font-size": 14 }, svg);
+  t.textContent = "Pick a population to open its tree";
+}
+
+function drawPopulationTree(svg, pop) {
+  svg.setAttribute("viewBox", "0 0 1000 800");
+  // Each branch gets a wedge of the circle in proportion to its leaves, and
+  // "All" a wedge of its own, so a nine-leaf branch does not crowd a two-leaf one.
+  const branches = [{ all: true, items: [pop.all] }, ...pop.groups];
+  const weight = b => b.all ? 1.4 : b.items.length + 0.6;
+  const total = branches.reduce((s, b) => s + weight(b), 0);
+  let start = -Math.PI / 2 - (weight(branches[0]) / total) * Math.PI;
+  const edges = el("g", {}, svg), nodes = el("g", {}, svg);
+
+  for (const b of branches) {
+    const span = (weight(b) / total) * 2 * Math.PI, mid = start + span / 2;
+    if (b.all) {
+      const [x, y] = polar(R_GROUP, mid);
+      el("line", { x1: CX, y1: CY, x2: x, y2: y, class: "edge" }, edges);
+      drawLeaf(nodes, x, y, pop.all);
+    } else {
+      const [gx, gy] = polar(R_GROUP, mid);
+      el("line", { x1: CX, y1: CY, x2: gx, y2: gy, class: "edge" }, edges);
+      const n = b.items.length, step = span / (n + 0.6);
+      b.items.forEach((item, i) => {
+        const [x, y] = polar(R_LEAF, mid + (i - (n - 1) / 2) * step);
+        el("line", { x1: gx, y1: gy, x2: x, y2: y, class: "edge" }, edges);
+        drawLeaf(nodes, x, y, item);
+      });
+      tip(box(nodes, gx, gy, b.group), b.description);
+    }
+    start += span;
+  }
+  tip(box(nodes, CX, CY, pop.label), pop.description);
+}
+
+function drawLeaf(parent, x, y, leaf) {
+  const g = el("g", { class: "leaf" + (state.selected.has(leaf.key) ? " on" : "") }, parent);
+  el("circle", { cx: x, cy: y, r: LEAF_R }, g);
+  label(g, x, y, leaf.item, 11);
+  tip(g, leaf.description);
+  g.onclick = () => toggle(leaf.key);
+}
+
+// ---- selection ---------------------------------------------------------------
+function toggle(key) {
+  const allKey = state.population.all.key;
+  if (state.selected.has(key)) state.selected.delete(key);
+  else if (key === allKey) { state.selected.clear(); state.selected.add(key); }
+  else { state.selected.delete(allKey); state.selected.add(key); }
+  render();
+}
+
+// The selection read the way a Column reads its lanes: OR within a branch,
+// AND across branches.
+function selection() {
+  const pop = state.population;
+  if (!pop || !state.selected.size) return null;
+  if (state.selected.has(pop.all.key)) return { lanes: [pop.all.key], branches: [] };
+  const branches = [];
+  for (const g of pop.groups) {
+    const items = g.items.filter(i => state.selected.has(i.key));
+    if (items.length) branches.push({ group: g.group, items });
+  }
+  return { lanes: branches.flatMap(b => b.items.map(i => i.key)), branches };
+}
+function ruleText(sel) {
+  if (!sel.branches.length) return `${state.population.label}: all`;
+  const parts = sel.branches.map(b => {
+    const names = b.items.map(i => i.item);
+    return names.length > 1 ? `(${names.join(" OR ")})` : names[0];
+  });
+  return `${state.population.label}: ${parts.join(" AND ")}`;
+}
+function suggestName(sel) {
+  const words = [state.population.label, ...(sel.branches.length
+      ? sel.branches.flatMap(b => b.items.map(i => i.item)) : ["all"])];
+  return words.join(" ").toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "");
+}
+const side = () => document.querySelector("input[name=side]:checked").value;
+
+// ---- footer and draft --------------------------------------------------------
+function updateFooter() {
+  const sel = selection(), rule = document.getElementById("rule");
+  const nameInput = document.getElementById("count-name");
+  if (sel) {
+    rule.textContent = ruleText(sel);
+    rule.classList.remove("empty");
+    if (!state.nameTouched) nameInput.value = suggestName(sel);
+  } else {
+    rule.textContent = "Tick leaves in the tree to describe a count.";
+    rule.classList.add("empty");
+    if (!state.nameTouched) nameInput.value = "";
+  }
+  const name = nameInput.value.trim(), msg = document.getElementById("msg");
+  let problem = "";
+  if (sel && !name) problem = "Give the count a name.";
+  else if (sel && state.draft.counts[name]) problem = `"${name}" is already in the skill set.`;
+  msg.textContent = problem;
+  document.getElementById("add").disabled = !sel || !!problem;
+  drawDraft();
+}
+
+// The JSON a count takes in hockey/predict/skillsets/*.json: a bare list of
+// lanes on the file's own side, or {"lanes", "side"} when it differs.
+function draftJson() {
+  const counts = {};
+  for (const [name, c] of Object.entries(state.draft.counts))
+    counts[name] = c.side === DEFAULT_SIDE ? c.lanes : { lanes: c.lanes, side: c.side };
+  const inputs = state.draft.inputs.map(i => i.kind === "ratio"
+      ? { name: i.name, weight: i.weight, ratio: i.counts }
+      : { name: i.name, weight: i.weight, per20: i.counts });
+  return { name: state.draft.name, label: state.draft.name, side: DEFAULT_SIDE,
+           context: CONTEXT, stage: STAGE, counts,
+           intercept: state.draft.intercept, inputs };
+}
+function drawDraft() {
+  const ul = document.getElementById("counts");
+  ul.replaceChildren();
+  const entries = Object.entries(state.draft.counts);
+  if (!entries.length) {
+    const li = document.createElement("li");
+    li.textContent = "Nothing added yet.";
+    li.style.color = "#64748b";
+    ul.appendChild(li);
+  }
+  for (const [name, c] of entries) {
+    const li = document.createElement("li");
+    li.innerHTML = `<span><span class="name"></span><br><span class="rule-text"></span></span>
+                    <span><span class="side"></span> <button title="Remove">✕</button></span>`;
+    li.querySelector(".name").textContent = name;
+    li.querySelector(".rule-text").textContent = c.rule;
+    li.querySelector(".side").textContent = c.side;
+    const users = state.draft.inputs.filter(i => i.counts.includes(name)).map(i => i.name);
+    const remove = li.querySelector("button");
+    if (users.length) {
+      remove.disabled = true;
+      remove.style.opacity = .35;
+      remove.title = "Used by " + users.join(", ") + " -- remove that input first";
+    }
+    remove.onclick = () => {
+      if (users.length) return;
+      delete state.draft.counts[name]; saveDraft(); updateFooter();
+    };
+    ul.appendChild(li);
+  }
+  document.getElementById("json").textContent = JSON.stringify(draftJson(), null, 2);
+  drawFormula();
+}
+
+// ---- formula: intercept + weighted inputs ---------------------------------
+const kind = () => document.querySelector("input[name=kind]:checked").value;
+
+function describeInput(i) {
+  return i.kind === "ratio" ? `${i.counts[0]} / ${i.counts[1]}`
+                            : `(${i.counts.join(" + ")}) per 20`;
+}
+
+function drawFormula() {
+  const ctxText = document.getElementById("context-text");
+  ctxText.textContent = `Context: ${Object.entries(CONTEXT)
+      .map(([k, v]) => `${k} ${v.join(", ")}`).join(" · ")} · stage ${STAGE}. ` +
+      `score = intercept + Σ weight × input.`;
+
+  const body = document.getElementById("inputs");
+  body.replaceChildren();
+  if (!state.draft.inputs.length) {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td colspan="4" style="color:#64748b">No inputs yet.</td>`;
+    body.appendChild(tr);
+  }
+  state.draft.inputs.forEach((inp, idx) => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td class="mono"></td><td class="what"></td>
+                    <td><input type="number" step="any"></td>
+                    <td><button title="Remove">✕</button></td>`;
+    tr.querySelector(".mono").textContent = inp.name;
+    tr.querySelector(".what").textContent = describeInput(inp);
+    const w = tr.querySelector("input");
+    w.value = inp.weight;
+    w.onchange = () => {
+      const v = parseFloat(w.value);
+      if (Number.isFinite(v)) { inp.weight = v; saveDraft(); drawDraft(); }
+      else w.value = inp.weight;
+    };
+    tr.querySelector("button").onclick = () => {
+      state.draft.inputs.splice(idx, 1); saveDraft(); updateFooter();
+    };
+    body.appendChild(tr);
+  });
+
+  // The count pickers follow the counts; keep what was ticked or chosen.
+  const names = Object.keys(state.draft.counts);
+  const pick = document.getElementById("per20-counts");
+  const ticked = new Set([...pick.querySelectorAll("input:checked")].map(c => c.value));
+  pick.replaceChildren();
+  if (!names.length) pick.textContent = "Add counts from the tree first.";
+  for (const n of names) {
+    const lab = document.createElement("label");
+    const cb = document.createElement("input");
+    cb.type = "checkbox"; cb.value = n; cb.checked = ticked.has(n);
+    cb.onchange = checkInput;
+    lab.append(cb, " " + n);
+    pick.appendChild(lab);
+  }
+  for (const id of ["ratio-num", "ratio-den"]) {
+    const sel = document.getElementById(id), keep = sel.value;
+    sel.replaceChildren();
+    for (const n of names) sel.add(new Option(n, n));
+    if (names.includes(keep)) sel.value = keep;
+  }
+  // A ratio of a count to itself is never meant; start the denominator elsewhere.
+  const num = document.getElementById("ratio-num"), den = document.getElementById("ratio-den");
+  if (num.value === den.value && names.length > 1)
+    den.value = names.find(n => n !== num.value);
+  checkInput();
+}
+
+function pickedCounts() {
+  return kind() === "ratio"
+      ? [document.getElementById("ratio-num").value, document.getElementById("ratio-den").value]
+      : [...document.querySelectorAll("#per20-counts input:checked")].map(c => c.value);
+}
+// A name from what is picked, as count names are suggested from leaves; typing
+// over it keeps what was typed.
+function suggestInputName() {
+  const counts = pickedCounts().filter(Boolean);
+  if (!counts.length) return "";
+  return kind() === "ratio" ? `${counts[0]}_share` : `${counts.join("_")}_per20`;
+}
+function pendingInput() {
+  const nameInput = document.getElementById("input-name");
+  if (!state.inputNameTouched) nameInput.value = suggestInputName();
+  const name = nameInput.value.trim();
+  const weight = parseFloat(document.getElementById("input-weight").value);
+  const counts = pickedCounts();
+  let problem = "";
+  if (!Object.keys(state.draft.counts).length) problem = "Add counts from the tree first.";
+  else if (kind() === "ratio" && Object.keys(state.draft.counts).length < 2)
+    problem = "A ratio needs two counts; add another from the tree.";
+  else if (kind() === "per20" && !counts.length) problem = "Tick at least one count.";
+  else if (!name) problem = "Give the input a name.";
+  else if (state.draft.inputs.some(i => i.name === name)) problem = `"${name}" is already an input.`;
+  else if (!Number.isFinite(weight)) problem = "The weight must be a number.";
+  else if (kind() === "ratio" && (!counts[0] || !counts[1])) problem = "Pick a numerator and a denominator.";
+  else if (kind() === "ratio" && counts[0] === counts[1]) problem = "A count divided by itself is always 1.";
+  return { input: { name, kind: kind(), counts, weight }, problem };
+}
+function checkInput() {
+  const { problem } = pendingInput();
+  document.getElementById("input-msg").textContent = problem;
+  document.getElementById("add-input").disabled = !!problem;
+}
+
+document.getElementById("add").onclick = () => {
+  const sel = selection(), name = document.getElementById("count-name").value.trim();
+  if (!sel || !name || state.draft.counts[name]) return;
+  state.draft.counts[name] = { lanes: sel.lanes, side: side(), rule: ruleText(sel) };
+  saveDraft();
+  state.selected.clear();
+  state.nameTouched = false;
+  render();
+};
+document.getElementById("clear").onclick = () => { state.selected.clear(); render(); };
+document.getElementById("count-name").oninput = () => { state.nameTouched = true; updateFooter(); };
+document.getElementById("skillset-name").oninput = e => {
+  state.draft.name = e.target.value.trim(); saveDraft(); drawDraft();
+};
+document.getElementById("copy").onclick = async () => {
+  try { await navigator.clipboard.writeText(document.getElementById("json").textContent); } catch (e) {}
+};
+
+document.getElementById("add-input").onclick = () => {
+  const { input, problem } = pendingInput();
+  if (problem) return;
+  state.draft.inputs.push(input);
+  saveDraft();
+  document.getElementById("input-name").value = "";
+  state.inputNameTouched = false;
+  document.getElementById("input-weight").value = "1";
+  document.querySelectorAll("#per20-counts input").forEach(c => { c.checked = false; });
+  updateFooter();
+};
+for (const r of document.querySelectorAll("input[name=kind]")) r.onchange = () => {
+  document.getElementById("per20-pick").hidden = kind() !== "per20";
+  document.getElementById("ratio-pick").hidden = kind() !== "ratio";
+  checkInput();
+};
+document.getElementById("input-name").oninput = e => {
+  state.inputNameTouched = e.target.value.trim() !== "";
+  checkInput();
+};
+document.getElementById("input-weight").oninput = checkInput;
+for (const id of ["ratio-num", "ratio-den"]) document.getElementById(id).onchange = checkInput;
+document.getElementById("intercept").onchange = e => {
+  const v = parseFloat(e.target.value);
+  if (Number.isFinite(v)) { state.draft.intercept = v; saveDraft(); drawDraft(); }
+  else e.target.value = state.draft.intercept;
+};
+
+document.getElementById("intercept").value = state.draft.intercept;
+document.getElementById("skillset-name").value = state.draft.name;
+drawSections();
+render();
+</script>
+{% endblock %}

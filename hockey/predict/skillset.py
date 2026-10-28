@@ -167,20 +167,20 @@ def load_skillset(conn, players: Iterable, league: int, season: str,
     return out, missing
 
 
-if __name__ == "__main__":
-    # Check a config against the supplier's own scores in its "reference".
-    import sys
-    skillset = read_skillset(sys.argv[1] if len(sys.argv) > 1 else "skating")
-    reference = skillset.raw.get("reference")
-    if not reference:
-        sys.exit(f"{skillset.name}: no reference scores to check against")
+def _print_scores(skillset: Skillset, rows: list[SkillsetRow]) -> None:
+    """A score table, best first, with each input's value."""
+    names = [t.name for t in skillset.inputs]
+    print(f"{'player':<26}{'min':>7}{'score':>9}" + "".join(f"  {n}" for n in names))
+    for row in sorted(rows, key=lambda r: r.score, reverse=True):
+        print(f"{row.name:<26}{row.minutes:7.1f}{row.score:9.3f}"
+              + "".join(f"  {row.inputs[n]:>{len(n)}.3f}" for n in names))
+
+
+def _check_reference(skillset: Skillset, reference: dict, conn) -> None:
+    """Our scores against the supplier's for the players in ``reference``."""
     expected = {int(k): v for k, v in reference["scores"].items()}
-    conn = open_connection()
-    try:
-        rows, missing = load_skillset(conn, list(expected), reference["league"],
-                                      reference["season"], skillset)
-    finally:
-        conn.close()
+    rows, missing = load_skillset(conn, list(expected), reference["league"],
+                                  reference["season"], skillset)
     print(f"{skillset.label}: {len(rows)} players")
     print(f"{'player':<26}{'min':>7}{'ours':>8}{'portal':>8}{'diff':>8}")
     for row in rows:
@@ -191,3 +191,38 @@ if __name__ == "__main__":
         print(f"mean |diff| {mean:.4f}")
     if missing:
         print("unanswered:", missing)
+
+
+if __name__ == "__main__":
+    # With a "reference" and no --team: check the config against the
+    # supplier's own scores. Otherwise: score one team's roster.
+    import argparse
+
+    from hockey.helpers.get_roster import get_roster
+
+    parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
+    parser.add_argument("config", nargs="?", default="my_skillset", #skating",
+                        help="a config name in skillsets/ or a path (default: skating)")
+    parser.add_argument("--team", type=int,
+                        help="SportLogIQ team id whose roster to score (default: 323)")
+    parser.add_argument("--league", type=int, default=13)
+    parser.add_argument("--season", default="20262027")
+    args = parser.parse_args()
+
+    skillset = read_skillset(args.config)
+    reference = skillset.raw.get("reference")
+    conn = open_connection()
+    try:
+        if reference and args.team is None:
+            _check_reference(skillset, reference, conn)
+        else:
+            team = 323 if args.team is None else args.team
+            players = [p.player_id for p in get_roster(team, args.season, conn)]
+            rows, missing = load_skillset(conn, players, args.league, args.season, skillset)
+            print(f"{skillset.label}: team {team}, league {args.league}, "
+                  f"season {args.season}, {len(rows)} players")
+            _print_scores(skillset, rows)
+            if missing:
+                print("unanswered:", missing)
+    finally:
+        conn.close()

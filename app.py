@@ -46,6 +46,9 @@ app = Flask(__name__)
 from filter_api import filter_bp  # noqa: E402  (must follow the .env load)
 app.register_blueprint(filter_bp)
 
+from skillset_api import skillset_bp  # noqa: E402
+app.register_blueprint(skillset_bp)
+
 # The cube explorer is optional: it needs pandas and a directory of built
 # cubes, and neither is required to serve a game. A deployment without them
 # loses /explore and nothing else, which is why this is guarded rather than a
