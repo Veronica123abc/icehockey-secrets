@@ -1,0 +1,71 @@
+{
+  "name": "skating",
+  "label": "Skating",
+  "description": "The supplier's Skating skill for offensive forwards: an intercept plus a weighted sum of seven per-player event metrics, even strength in regulation, regular season.",
+  "source": {
+    "supplier": "SportLogIQ",
+    "archetype_id": 5,
+    "archetype": "Offensive Forwards",
+    "skill_metric_set_id": 37,
+    "definition": "GET /api/0.2/primarypositions/F/archetypeswithskillmetricsets",
+    "fitted_on": "19 Rögle forwards, SHL 2026/27 (league 13): least squares on the portal's inputs and outputs, residual ~1e-14",
+    "valid_for": "SHL 2026/27. Another league or season may carry other weights; re-fit before trusting a number there."
+  },
+  "notes": [
+    "Weights are per raw unit: a rate (0..1) and a count per 20 minutes live on different scales, so the weights cannot be compared with each other.",
+    "The supplier's even strength stops at the end of the third period: 3-on-3 overtime is out of both the events and the minutes. Counting it put Charles Hudon (893) at 0.476 against the portal's 0.404.",
+    "ce_scoring_chance is listed by the portal but has weight exactly 0.",
+    "Possession Driving Plays (supplier glossary): controlled entries, redline carries, controlled exits, completed north and east-west passes from the NZ, completed outlet and stretch passes from the DZ. Exits by pass are left out because they are the DZ outlet and stretch passes; counting both overshoots.",
+    "OZ LPRs leave out faceoff recoveries, which is why the LPR Faceoff group exists."
+  ],
+  "context": {
+    "Manpower": ["ES"],
+    "Period": ["P1", "P2", "P3"],
+    "Goalies": ["Both goalies on ice", "Goalie out", "Opponent goalie out"]
+  },
+  "stage": "regular",
+  "side": "credited",
+  "counts": {
+    "ce_ok":           ["Controlled entries · Successful"],
+    "ce_play":         ["Controlled entries · Successful", "Controlled entries · With Play After"],
+    "ce_slot":         ["Controlled entries · Successful", "Controlled entries · With Slot Shot"],
+    "oz_dekes":        ["Puck Protections · deke", "Puck Protections · OZ"],
+    "oz_dekes_ok":     ["Puck Protections · deke", "Puck Protections · OZ", "Puck Protections · Successful"],
+    "oz_lprs_ok":      ["LPRs · OZ", "LPRs · Successful", "LPRs · Is Not Faceoff"],
+    "cx_carry":        ["Controlled exits · Successful", "Controlled exits · Carry"],
+    "nz_carries":      ["Carries · NZ"],
+    "nz_passes":       ["Passes · Successful", "Passes · NZ", "Passes · North", "Passes · East-West"],
+    "nz_entry_passes": ["Passes · Successful", "Passes · NZ", "Passes · Untyped", "Passes · Entry Pass"],
+    "dz_passes":       ["Passes · Successful", "Passes · DZ", "Passes · Outlet", "Passes · Stretch"]
+  },
+  "intercept": -0.329061,
+  "inputs": [
+    {"name": "pdp_per20", "label": "Possession Driving Plays per 20", "weight": 0.0171393,
+     "per20": ["ce_ok", "cx_carry", "nz_carries", "nz_passes", "nz_entry_passes", "dz_passes"]},
+    {"name": "ce_per20", "label": "Controlled Entries per 20", "weight": 0.0451062,
+     "per20": ["ce_ok"]},
+    {"name": "ce_play_after", "label": "CE with Successful Play After Rate", "weight": 0.349766,
+     "ratio": ["ce_play", "ce_ok"]},
+    {"name": "oz_dekes_per20", "label": "OZ Open Ice Dekes per 20", "weight": 0.0892796,
+     "per20": ["oz_dekes_ok"]},
+    {"name": "oz_deke_success", "label": "OZ Open Ice Deke Success Rate", "weight": 0.0874415,
+     "ratio": ["oz_dekes_ok", "oz_dekes"]},
+    {"name": "oz_lprs_per20", "label": "OZ LPR's per 20", "weight": 0.0198566,
+     "per20": ["oz_lprs_ok"]},
+    {"name": "ce_scoring_chance", "label": "% of OZ Entries Resulting in a Scoring Chance", "weight": 0.0,
+     "ratio": ["ce_slot", "ce_ok"]}
+  ],
+  "reference": {
+    "description": "The portal's Skating value, read 2026-10-25 (Rögle) and 2026-10-26 (Djurgården).",
+    "league": 13,
+    "season": "20262027",
+    "scores": {
+      "375": 0.2650, "1101": 0.4871, "1625": 0.4632, "1881": 0.4312, "9878": 0.4485,
+      "9932": 0.3818, "10918": 0.4395, "12219": 0.5253, "16885": 0.3743,
+      "18148": 0.3614, "12198": 0.3905, "45310": 0.1110, "16463": 0.3836, "14980": 0.3482,
+      "10786": 0.4663, "893": 0.4045, "38162": 0.6524, "9276": 0.3712, "26995": 0.6494,
+      "11759": 0.2698, "712": 0.1459, "42378": 0.4019, "407": 0.3344, "1466": 0.4087,
+      "18572": 0.3566
+    }
+  }
+}

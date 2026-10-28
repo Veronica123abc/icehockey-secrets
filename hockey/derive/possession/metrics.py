@@ -27,7 +27,7 @@ type 'none', so an outcome or type group would be single-valued decoration;
 Zone is the only group. A DZ carry is the carry half of a controlled exit, an
 OZ carry the carry half of a controlled entry, and an NZ carry is what the
 supplier's glossary calls a "redline carry" -- one of the five parts of
-Possession Driving Plays (see ``hockey/predict/skating.py``).
+Possession Driving Plays (see ``hockey/predict/skillsets/skating.json``).
 
 The group machinery itself lives in ``hockey.derive.filter_group``.
 """
