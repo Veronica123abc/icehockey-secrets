@@ -22,13 +22,23 @@ regulation, every goalie situation) and the regular season, written out
 rather than left to ``read_skillset``'s defaults, so the JSON says what it
 means and loads as it is.
 
-NOT SAVED YET. The draft lives in the page (and the browser's local
-storage); nothing is written to ``hockey/predict/skillsets/``. The page shows
-the JSON to copy.
+SAVING. The draft lives in the page (and the browser's local storage) until
+"Save" posts it to ``/skillsets/save``, which writes
+``hockey/predict/skillsets/<name>.json`` -- but only after ``read_skillset``
+has loaded it, so a file that lands there is one ``load_skillset`` can use.
+An existing file is replaced only when the page says so (a second press),
+and never one carrying supplier ``reference`` scores: those are fitted, not
+drawn. The files are local to the machine running the app; on Azure they are
+lost on the next deploy.
 """
 from __future__ import annotations
 
-from flask import Blueprint, render_template
+import json
+import re
+import tempfile
+from pathlib import Path
+
+from flask import Blueprint, jsonify, render_template, request
 
 skillset_bp = Blueprint("skillsets", __name__)
 
@@ -79,3 +89,47 @@ def builder():
     return render_template("skillset_builder.html", tree=_tree(), sides=sides,
                            default_side=CREDITED, context=_supplier_context(),
                            stage=REGULAR)
+
+
+#: A config name is a file name in SKILLSET_DIR: no paths, no dots.
+_NAME = re.compile(r"[a-z0-9_]{1,64}")
+
+
+@skillset_bp.route("/skillsets/save", methods=["POST"])
+def save():
+    """Write the posted draft to ``skillsets/<name>.json`` once it loads."""
+    from hockey.predict.skillset import SKILLSET_DIR, read_skillset
+
+    body = request.get_json(silent=True) or {}
+    config, overwrite = body.get("config"), body.get("overwrite") is True
+    if not isinstance(config, dict):
+        return jsonify(error="no skill set in the request"), 400
+    name = config.get("name")
+    if not isinstance(name, str) or not _NAME.fullmatch(name):
+        return jsonify(error="name must be lower-case letters, digits and _"), 400
+    if not config.get("inputs"):
+        return jsonify(error="add at least one input before saving"), 400
+
+    path = SKILLSET_DIR / f"{name}.json"
+    if path.exists():
+        try:
+            fitted = "reference" in json.loads(path.read_text(encoding="utf-8"))
+        except ValueError:
+            fitted = False
+        if fitted:
+            return jsonify(error=f"{path.name} holds supplier-fitted weights; "
+                                 "pick another name"), 409
+        if not overwrite:
+            return jsonify(error=f"{path.name} exists", exists=True), 409
+
+    text = json.dumps(config, indent=2, ensure_ascii=False) + "\n"
+    # Load it the way load_skillset will before it is allowed in the folder.
+    with tempfile.TemporaryDirectory() as tmp:
+        trial = Path(tmp) / path.name
+        trial.write_text(text, encoding="utf-8")
+        try:
+            read_skillset(trial)
+        except (KeyError, ValueError, TypeError) as exc:
+            return jsonify(error=f"does not load: {exc}"), 400
+    path.write_text(text, encoding="utf-8")
+    return jsonify(saved=str(path.relative_to(SKILLSET_DIR.parents[2])))

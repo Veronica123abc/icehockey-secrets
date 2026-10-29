@@ -183,7 +183,12 @@
         <ul id="counts"></ul>
       </div>
       <div>
-        <h3>Draft JSON <button class="secondary" id="copy" style="float:right">Copy</button></h3>
+        <h3>Draft JSON
+          <span style="float:right">
+            <button id="save">Save</button>
+            <button class="secondary" id="copy">Copy</button>
+          </span></h3>
+        <div class="msg" id="save-msg"></div>
         <pre id="json"></pre>
       </div>
     </div>
@@ -582,7 +587,37 @@ document.getElementById("add").onclick = () => {
 document.getElementById("clear").onclick = () => { state.selected.clear(); render(); };
 document.getElementById("count-name").oninput = () => { state.nameTouched = true; updateFooter(); };
 document.getElementById("skillset-name").oninput = e => {
+  confirmOverwrite = null;
+  document.getElementById("save-msg").textContent = "";
   state.draft.name = e.target.value.trim(); saveDraft(); drawDraft();
+};
+// Save to hockey/predict/skillsets/<name>.json. When the file exists the
+// first press only says so; pressing again (same name) replaces it.
+let confirmOverwrite = null;
+document.getElementById("save").onclick = async () => {
+  const msg = document.getElementById("save-msg");
+  const config = draftJson();
+  const overwrite = confirmOverwrite === config.name;
+  msg.style.color = "";
+  try {
+    const res = await fetch("/skillsets/save", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ config, overwrite }) });
+    const out = await res.json();
+    if (res.ok) {
+      confirmOverwrite = null;
+      msg.style.color = "#22c55e";
+      msg.textContent = "Saved to " + out.saved;
+    } else if (out.exists) {
+      confirmOverwrite = config.name;
+      msg.textContent = out.error + " -- press Save again to replace it.";
+    } else {
+      confirmOverwrite = null;
+      msg.textContent = out.error;
+    }
+  } catch (e) {
+    msg.textContent = "Save failed: " + e;
+  }
 };
 document.getElementById("copy").onclick = async () => {
   try { await navigator.clipboard.writeText(document.getElementById("json").textContent); } catch (e) {}
