@@ -90,7 +90,7 @@ import warnings
 from bisect import bisect_right
 from collections import defaultdict
 from collections.abc import Iterable, Sequence
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from datetime import date
 from functools import cached_property
 from pathlib import Path
@@ -141,6 +141,13 @@ _TEAM_TOI_COLUMNS = ("game_id", "team_id", *_SITUATION, "seconds")
 _GAME_COLUMNS = ("game_id", "date", "home_team_id", "away_team_id",
                  "home_goals", "away_goals", "stage")
 _CATEGORICAL = ("side", *_SITUATION)
+
+#: :attr:`Cube.credited` of a cube saved before whom it credits was recorded.
+#: Not None: None is a recorded answer, "everyone".
+UNRECORDED = object()
+
+#: :meth:`Cube.extend`'s default: credit whoever the cube already credits.
+_AS_BUILT = object()
 
 
 # --- Building --------------------------------------------------------------
@@ -233,6 +240,9 @@ def build_cube(conn, games: Iterable[int], *, players: Iterable[int] | None = No
     classify as empty. That read is also the expensive part -- it rebuilds
     on-ice sets for every event of every game -- which is the main reason a
     cube is built once and saved rather than rebuilt per question.
+
+    ``players`` is kept on the cube as :attr:`Cube.credited`, so that
+    :meth:`Cube.extend` credits later games the same way without being told.
 
     Progress is printed per game because a season takes minutes; pass
     ``progress=False`` for silence.
@@ -396,7 +406,9 @@ def build_cube(conn, games: Iterable[int], *, players: Iterable[int] | None = No
                 players=player_frame, games=tuple(game_ids),
                 team_counts=_typed(team_count_frame),
                 team_toi=_typed(team_toi_frame), game_info=game_frame,
-                combos=combo_frame, built=date.today().isoformat())
+                combos=combo_frame,
+                credited=None if wanted is None else tuple(sorted(wanted)),
+                built=date.today().isoformat())
 
 
 def _typed(frame: pd.DataFrame) -> pd.DataFrame:
@@ -439,6 +451,11 @@ class Cube:
     #: selection of several lanes would be a sum where it must be an
     #: intersection. :meth:`combos_for` refuses those rather than guessing.
     per_lane: bool = False
+    #: Whom the cube credits: None for every skater on the ice, or the player
+    #: ids it was built for -- ``build_cube``'s ``players``, kept so that
+    #: :meth:`extend` credits the new games the same way. :data:`UNRECORDED`
+    #: for a cube saved before this was kept.
+    credited: tuple[int, ...] | None | object = UNRECORDED
     built: str = ""
 
     def __repr__(self) -> str:
@@ -571,12 +588,17 @@ class Cube:
         info = self.game_info
         if len(info):
             info = info[info.game_id.isin(game_ids)]
+        credited = self.credited
+        if players is not None and credited is not UNRECORDED:
+            chosen = {int(p) for p in players}
+            credited = tuple(sorted(chosen if credited is None
+                                    else chosen & set(credited)))
         return Cube(counts=counts, toi=toi,
                     players=self.players[self.players.player_id.isin(kept)],
                     games=tuple(game_ids),
                     team_counts=frames["team_counts"], team_toi=frames["team_toi"],
                     game_info=info, combos=self.combos, per_lane=self.per_lane,
-                    built=self.built)
+                    credited=credited, built=self.built)
 
     def slice_context(self, context) -> "Cube":
         """The slice a :class:`~hockey.derive.context_filter.ContextFilter`
@@ -736,22 +758,46 @@ class Cube:
     # -- growing -----------------------------------------------------------
 
     def extend(self, conn, games: Iterable[int], *,
-               players: Iterable[int] | None = None,
-               progress: bool = True) -> "Cube":
+               players=_AS_BUILT, progress: bool = True) -> "Cube":
         """This cube plus whichever of ``games`` it does not hold yet.
 
         A game is counted on its own, so last week's games never need
         counting again: after a round, pass the season's schedule and only
-        the new games are built. ``players`` is :func:`build_cube`'s and is
-        NOT remembered by the cube -- pass the same list it was built with,
-        or None for a cube that credits everyone.
+        the new games are built.
+
+        The new games credit whoever the cube already credits
+        (:attr:`credited`). Pass ``players`` only to change that list -- a
+        roster that gained a player, say; the cube then credits both lists.
+        A cube that credits everyone cannot be extended with a list, nor one
+        with a list by everyone: half its games would mean something else.
+        A cube saved before :attr:`credited` was kept needs ``players``
+        (None for everyone), and records it from then on.
         """
+        if players is _AS_BUILT:
+            if self.credited is UNRECORDED:
+                raise ValueError("this cube does not record whom it credits; "
+                                 "pass players= (None for everyone) or rebuild it")
+            players = self.credited
+        listed = None if players is None else {int(p) for p in players}
+        if self.credited is UNRECORDED or (self.credited is None and listed is None):
+            credited = None if listed is None else tuple(sorted(listed))
+        elif (self.credited is None) != (listed is None):
+            raise ValueError(
+                "this cube credits " + ("everyone" if self.credited is None
+                                        else f"{len(self.credited)} players")
+                + "; extending it crediting " + ("everyone" if listed is None
+                                                 else f"{len(listed)} players")
+                + " would mix two kinds of cube -- rebuild it instead")
+        else:
+            credited = tuple(sorted(set(self.credited) | listed))
+
         held = set(self.games)
         new = sorted({int(g) for g in games} - held)
         if not new:
-            return self
-        return _concat(self, build_cube(conn, new, players=players,
-                                        progress=progress))
+            return replace(self, credited=credited)
+        return replace(_concat(self, build_cube(conn, new, players=listed,
+                                                progress=progress)),
+                       credited=credited)
 
     # -- keeping -----------------------------------------------------------
 
@@ -782,6 +828,9 @@ class Cube:
             "combos": len(self.combos),
             "count_rows": len(self.counts), "toi_rows": len(self.toi),
             "team_count_rows": len(self.team_counts),
+            **({} if self.credited is UNRECORDED else
+               {"credited": None if self.credited is None
+                else list(self.credited)}),
         }, indent=2), encoding="utf-8")
         return directory
 
@@ -820,6 +869,9 @@ class Cube:
                    game_info=_read_optional(directory / "games.csv",
                                             _GAME_COLUMNS),
                    combos=combos, per_lane=per_lane,
+                   credited=(UNRECORDED if "credited" not in meta
+                             else None if meta["credited"] is None
+                             else tuple(int(p) for p in meta["credited"])),
                    built=meta.get("built", ""))
 
 

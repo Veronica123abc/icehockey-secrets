@@ -219,8 +219,12 @@ def update(conn, name: str, *, cube_dir: Path | str | None = None,
 
     A game already in the cube is never counted again, so one that was
     ingested half-finished stays half-finished: delete the cube to rebuild it.
+
+    The gameset's ``players`` are resolved again too, so a roster that gained
+    a player credits him from the next game on. A cube saved before it
+    recorded whom it credits is given the gameset's answer, new games or not.
     """
-    from hockey.metrics.cube import Cube
+    from hockey.metrics.cube import UNRECORDED, Cube
 
     config = load(name)
     directory = Path(cube_dir or CUBE_DIR) / config["cube"]
@@ -241,7 +245,7 @@ def update(conn, name: str, *, cube_dir: Path | str | None = None,
     if progress:
         print(f"{config['name']}: {len(cube.games)} games in the cube, "
               f"{len(new)} new")
-    if not new:
+    if not new and cube.credited is not UNRECORDED:
         return directory
     _save(cube.extend(conn, new, players=players, progress=progress),
           directory, progress)
