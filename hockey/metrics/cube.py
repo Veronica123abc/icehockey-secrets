@@ -4,12 +4,23 @@
 WHAT A CUBE IS. One table, built once per set of games, holding every number
 the metric catalog can produce about those games:
 
-    game_id · player_id · team_id · side · lane · period · manpower · goalies
+    game_id · player_id · team_id · side · combo · period · manpower · goalies
         -> n (events), xg (expected goals)
 
-plus a second table of the same shape minus lane and side, holding seconds of
+plus a second table of the same shape minus combo and side, holding seconds of
 ice time. That is the whole idea. Nothing is selected at build time, so
 nothing has to be rebuilt when you change your mind.
+
+A COMBO IS EVERY LANE ONE EVENT MATCHED, kept together. A row per lane would
+answer "how many successful entries" and "how many entries with a play after"
+but not "how many successful entries WITH a play after", because which lanes
+an event matched together is gone once they are counted apart -- and that
+intersection is what a multi-lane column or a skill-set count asks. So the
+count tables carry a combo id, ``combos.csv`` says which lanes each id stands
+for, and :meth:`Cube.combos_for` turns any selection into the ids to sum. It
+is also the smaller layout: an event matching six lanes is one row, not six,
+and a season of events shares a few hundred combinations. Measured on 8 games:
+88k rows against 189k, 0.32 MB against 0.88.
 
 TWO ATTRIBUTIONS, TWO TABLES. ``counts``/``toi`` credit a PLAYER; the event is
 counted once for every skater on the ice for it, which is what an on-ice
@@ -81,6 +92,7 @@ from collections import defaultdict
 from collections.abc import Iterable, Sequence
 from dataclasses import dataclass, field
 from datetime import date
+from functools import cached_property
 from pathlib import Path
 
 import pandas as pd
@@ -114,17 +126,21 @@ _SHOT = "shot"
 _XG = WEIGHTS["xg_official"]
 
 _SITUATION = ("period", "manpower", "goalies")
-_COUNT_COLUMNS = ("game_id", "player_id", "team_id", "side", "lane",
+_COUNT_COLUMNS = ("game_id", "player_id", "team_id", "side", "combo",
                   *_SITUATION, "n", "xg")
 _TOI_COLUMNS = ("game_id", "player_id", "team_id", *_SITUATION, "seconds")
-_TEAM_COUNT_COLUMNS = ("game_id", "team_id", "side", "lane", *_SITUATION, "n", "xg")
+_TEAM_COUNT_COLUMNS = ("game_id", "team_id", "side", "combo", *_SITUATION, "n", "xg")
+#: combo id -> the lane keys an event matched, joined by :data:`_LANE_SEP`.
+_COMBO_COLUMNS = ("combo", "lanes")
+#: No lane key contains it; the catalog's keys use " · ".
+_LANE_SEP = "|"
 _TEAM_TOI_COLUMNS = ("game_id", "team_id", *_SITUATION, "seconds")
 #: One row per game: when it was played, who played it, how it ended. Not a
 #: metric -- it is what lets a game be NAMED, which a picker offering 52 of
 #: them needs and a bare id cannot do.
 _GAME_COLUMNS = ("game_id", "date", "home_team_id", "away_team_id",
                  "home_goals", "away_goals", "stage")
-_CATEGORICAL = ("side", "lane", *_SITUATION)
+_CATEGORICAL = ("side", *_SITUATION)
 
 
 # --- Building --------------------------------------------------------------
@@ -249,6 +265,7 @@ def build_cube(conn, games: Iterable[int], *, players: Iterable[int] | None = No
     seconds: dict[tuple, float] = defaultdict(float)
     team_counts: dict[tuple, list[float]] = defaultdict(lambda: [0.0, 0.0])
     team_seconds: dict[tuple, float] = defaultdict(float)
+    combos: dict[tuple[str, ...], int] = {}
     benches: dict[tuple[int, int], int | None] = {}
     identities: dict[int, tuple[str, str]] = {}
 
@@ -304,9 +321,13 @@ def build_cube(conn, games: Iterable[int], *, players: Iterable[int] | None = No
             lanes = catalog.BY_EVENT.get(event.name)
             if not lanes:
                 continue
-            matched = [lane.key for lane in lanes if lane.matches(event)]
+            matched = tuple(lane.key for lane in lanes if lane.matches(event))
             if not matched:
                 continue
+            # The whole set of lanes this event matched, as one id: what lets
+            # a lane ANDed with another be counted later, which a row per lane
+            # could not. Catalog order, so equal sets get the same id.
+            combo = combos.setdefault(matched, len(combos))
             situation = (_or_unknown(ctx.period_of(event)),
                          _or_unknown(ctx.manpower_of(event)),
                          _or_unknown(ctx.goalies_of(event)))
@@ -318,10 +339,9 @@ def build_cube(conn, games: Iterable[int], *, players: Iterable[int] | None = No
             # same event, counted once rather than once per man on the ice.
             for team_id in team_pair:
                 team_side = FOR if team_id == event_team else AGAINST
-                for lane in matched:
-                    cell = team_counts[(game_id, team_id, team_side, lane) + situation]
-                    cell[0] += 1.0
-                    cell[1] += xg
+                cell = team_counts[(game_id, team_id, team_side, combo) + situation]
+                cell[0] += 1.0
+                cell[1] += xg
 
             for player_id, team_id, player_spans in on_ice_players:
                 index = bisect_right(player_spans, moment)
@@ -335,18 +355,17 @@ def build_cube(conn, games: Iterable[int], *, players: Iterable[int] | None = No
                 if player_id == actor:
                     sides.append(CREDITED)
                 for side in sides:
-                    for lane in matched:
-                        cell = counts[(game_id, player_id, side, lane) + situation]
-                        cell[0] += 1.0
-                        cell[1] += xg
+                    cell = counts[(game_id, player_id, side, combo) + situation]
+                    cell[0] += 1.0
+                    cell[1] += xg
         if progress and (number % 10 == 0 or number == len(game_ids)):
             print(f"   {number}/{len(game_ids)} games "
                   f"({time.perf_counter() - started:.1f}s)")
 
     count_frame = pd.DataFrame(
-        [(game, player, benches.get((game, player)), side, lane,
+        [(game, player, benches.get((game, player)), side, combo,
           period, manpower, goalies, int(n), round(xg, 4))
-         for (game, player, side, lane, period, manpower, goalies), (n, xg)
+         for (game, player, side, combo, period, manpower, goalies), (n, xg)
          in counts.items()],
         columns=list(_COUNT_COLUMNS))
     toi_frame = pd.DataFrame(
@@ -355,8 +374,8 @@ def build_cube(conn, games: Iterable[int], *, players: Iterable[int] | None = No
          for (game, player, period, manpower, goalies), value in seconds.items()],
         columns=list(_TOI_COLUMNS))
     team_count_frame = pd.DataFrame(
-        [(game, team, side, lane, period, manpower, goalies, int(n), round(xg, 4))
-         for (game, team, side, lane, period, manpower, goalies), (n, xg)
+        [(game, team, side, combo, period, manpower, goalies, int(n), round(xg, 4))
+         for (game, team, side, combo, period, manpower, goalies), (n, xg)
          in team_counts.items()],
         columns=list(_TEAM_COUNT_COLUMNS))
     team_toi_frame = pd.DataFrame(
@@ -369,21 +388,26 @@ def build_cube(conn, games: Iterable[int], *, players: Iterable[int] | None = No
          for player_id, (name, position) in sorted(identities.items())],
         columns=["player_id", "name", "position"])
 
+    combo_frame = pd.DataFrame(
+        [(combo, _LANE_SEP.join(matched)) for matched, combo in combos.items()],
+        columns=list(_COMBO_COLUMNS))
+
     return Cube(counts=_typed(count_frame), toi=_typed(toi_frame),
                 players=player_frame, games=tuple(game_ids),
                 team_counts=_typed(team_count_frame),
                 team_toi=_typed(team_toi_frame), game_info=game_frame,
-                built=date.today().isoformat())
+                combos=combo_frame, built=date.today().isoformat())
 
 
 def _typed(frame: pd.DataFrame) -> pd.DataFrame:
-    """Narrow dtypes. A season is a few hundred thousand rows and the lane,
-    side and situation columns repeat endlessly, so categoricals pay."""
+    """Narrow dtypes. A season is a few hundred thousand rows and the side
+    and situation columns repeat endlessly, so categoricals pay."""
     frame = frame.copy()
     if "team_id" in frame.columns:
         frame["team_id"] = frame["team_id"].astype("Int64")
-    if "n" in frame.columns:
-        frame["n"] = frame["n"].astype("int32")
+    for column in ("n", "combo"):
+        if column in frame.columns:
+            frame[column] = frame[column].astype("int32")
     for column in _CATEGORICAL:
         if column in frame.columns:
             frame[column] = frame[column].astype("category")
@@ -409,6 +433,12 @@ class Cube:
     team_counts: pd.DataFrame = field(default_factory=pd.DataFrame)
     team_toi: pd.DataFrame = field(default_factory=pd.DataFrame)
     game_info: pd.DataFrame = field(default_factory=pd.DataFrame)
+    combos: pd.DataFrame = field(default_factory=lambda: pd.DataFrame(
+        columns=list(_COMBO_COLUMNS)))
+    #: Saved before combinations were kept: every combo is one lane, so a
+    #: selection of several lanes would be a sum where it must be an
+    #: intersection. :meth:`combos_for` refuses those rather than guessing.
+    per_lane: bool = False
     built: str = ""
 
     def __repr__(self) -> str:
@@ -416,8 +446,9 @@ class Cube:
         if len(self.game_info) and self.game_info.date.any():
             dates = sorted(d[:10] for d in self.game_info.date if d)
             span = f" {dates[0]}..{dates[-1]}," if dates else ""
+        present = self._lane_table[self._lane_table.combo.isin(self.counts.combo)]
         return (f"Cube({len(self.games)} games,{span} {len(self.players)} players, "
-                f"{self.counts['lane'].nunique()} lanes, "
+                f"{present.lane.nunique()} lanes, "
                 f"{len(self.counts):,} player rows + {len(self.team_counts):,} "
                 f"team rows, {self.minutes:.0f} player-minutes)")
 
@@ -444,6 +475,57 @@ class Cube:
     def team_minutes(self) -> float:
         """Minutes of hockey, counted once per team."""
         return float(self.team_toi.seconds.sum()) / 60.0 if len(self.team_toi) else 0.0
+
+    # -- lanes -------------------------------------------------------------
+
+    @cached_property
+    def _members(self) -> dict[int, frozenset[str]]:
+        """combo id -> the lanes it stands for."""
+        return {int(combo): frozenset(lanes.split(_LANE_SEP))
+                for combo, lanes in zip(self.combos.combo, self.combos.lanes)}
+
+    @cached_property
+    def _lane_table(self) -> pd.DataFrame:
+        """One row per (combo, lane): the join that turns combos into lanes."""
+        return pd.DataFrame(
+            [(combo, lane) for combo, lanes in self._members.items()
+             for lane in lanes], columns=["combo", "lane"]).astype({"combo": "int32"})
+
+    def combos_for(self, lanes: str | Iterable[str]) -> list[int]:
+        """The combos a selection of lanes counts, under the
+        :class:`~hockey.metrics.on_ice.Column` contract: OR within a filter
+        group, AND across groups.
+
+        Summing the rows of these combos counts each event once, however many
+        of the selected lanes it matched -- which is why OR within a group is
+        right here even where a group's items overlap.
+        """
+        lanes = (lanes,) if isinstance(lanes, str) else tuple(lanes)
+        unknown = [key for key in lanes if key not in catalog.BY_KEY]
+        if unknown:
+            raise KeyError(f"unknown lane(s) {unknown}; run "
+                           f"`python -m hockey.derive.metric_catalog` for the tree")
+        if self.per_lane and len(lanes) > 1:
+            raise ValueError(
+                f"this cube was saved one row per lane, before combinations "
+                f"were kept, so {list(lanes)} cannot be combined; rebuild it")
+        by_group: dict[str, set[str]] = {}
+        for key in lanes:
+            by_group.setdefault(catalog.BY_KEY[key].group or "", set()).add(key)
+        groups = list(by_group.values())
+        return [combo for combo, members in self._members.items()
+                if all(members & group for group in groups)]
+
+    def _by_lane(self, rows: pd.DataFrame, index: str, value: str) -> pd.DataFrame:
+        """``index`` x lanes from combo rows: each combo credited to every
+        lane it stands for."""
+        if not len(rows):
+            return pd.DataFrame()
+        per_combo = (rows.groupby([index, "combo"], observed=True)[value].sum()
+                     .reset_index())
+        return per_combo.merge(self._lane_table, on="combo").pivot_table(
+            index=index, columns="lane", values=value, aggfunc="sum",
+            fill_value=0.0)
 
     # -- narrowing ---------------------------------------------------------
 
@@ -493,7 +575,8 @@ class Cube:
                     players=self.players[self.players.player_id.isin(kept)],
                     games=tuple(game_ids),
                     team_counts=frames["team_counts"], team_toi=frames["team_toi"],
-                    game_info=info, built=self.built)
+                    game_info=info, combos=self.combos, per_lane=self.per_lane,
+                    built=self.built)
 
     def slice_context(self, context) -> "Cube":
         """The slice a :class:`~hockey.derive.context_filter.ContextFilter`
@@ -540,10 +623,8 @@ class Cube:
         """
         if side not in SIDES:
             raise ValueError(f"side {side!r}; expected one of {SIDES}")
-        rows = self.counts[self.counts.side == side]
-        table = (rows.pivot_table(index="player_id", columns="lane", values=value,
-                                  aggfunc="sum", observed=True, fill_value=0.0)
-                 if len(rows) else pd.DataFrame())
+        table = self._by_lane(self.counts[self.counts.side == side],
+                              "player_id", value)
         minutes = self.summary()[["minutes"]]
         table = table.join(minutes, how="outer").fillna(0.0)
         table = table[table.minutes > min_minutes]
@@ -552,17 +633,31 @@ class Cube:
             table = table.div(hours.where(hours > 0), axis=0).fillna(0.0)
         return table.sort_index(axis=1)
 
-    def total(self, lane: str, *, side: str = FOR, value: str = "n") -> float:
+    def total(self, lane: str | Iterable[str], *, side: str = FOR,
+              value: str = "n") -> float:
         """One number: this lane, this side, summed over whatever is sliced.
 
         The short way to ask a question whose answer is a single figure --
-        ``cube.total("Passes · Successful", side=CREDITED)``.
+        ``cube.total("Passes · Successful", side=CREDITED)``. Several lanes
+        combine as :meth:`combos_for` says.
         """
-        if lane not in catalog.BY_KEY:
-            raise KeyError(f"unknown lane {lane!r}; run "
-                           f"`python -m hockey.derive.metric_catalog` for the tree")
-        rows = self.counts[(self.counts.lane == lane) & (self.counts.side == side)]
+        rows = self.counts[self.counts.combo.isin(self.combos_for(lane))
+                           & (self.counts.side == side)]
         return float(rows[value].sum())
+
+    def player_totals(self, lanes: str | Iterable[str], *,
+                      sides: str | Iterable[str] = FOR,
+                      value: str = "n") -> pd.Series:
+        """player id -> total of a selection of lanes, on one or more sides.
+
+        What a report column or a skill-set count needs: :meth:`total` per
+        player. ``sides=(FOR, AGAINST)`` is the undivided on-ice total.
+        Players with nothing selected are absent rather than zero.
+        """
+        sides = [sides] if isinstance(sides, str) else list(sides)
+        rows = self.counts[self.counts.combo.isin(self.combos_for(lanes))
+                           & self.counts.side.isin(sides)]
+        return rows.groupby("player_id", observed=True)[value].sum()
 
     def game_table(self) -> pd.DataFrame:
         """The games, in the order they were played, named rather than numbered.
@@ -617,11 +712,10 @@ class Cube:
         if side not in (FOR, AGAINST):
             raise ValueError(f"side {side!r}; a team event is for or against, "
                              f"never credited -- that asks which PLAYER did it")
-        rows = self.team_counts[self.team_counts.side == side]
-        if not len(rows):
+        table = self._by_lane(self.team_counts[self.team_counts.side == side],
+                              "team_id", value)
+        if not len(table):
             return pd.DataFrame()
-        table = rows.pivot_table(index="team_id", columns="lane", values=value,
-                                 aggfunc="sum", observed=True, fill_value=0.0)
         hours = (self.team_summary().minutes / 60.0).reindex(table.index)
         if per60:
             table = table.div(hours.where(hours > 0), axis=0).fillna(0.0)
@@ -632,25 +726,47 @@ class Cube:
         return table.rename(index={t: names.get(int(t), str(t))
                                    for t in table.index})
 
-    def team_total(self, lane: str, *, side: str = FOR, value: str = "n") -> float:
+    def team_total(self, lane: str | Iterable[str], *, side: str = FOR,
+                   value: str = "n") -> float:
         """One number for the team: this lane, counted once per event."""
-        if lane not in catalog.BY_KEY:
-            raise KeyError(f"unknown lane {lane!r}; run "
-                           f"`python -m hockey.derive.metric_catalog` for the tree")
-        rows = self.team_counts[(self.team_counts.lane == lane)
+        rows = self.team_counts[self.team_counts.combo.isin(self.combos_for(lane))
                                 & (self.team_counts.side == side)]
         return float(rows[value].sum())
+
+    # -- growing -----------------------------------------------------------
+
+    def extend(self, conn, games: Iterable[int], *,
+               players: Iterable[int] | None = None,
+               progress: bool = True) -> "Cube":
+        """This cube plus whichever of ``games`` it does not hold yet.
+
+        A game is counted on its own, so last week's games never need
+        counting again: after a round, pass the season's schedule and only
+        the new games are built. ``players`` is :func:`build_cube`'s and is
+        NOT remembered by the cube -- pass the same list it was built with,
+        or None for a cube that credits everyone.
+        """
+        held = set(self.games)
+        new = sorted({int(g) for g in games} - held)
+        if not new:
+            return self
+        return _concat(self, build_cube(conn, new, players=players,
+                                        progress=progress))
 
     # -- keeping -----------------------------------------------------------
 
     def save(self, directory: Path | str) -> Path:
-        """Three CSVs and a note saying what was built, when, from which games.
+        """CSVs and a note saying what was built, when, from which games.
 
-        Gzipped, which pandas does from the suffix alone. The lane, side and
-        situation columns are the same few dozen strings repeated hundreds of
+        Gzipped, which pandas does from the suffix alone. The side and
+        situation columns are the same few strings repeated hundreds of
         thousands of times, so it is a tenfold saving for nothing -- a season
-        is a few MB rather than a few hundred.
+        is a few MB rather than a few hundred. ``combos.csv`` is what the
+        combo ids in the two count tables mean.
         """
+        if self.per_lane:
+            raise ValueError("a per-lane cube cannot be saved in the combined "
+                             "format it does not hold; rebuild it")
         directory = Path(directory)
         directory.mkdir(parents=True, exist_ok=True)
         self.counts.to_csv(directory / "counts.csv.gz", index=False)
@@ -659,9 +775,11 @@ class Cube:
         self.team_toi.to_csv(directory / "team_toi.csv.gz", index=False)
         self.game_info.to_csv(directory / "games.csv", index=False)
         self.players.to_csv(directory / "players.csv", index=False)
+        self.combos.to_csv(directory / "combos.csv", index=False)
         (directory / "meta.json").write_text(json.dumps({
             "games": list(self.games), "built": self.built,
-            "lanes": int(self.counts["lane"].nunique()),
+            "lanes": int(self._lane_table.lane.nunique()),
+            "combos": len(self.combos),
             "count_rows": len(self.counts), "toi_rows": len(self.toi),
             "team_count_rows": len(self.team_counts),
         }, indent=2), encoding="utf-8")
@@ -671,17 +789,79 @@ class Cube:
     def load(cls, directory: Path | str) -> "Cube":
         directory = Path(directory)
         meta = json.loads((directory / "meta.json").read_text(encoding="utf-8"))
-        return cls(counts=_typed(pd.read_csv(directory / "counts.csv.gz")),
+        counts = pd.read_csv(directory / "counts.csv.gz")
+        team_counts = _read_optional(directory / "team_counts.csv.gz",
+                                     _TEAM_COUNT_COLUMNS)
+        per_lane = not (directory / "combos.csv").is_file()
+        if per_lane:
+            # Saved one row per lane: give each lane a combo of its own, which
+            # answers every single-lane question exactly and no other.
+            warnings.warn(f"{directory.name} was saved one row per lane; lanes "
+                          f"cannot be combined until it is rebuilt",
+                          stacklevel=2)
+            lanes = sorted(set(counts.lane) | set(team_counts.get("lane", ())))
+            ids = {lane: number for number, lane in enumerate(lanes)}
+            counts = counts.assign(combo=counts.lane.map(ids)).drop(columns="lane")
+            if "lane" in team_counts.columns:
+                team_counts = (team_counts.assign(combo=team_counts.lane.astype(str)
+                                                  .map(ids))
+                               .drop(columns="lane"))
+            combos = pd.DataFrame(list(enumerate(lanes)),
+                                  columns=list(_COMBO_COLUMNS))
+        else:
+            combos = pd.read_csv(directory / "combos.csv")
+        return cls(counts=_typed(counts),
                    toi=_typed(pd.read_csv(directory / "toi.csv.gz")),
                    players=pd.read_csv(directory / "players.csv"),
                    games=tuple(meta["games"]),
-                   team_counts=_read_optional(directory / "team_counts.csv.gz",
-                                              _TEAM_COUNT_COLUMNS),
+                   team_counts=_typed(team_counts),
                    team_toi=_read_optional(directory / "team_toi.csv.gz",
                                            _TEAM_TOI_COLUMNS),
                    game_info=_read_optional(directory / "games.csv",
                                             _GAME_COLUMNS),
+                   combos=combos, per_lane=per_lane,
                    built=meta.get("built", ""))
+
+
+def _concat(old: Cube, new: Cube) -> Cube:
+    """Two cubes over different games as one, ``new``'s combo ids translated
+    to ``old``'s by the lanes they stand for."""
+    ids = {lanes: int(combo) for combo, lanes in zip(old.combos.combo,
+                                                     old.combos.lanes)}
+    next_id = max(ids.values(), default=-1) + 1
+    remap: dict[int, int] = {}
+    for combo, lanes in zip(new.combos.combo, new.combos.lanes):
+        if lanes not in ids:
+            ids[lanes] = next_id
+            next_id += 1
+        remap[int(combo)] = ids[lanes]
+    combos = pd.DataFrame([(combo, lanes) for lanes, combo in ids.items()],
+                          columns=list(_COMBO_COLUMNS))
+
+    def joined(a: pd.DataFrame, b: pd.DataFrame, translate: bool) -> pd.DataFrame:
+        if translate and len(b):
+            b = b.assign(combo=b.combo.map(remap))
+        # astype(object) first: concatenating categoricals with different
+        # categories would quietly fall back to object anyway.
+        frames = [f.astype({c: object for c in _CATEGORICAL if c in f.columns})
+                  for f in (a, b) if len(f)]
+        return _typed(pd.concat(frames, ignore_index=True)) if frames else a
+
+    info = pd.concat([f for f in (old.game_info, new.game_info) if len(f)],
+                     ignore_index=True) if len(new.game_info) else old.game_info
+    if len(info):
+        info = info.sort_values("date").reset_index(drop=True)
+    players = (pd.concat([old.players, new.players], ignore_index=True)
+               .drop_duplicates("player_id", keep="last")
+               .sort_values("player_id").reset_index(drop=True))
+    return Cube(counts=joined(old.counts, new.counts, True),
+                toi=joined(old.toi, new.toi, False),
+                players=players,
+                games=tuple(sorted(set(old.games) | set(new.games))),
+                team_counts=joined(old.team_counts, new.team_counts, True),
+                team_toi=joined(old.team_toi, new.team_toi, False),
+                game_info=info, combos=combos, per_lane=old.per_lane,
+                built=new.built)
 
 
 def _read_optional(path: Path, columns: Sequence[str]) -> pd.DataFrame:

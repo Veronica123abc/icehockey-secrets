@@ -50,6 +50,8 @@ from __future__ import annotations
 
 import json
 import os
+import shutil
+import warnings
 from collections.abc import Iterable
 from pathlib import Path
 
@@ -202,18 +204,73 @@ def build(conn, name: str, *, cube_dir: Path | str | None = None,
               + (f", {len(players)} players" if players else ""))
     cube = build_cube(conn, games, players=players, progress=progress)
     directory = Path(cube_dir or CUBE_DIR) / config["cube"]
-    cube.save(directory)
-    if progress:
-        size = sum(f.stat().st_size for f in directory.glob("*")) / 1e6
-        print(f"   {cube}\n   saved to {directory}  ({size:.1f} MB)")
+    _save(cube, directory, progress)
     return directory
 
 
+def update(conn, name: str, *, cube_dir: Path | str | None = None,
+           progress: bool = True) -> Path:
+    """Bring a gameset's cube up to date: count only the games it lacks.
+
+    What to run after a round. The gameset is resolved again, so a query
+    picks up the games played since, and :meth:`~hockey.metrics.cube.Cube.extend`
+    counts just those -- the rest of the season is not touched. A cube that
+    does not exist yet, or was saved one row per lane, is built from scratch.
+
+    A game already in the cube is never counted again, so one that was
+    ingested half-finished stays half-finished: delete the cube to rebuild it.
+    """
+    from hockey.metrics.cube import Cube
+
+    config = load(name)
+    directory = Path(cube_dir or CUBE_DIR) / config["cube"]
+    if not (directory / "meta.json").is_file():
+        return build(conn, name, cube_dir=cube_dir, progress=progress)
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        cube = Cube.load(directory)
+    if cube.per_lane:
+        if progress:
+            print(f"{config['name']}: saved one row per lane -- rebuilding")
+        return build(conn, name, cube_dir=cube_dir, progress=progress)
+    for warning in caught:
+        warnings.warn(warning.message, warning.category, stacklevel=2)
+
+    games, players = resolve(conn, config)
+    new = sorted(set(games) - set(cube.games))
+    if progress:
+        print(f"{config['name']}: {len(cube.games)} games in the cube, "
+              f"{len(new)} new")
+    if not new:
+        return directory
+    _save(cube.extend(conn, new, players=players, progress=progress),
+          directory, progress)
+    return directory
+
+
+def _save(cube, directory: Path, progress: bool) -> None:
+    """Save beside the old cube, then swap: a crash halfway through a save
+    leaves the previous cube whole rather than a mixture of the two."""
+    staging = directory.with_name(directory.name + ".partial")
+    if staging.exists():
+        shutil.rmtree(staging)
+    cube.save(staging)
+    if directory.exists():
+        shutil.rmtree(directory)
+    staging.rename(directory)
+    if progress:
+        size = sum(f.stat().st_size for f in directory.glob("*")) / 1e6
+        print(f"   {cube}\n   saved to {directory}  ({size:.1f} MB)")
+
+
 def main() -> None:
-    """List every gameset, then build the ones that have no cube yet.
+    """List every gameset, then build the cubes that are missing and bring
+    the others up to date with any games played since.
 
     No arguments: adding a gameset is adding a file, and rebuilding one is
     deleting its cube directory. Both are things you can do without flags.
+    Run it after every round; a cube with nothing new costs one schedule
+    query.
     """
     from hockey.metrics.on_ice import open_connection
 
@@ -232,17 +289,16 @@ def main() -> None:
         print(f"  {mark} {entry['name']:24s} -> {entry['cube']:20s} "
               f"{entry['summary']}")
 
-    missing = [e for e in sets if "error" not in e and not e["built"]]
-    if not missing:
-        print("\nEvery gameset has a cube. Delete a cube directory to rebuild "
-              "it.")
+    valid = [e for e in sets if "error" not in e]
+    if not valid:
         return
-    print(f"\nbuilding {len(missing)} cube(s)")
+    print(f"\nupdating {len(valid)} cube(s); delete a cube directory to "
+          f"rebuild it from scratch")
     conn = open_connection()
     try:
-        for entry in missing:
+        for entry in valid:
             print()
-            build(conn, entry["name"])
+            update(conn, entry["name"])
     finally:
         conn.close()
 

@@ -80,6 +80,30 @@ class Skillset:
     inputs: tuple[Input, ...]
     raw: dict                           # the whole file, for source/notes/reference
 
+    def player_rows(self, cube, players: Iterable | None = None,
+                    ) -> tuple[list[SkillsetRow], list[str]]:
+        """This skill set for the players of a built cube, without a database.
+
+        ``cube`` is a :class:`~hockey.metrics.cube.Cube` or the directory it
+        was saved to; ``players`` defaults to everyone it credits, which is
+        what a league cube scored for normalisation wants. The games are the
+        cube's, narrowed to this skill set's ``stage`` -- slice the cube first
+        for a cohort.
+        """
+        from hockey.metrics.cube import Cube
+        from hockey.metrics.on_ice import cube_player_rows
+
+        if not isinstance(cube, Cube):
+            cube = Cube.load(cube)
+        if self.stage is not None:
+            cube = cube.slice(games=_games_in_stage(cube, self.stage))
+        if players is None:
+            players = [int(p) for p in cube.players.player_id]
+        rows, missing = cube_player_rows(
+            cube, players, columns=ColumnSet(tuple(self.columns.values())),
+            context=self.context)
+        return _score(self, rows), missing
+
 
 @dataclass
 class SkillsetRow:
@@ -150,6 +174,26 @@ def load_skillset(conn, players: Iterable, league: int, season: str,
     rows, missing = player_rows(conn, players, league, season,
                                 columns=ColumnSet(tuple(skillset.columns.values())),
                                 context=skillset.context, stage=skillset.stage)
+    return _score(skillset, rows), missing
+
+
+def _games_in_stage(cube, stage: str) -> list[int]:
+    """The cube's games in one stage. The regular season also admits a game
+    with no stage recorded, as :func:`~hockey.db.game_query.query_game_ids`
+    does."""
+    from hockey.db.game_query import REGULAR
+
+    info = cube.game_info
+    if not len(info):
+        raise ValueError(f"this cube records no stages; rebuild it, or set the "
+                         f"skill set's stage to null")
+    stages = info.stage.fillna("").astype(str)
+    keep = (stages == stage) | ((stages == "") if stage == REGULAR else False)
+    return [int(g) for g in info.game_id[keep]]
+
+
+def _score(skillset: Skillset, rows) -> list[SkillsetRow]:
+    """The formula over :class:`~hockey.metrics.on_ice.PlayerRow`\ s."""
     out = []
     for row in rows:
         total = {name: row.totals.get(column.key, 0.0)
@@ -164,7 +208,7 @@ def load_skillset(conn, players: Iterable, league: int, season: str,
                 values[term.name] = n / row.minutes * 20 if row.minutes else 0.0
         score = skillset.intercept + sum(t.weight * values[t.name] for t in skillset.inputs)
         out.append(SkillsetRow(row.player_id, row.name, row.minutes, values, score))
-    return out, missing
+    return out
 
 
 def _print_scores(skillset: Skillset, rows: list[SkillsetRow]) -> None:

@@ -1,0 +1,53 @@
+{
+  "name": "my_skillset",
+  "label": "my_skillset",
+  "side": "credited",
+  "context": {
+    "Goalies": [
+      "Both goalies on ice",
+      "Goalie out",
+      "Opponent goalie out"
+    ],
+    "Manpower": [
+      "ES"
+    ],
+    "Period": [
+      "P1",
+      "P2",
+      "P3"
+    ]
+  },
+  "stage": "regular",
+  "counts": {
+    "SC-OTR": {
+      "lanes": [
+        "Scoring chances · A",
+        "Scoring chances · Off the Rush"
+      ],
+      "side": "for"
+    },
+    "SC-A": {
+      "lanes": [
+        "Scoring chances · A"
+      ],
+      "side": "for"
+    }
+  },
+  "intercept": 0,
+  "inputs": [
+    {
+      "name": "SC-OTR_per20",
+      "weight": 1,
+      "per20": [
+        "SC-OTR"
+      ]
+    },
+    {
+      "name": "SC-A_per20",
+      "weight": 1,
+      "per20": [
+        "SC-A"
+      ]
+    }
+  ]
+}

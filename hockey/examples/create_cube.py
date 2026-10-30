@@ -6,7 +6,8 @@
 Two lines of work: open a connection, build the gameset named below. The
 cube lands in output/cubes/<cube name from the gameset> and shows up in the
 /explore dropdown. Change NAME to build a different gameset, or run
-``python -m hockey.metrics.gameset`` to build every one that has no cube yet.
+``python -m hockey.metrics.gameset`` to build every one that has no cube yet
+and bring the others up to date with games played since.
 """
 from __future__ import annotations
 

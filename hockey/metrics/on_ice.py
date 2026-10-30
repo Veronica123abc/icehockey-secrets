@@ -323,12 +323,27 @@ def _resolve_players(conn, players: Iterable, league: int,
         rows = cursor.fetchall()
     finally:
         cursor.close()
+    people = [(int(player_sl), " ".join(
+                  p for p in ((first or "").strip(), (last or "").strip()) if p))
+              for player_sl, first, last in rows]
+    return _match_players(players, people,
+                          absent="did not play in this league and season",
+                          scope="in this league and season")
 
+
+def _match_players(players: Iterable, people: Iterable[tuple[int, str]], *,
+                   absent: str, scope: str) -> tuple[list[int], list[str]]:
+    """Requests -> (ids among ``people``, requests nothing answered).
+
+    ``people`` is ``(id, full name)`` for everyone who could be meant; the
+    matching rules are :func:`_resolve_players`'s, whichever source supplied
+    the names.
+    """
     known: set[int] = set()
     by_name: dict[str, list[int]] = {}
-    for player_sl, first, last in rows:
+    for player_sl, full in people:
         known.add(int(player_sl))
-        full = " ".join(p for p in ((first or "").strip(), (last or "").strip()) if p)
+        full = " ".join(str(full or "").split())
         if not full:
             continue
         by_name.setdefault(full.casefold(), []).append(int(player_sl))
@@ -345,7 +360,7 @@ def _resolve_players(conn, players: Iterable, league: int,
             if player_id in known:
                 wanted.append(player_id)
             else:
-                missing.append(f"{player_id} — did not play in this league and season")
+                missing.append(f"{player_id} — {absent}")
             continue
         candidates = by_name.get(" ".join(str(value).split()).casefold(), [])
         if len(candidates) == 1:
@@ -354,7 +369,7 @@ def _resolve_players(conn, players: Iterable, league: int,
             missing.append(f"{value} — matches {len(candidates)} players; "
                            f"ask by id ({', '.join(str(c) for c in candidates)})")
         else:
-            missing.append(f"{value} — no player of that name in this league and season")
+            missing.append(f"{value} — no player of that name {scope}")
     return list(dict.fromkeys(wanted)), missing
 
 
@@ -488,6 +503,76 @@ def player_rows(conn, players: Iterable, league: int | None = None,
             missing.append(f"{player_id} — no ice time in the selected situation"
                            + (f" above {min_toi:g} min" if min_toi else "")
                            + " in this season")
+    return out, missing
+
+
+def cube_player_rows(cube, players: Iterable, *, columns: ColumnSet,
+                     context=EVEN_STRENGTH,
+                     min_toi: float = 0.0) -> tuple[list[PlayerRow], list[str]]:
+    """:func:`player_rows` answered from a built cube: no database, no wait.
+
+    ``cube`` is a :class:`~hockey.metrics.cube.Cube` or the directory one was
+    saved to. The games are the cube's -- slice it first for a cohort -- and
+    the players can only be ones it credited, which for a cube built for one
+    team is that team's skaters.
+
+    A column of several lanes combines them as everywhere else -- OR within a
+    filter group, AND across groups -- because the cube keeps which lanes each
+    event matched together. One saved before it did refuses such a column.
+
+    WHAT A CUBE CANNOT ANSWER, refused rather than approximated: it stores the
+    supplier's xG only, so ``weight="xg"`` (the feed's raw value) has nothing
+    to read. Use :func:`player_rows` for that.
+    """
+    from hockey.metrics.cube import Cube
+
+    if not isinstance(cube, Cube):
+        cube = Cube.load(cube)
+    if isinstance(players, (str, bytes, numbers.Number)):
+        raise TypeError(f"players must be a list of ids, names or players, "
+                        f"not a single {type(players).__name__}: {players!r}")
+    unsupported = [c.heading for c in columns if c.weight == "xg"]
+    if unsupported:
+        raise ValueError(f"columns {unsupported} weigh by the feed's raw xg, "
+                         f"which a cube does not keep; use player_rows")
+
+    wanted, missing = _match_players(
+        players, zip(cube.players.player_id, cube.players.name),
+        absent="not credited in this cube", scope="in this cube")
+    if not wanted:
+        return [], missing
+
+    sliced = cube.slice(players=wanted)
+    if context is not None:
+        sliced = sliced.slice_context(context)
+
+    rows: dict[int, PlayerRow] = {}
+    for player_id, sample in sliced.summary().iterrows():
+        rows[int(player_id)] = PlayerRow(
+            player_id=int(player_id), name=sample["name"],
+            position=sample["position"] if isinstance(sample["position"], str) else "",
+            team_id=int(sample["team_id"]), games_played=int(sample["games"]),
+            toi=float(sample["minutes"]) * 60.0,
+            totals=dict.fromkeys((c.key for c in columns), 0.0))
+
+    for column in columns:
+        sides = (FOR, AGAINST) if column.side == BOTH else (column.side,)
+        totals = sliced.player_totals(column.lanes, sides=sides,
+                                      value="xg" if column.weight else "n")
+        for player_id, total in totals.items():
+            row = rows.get(int(player_id))
+            if row is not None:
+                row.totals[column.key] = float(total)
+
+    out = [row for row in rows.values() if row.minutes > min_toi]
+    out.sort(key=lambda row: row.toi, reverse=True)
+
+    reported = {row.player_id for row in out}
+    for player_id in wanted:
+        if player_id not in reported:
+            missing.append(f"{player_id} — no ice time in the selected situation"
+                           + (f" above {min_toi:g} min" if min_toi else "")
+                           + " in this cube")
     return out, missing
 
 
