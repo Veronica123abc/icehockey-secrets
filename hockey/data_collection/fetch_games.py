@@ -34,7 +34,7 @@ if __name__ == "__main__":
     SEASON = "20252026"
 
     LEAGUE_IDS = [13] #[1,13,17,39,213]
-    SEASONS = ["20252026"]
+    SEASONS = ["20262027"]
     catalog = DataCatalog(settings.data_root_dir)
     #download_complete_games(game_ids=[203978], root_dir=catalog._root, verbose=True)
     #exit(0)

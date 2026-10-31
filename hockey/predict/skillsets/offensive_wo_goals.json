@@ -1,0 +1,107 @@
+{
+  "name": "offensive",
+  "label": "offensive",
+  "side": "credited",
+  "context": {
+    "Goalies": [
+      "Both goalies on ice",
+      "Goalie out",
+      "Opponent goalie out"
+    ],
+    "Manpower": [
+      "ES"
+    ],
+    "Period": [
+      "P1",
+      "P2",
+      "P3"
+    ]
+  },
+  "stage": "regular",
+  "counts": {
+    "goals": [
+      "Goals · All"
+    ],
+    "assists_all": [
+      "Assists · All"
+    ],
+    "shots_led_to_goal_on_net_inner_slot": [
+      "Shots · Led to Goal",
+      "Shots · On Net",
+      "Shots · Inner Slot"
+    ],
+    "controlled_entries_with_play_after": [
+      "Controlled entries · With Play After"
+    ],
+    "passes_successful_slot": [
+      "Passes · Successful",
+      "Passes · Slot"
+    ],
+    "scoring_chances_a": [
+      "Scoring chances · A"
+    ],
+    "scoring_chances_b": [
+      "Scoring chances · B"
+    ],
+    "scoring_chances_c": [
+      "Scoring chances · C"
+    ],
+    "lprs_successful_oz_is_contested": [
+      "LPRs · Successful",
+      "LPRs · OZ",
+      "LPRs · Is Contested"
+    ]
+  },
+  "intercept": 0,
+  "inputs": [
+    {
+      "name": "SL_SH_ON",
+      "weight": 1,
+      "per20": [
+        "shots_led_to_goal_on_net_inner_slot"
+      ]
+    },
+    {
+      "name": "CE_PA",
+      "weight": 0.5,
+      "per20": [
+        "controlled_entries_with_play_after"
+      ]
+    },
+    {
+      "name": "PASS_SL",
+      "weight": 1,
+      "per20": [
+        "passes_successful_slot"
+      ]
+    },
+    {
+      "name": "CH_A",
+      "weight": 2,
+      "per20": [
+        "scoring_chances_a"
+      ]
+    },
+    {
+      "name": "CH_B",
+      "weight": 1,
+      "per20": [
+        "scoring_chances_b"
+      ]
+    },
+    {
+      "name": "CH_C",
+      "weight": 1,
+      "per20": [
+        "scoring_chances_c"
+      ]
+    },
+    {
+      "name": "LPR_C+",
+      "weight": 1,
+      "per20": [
+        "lprs_successful_oz_is_contested"
+      ]
+    }
+  ]
+}

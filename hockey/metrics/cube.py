@@ -946,8 +946,9 @@ def main() -> None:
     from hockey.helpers.get_roster import get_roster
     from hockey.reports.shooting_player_woi import COLUMNS as SHOOTING
 
-    LEAGUE, SEASON, TEAM = 13, "20262027", 323
+    LEAGUE, SEASON, TEAM = 13, "20252026", 323
     CUBE_DIR = Path("output/cubes") / f"team{TEAM}_{SEASON}"
+    #cube = Cube.load(CUBE_DIR)
     #: "Failed shot" is not one lane -- a shot fails by missing or by being
     #: blocked. Missed is the one meant here; swap in "Shots · Blocked" to ask
     #: the other version. Nothing rebuilds.
@@ -980,6 +981,7 @@ def main() -> None:
           f"-- against {build_seconds:.1f}s to rebuild")
 
     summary = cube.summary()
+
     print(f"\n{summary.head(8).to_string(float_format='%.1f')}")
     kalle = int(summary.index[0])
     kalle_name = cube.names[kalle]

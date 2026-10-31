@@ -314,7 +314,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--game", type=int, help="ingest this one game and stop")
     parser.add_argument("--league", type=int, default=13)
-    parser.add_argument("--season", default="20242025")
+    parser.add_argument("--season", default="20262027")
     args = parser.parse_args()
 
     if args.game is not None:
