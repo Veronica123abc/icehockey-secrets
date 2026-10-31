@@ -845,6 +845,54 @@ def team_rows(conn, teams: Iterable[int] | None = None, league: int | None = Non
     return out
 
 
+def cube_team_rows(cube, teams: Iterable[int] | None = None, *, columns: ColumnSet,
+                   context=EVEN_STRENGTH, min_toi: float = 0.0) -> list[TeamRow]:
+    """:func:`team_rows` answered from a built cube.
+
+    Every team in the cube's games, or those in ``teams``. A cube built to
+    credit one team's players still counts both teams of every game, so its
+    opponents are here too -- over only the games they played against it.
+    The same refusals as :func:`team_rows` (CREDITED) and
+    :func:`cube_player_rows` (raw xg) apply.
+    """
+    from hockey.metrics.cube import Cube
+
+    if not isinstance(cube, Cube):
+        cube = Cube.load(cube)
+    bad = [c.heading for c in columns if c.side == CREDITED]
+    if bad:
+        raise ValueError(f"CREDITED is a player attribution and has no team "
+                         f"meaning; columns {bad} must use FOR, AGAINST or BOTH")
+    unsupported = [c.heading for c in columns if c.weight == "xg"]
+    if unsupported:
+        raise ValueError(f"columns {unsupported} weigh by the feed's raw xg, "
+                         f"which a cube does not keep; use team_rows")
+
+    sliced = cube if context is None else cube.slice_context(context)
+    wanted = {int(t) for t in teams} if teams is not None else None
+    rows: dict[int, TeamRow] = {}
+    for team_id, sample in sliced.team_summary().iterrows():
+        if wanted is not None and int(team_id) not in wanted:
+            continue
+        rows[int(team_id)] = TeamRow(
+            team_id=int(team_id), name=sample["name"],
+            games_played=int(sample["games"]), toi=float(sample["minutes"]) * 60.0,
+            totals=dict.fromkeys((c.key for c in columns), 0.0))
+
+    for column in columns:
+        sides = (FOR, AGAINST) if column.side == BOTH else (column.side,)
+        totals = sliced.team_totals(column.lanes, sides=sides,
+                                    value="xg" if column.weight else "n")
+        for team_id, total in totals.items():
+            row = rows.get(int(team_id))
+            if row is not None:
+                row.totals[column.key] = float(total)
+
+    out = [row for row in rows.values() if row.minutes > min_toi]
+    out.sort(key=lambda row: row.toi, reverse=True)
+    return out
+
+
 # --- The short way in ------------------------------------------------------
 
 def lane_counts(conn, *, games: Iterable[int], lanes: Iterable[str],

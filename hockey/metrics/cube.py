@@ -755,6 +755,16 @@ class Cube:
                                 & (self.team_counts.side == side)]
         return float(rows[value].sum())
 
+    def team_totals(self, lanes: str | Iterable[str], *,
+                    sides: str | Iterable[str] = FOR,
+                    value: str = "n") -> pd.Series:
+        """team id -> total of a selection of lanes, the team answer to
+        :meth:`player_totals`. Teams with nothing selected are absent."""
+        sides = [sides] if isinstance(sides, str) else list(sides)
+        rows = self.team_counts[self.team_counts.combo.isin(self.combos_for(lanes))
+                                & self.team_counts.side.isin(sides)]
+        return rows.groupby("team_id", observed=True)[value].sum()
+
     # -- growing -----------------------------------------------------------
 
     def extend(self, conn, games: Iterable[int], *,
