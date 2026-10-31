@@ -80,15 +80,16 @@ class Skillset:
     inputs: tuple[Input, ...]
     raw: dict                           # the whole file, for source/notes/reference
 
-    def player_rows(self, cube, players: Iterable | None = None,
-                    ) -> tuple[list[SkillsetRow], list[str]]:
+    def player_rows(self, cube, players: Iterable | None = None, *,
+                    min_toi: float = 0.0) -> tuple[list[SkillsetRow], list[str]]:
         """This skill set for the players of a built cube, without a database.
 
         ``cube`` is a :class:`~hockey.metrics.cube.Cube` or the directory it
         was saved to; ``players`` defaults to everyone it credits, which is
         what a league cube scored for normalisation wants. The games are the
         cube's, narrowed to this skill set's ``stage`` -- slice the cube first
-        for a cohort.
+        for a cohort. ``min_toi`` drops players with that many minutes or fewer
+        in the skill set's context; they come back in the unanswered list.
         """
         from hockey.metrics.cube import Cube
         from hockey.metrics.on_ice import cube_player_rows
@@ -101,7 +102,7 @@ class Skillset:
             players = [int(p) for p in cube.players.player_id]
         rows, missing = cube_player_rows(
             cube, players, columns=ColumnSet(tuple(self.columns.values())),
-            context=self.context)
+            context=self.context, min_toi=min_toi)
         return _score(self, rows), missing
 
 
