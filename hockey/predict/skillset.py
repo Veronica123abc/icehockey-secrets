@@ -163,18 +163,22 @@ def read_skillset(config: str | Path) -> Skillset:
 
 
 def load_skillset(conn, players: Iterable, league: int, season: str,
-                  config: str | Path | Skillset) -> tuple[list[SkillsetRow], list[str]]:
+                  config: str | Path | Skillset, *,
+                  min_toi: float = 0.0) -> tuple[list[SkillsetRow], list[str]]:
     """The skill set in ``config`` for ``players`` in one league season.
 
     Returns ``(rows, unanswered)`` like
     :func:`~hockey.metrics.on_ice.player_rows`, whose ``players`` rules apply:
     ids, names, or anything with a ``player_id``. ``config`` is a path, a
     config name ("skating"), or an already read :class:`Skillset`.
+    ``min_toi`` drops players with that many minutes or fewer in the skill
+    set's context; they come back in the unanswered list.
     """
     skillset = config if isinstance(config, Skillset) else read_skillset(config)
     rows, missing = player_rows(conn, players, league, season,
                                 columns=ColumnSet(tuple(skillset.columns.values())),
-                                context=skillset.context, stage=skillset.stage)
+                                context=skillset.context, stage=skillset.stage,
+                                min_toi=min_toi)
     return _score(skillset, rows), missing
 
 
