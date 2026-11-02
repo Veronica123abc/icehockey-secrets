@@ -2,7 +2,7 @@
 """On-ice metrics: catalog lanes per player or per team, over many games.
 
 RETRIEVAL, SEPARATE FROM PRESENTATION. This module computes numbers and
-returns plain data. It imports no plotting library, opens no file, and knows
+returns plain data. It imports no plotting library, renders no file, and knows
 nothing about pages -- ``hockey/reports/`` turns what comes out of here into a
 PDF, and the game canvas does its own thing with the same catalog. It lives in
 ``hockey/metrics/`` because that is where aggregation ACROSS GAMES belongs;
@@ -29,12 +29,13 @@ long way, adding ice time and per-60 rates, which is what a report wants.
 """
 from __future__ import annotations
 
+import json
 import os
 import numbers
 from bisect import bisect_right
 from collections import defaultdict
 from collections.abc import Iterable, Sequence
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 from datetime import date
 from pathlib import Path
 
@@ -230,6 +231,25 @@ class ColumnSet:
         """The columns whose selection the matched lane keys satisfy."""
         return [column for column, groups in self._tests
                 if all(any(key in matched for key in group) for group in groups)]
+
+    def save(self, file_path: Path | str) -> Path:
+        """Write the columns to ``file_path`` as JSON; returns the path."""
+        path = Path(file_path)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        columns = [asdict(column) for column in self.columns]
+        path.write_text(json.dumps({"columns": columns}, indent=2, ensure_ascii=False) + "\n",
+                        encoding="utf-8")
+        return path
+
+    @classmethod
+    def load(cls, file_path: Path | str) -> "ColumnSet":
+        """A ColumnSet from a file :meth:`save` wrote.
+
+        Every column goes back through :class:`Column`, so a lane that has
+        left the catalog since the file was saved fails here, by name.
+        """
+        data = json.loads(Path(file_path).read_text(encoding="utf-8"))
+        return cls(Column(**spec) for spec in data["columns"])
 
 
 @dataclass
@@ -681,7 +701,6 @@ def team_labels() -> dict[int, str]:
     so a team name costs no query, and it is metadata that neither the events
     nor the shifts carry.
     """
-    import json
     path = Path(__file__).resolve().parents[1] / "manifests" / "teams.json"
     try:
         data = json.loads(path.read_text(encoding="utf-8"))
