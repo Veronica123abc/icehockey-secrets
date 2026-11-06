@@ -40,14 +40,25 @@
       "weight": 1,
       "per20": [
         "SC-OTR"
-      ]
+      ],
+      "mean": 0.49284572874494,
+      "std": 0.2873157174508409
     },
     {
       "name": "SC-A_per20",
       "weight": 1,
       "per20": [
         "SC-A"
-      ]
+      ],
+      "mean": 1.8784006080278157,
+      "std": 0.6744676402325724
     }
-  ]
+  ],
+  "normalization": {
+    "cube": "league13_2627",
+    "games": 84,
+    "players": 279,
+    "min_toi": 50,
+    "computed": "2026-10-31"
+  }
 }

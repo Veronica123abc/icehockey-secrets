@@ -4,14 +4,27 @@ from hockey.db.roster_query import query_rosters
 from hockey.helpers.get_roster import get_roster
 from hockey.metrics.on_ice import open_connection
 from pathlib import Path
+from hockey.metrics.cube import Cube
 
 TEAM = 323
 SEASON = 20262027
 CUBE_DIR = Path(__file__).resolve().parents[2] / "output" / "cubes" / "league13_2627"
+SKILLSET_DIR = Path(__file__).resolve().parents[1] / "config" / "skillsets"
+COLUMNSET_DIR = Path(__file__).resolve().parents[1] / "config" / "columnsets"
+
+
+
+def test_cube():
+    cube = Cube.load(CUBE_DIR)
+    print("apa")
+    #rows = s.team_rows(CUBE_DIR, min_toi=50)
 
 def from_cube():
-    s = skillset.read_skillset("offensive_wo_goals")
-    rows, missing = s.player_rows(CUBE_DIR)
+    cube = Cube.load(CUBE_DIR)
+    s = skillset.read_skillset(SKILLSET_DIR / "offensive_wo_goals")
+    rows, missing = s.player_rows(CUBE_DIR, min_toi=50)
+    #rows = s.team_rows(CUBE_DIR, min_toi=50)
+
     skillset._print_scores(s, rows) #[:10])
 
 
@@ -41,5 +54,6 @@ def league_from_database():
 
 
 if __name__ == "__main__":
+    #test_cube()
     from_cube()
     #from_database()

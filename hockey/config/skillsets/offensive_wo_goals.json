@@ -1,0 +1,128 @@
+{
+  "name": "offensive",
+  "label": "offensive",
+  "side": "credited",
+  "context": {
+    "Goalies": [
+      "Both goalies on ice",
+      "Goalie out",
+      "Opponent goalie out"
+    ],
+    "Manpower": [
+      "ES"
+    ],
+    "Period": [
+      "P1",
+      "P2",
+      "P3"
+    ]
+  },
+  "stage": "regular",
+  "counts": {
+    "goals": [
+      "Goals · All"
+    ],
+    "assists_all": [
+      "Assists · All"
+    ],
+    "shots_led_to_goal_on_net_inner_slot": [
+      "Shots · Led to Goal",
+      "Shots · On Net",
+      "Shots · Inner Slot"
+    ],
+    "controlled_entries_with_play_after": [
+      "Controlled entries · With Play After"
+    ],
+    "passes_successful_slot": [
+      "Passes · Successful",
+      "Passes · Slot"
+    ],
+    "scoring_chances_a": [
+      "Scoring chances · A"
+    ],
+    "scoring_chances_b": [
+      "Scoring chances · B"
+    ],
+    "scoring_chances_c": [
+      "Scoring chances · C"
+    ],
+    "lprs_successful_oz_is_contested": [
+      "LPRs · Successful",
+      "LPRs · OZ",
+      "LPRs · Is Contested"
+    ]
+  },
+  "intercept": 0,
+  "inputs": [
+    {
+      "name": "SL_SH_ON",
+      "weight": 1,
+      "per20": [
+        "shots_led_to_goal_on_net_inner_slot"
+      ],
+      "mean": 0.4007426589151865,
+      "std": 0.38304746331106254
+    },
+    {
+      "name": "CE_PA",
+      "weight": 0.5,
+      "per20": [
+        "controlled_entries_with_play_after"
+      ],
+      "mean": 1.2716271135009745,
+      "std": 0.8816493062570459
+    },
+    {
+      "name": "PASS_SL",
+      "weight": 1,
+      "per20": [
+        "passes_successful_slot"
+      ],
+      "mean": 0.7622671443850128,
+      "std": 0.5315164337589479
+    },
+    {
+      "name": "CH_A",
+      "weight": 2,
+      "per20": [
+        "scoring_chances_a"
+      ],
+      "mean": 0.39743979435826526,
+      "std": 0.36159794787789507
+    },
+    {
+      "name": "CH_B",
+      "weight": 1,
+      "per20": [
+        "scoring_chances_b"
+      ],
+      "mean": 0.3035838247240104,
+      "std": 0.2772123795282892
+    },
+    {
+      "name": "CH_C",
+      "weight": 1,
+      "per20": [
+        "scoring_chances_c"
+      ],
+      "mean": 0.5394034258219523,
+      "std": 0.3800393986190381
+    },
+    {
+      "name": "LPR_C+",
+      "weight": 1,
+      "per20": [
+        "lprs_successful_oz_is_contested"
+      ],
+      "mean": 0.7401235422196382,
+      "std": 0.6120432589823909
+    }
+  ],
+  "normalization": {
+    "cube": "league13_2627",
+    "games": 84,
+    "players": 279,
+    "min_toi": 50,
+    "computed": "2026-10-31"
+  }
+}

@@ -251,6 +251,24 @@ class ColumnSet:
         data = json.loads(Path(file_path).read_text(encoding="utf-8"))
         return cls(Column(**spec) for spec in data["columns"])
 
+    def player_rows(self, cube, *, min_toi: float = 0.0,
+                    context=EVEN_STRENGTH) -> list[PlayerRow]:
+        """These columns for every player a built cube credits, most ice time first.
+
+        ``cube`` is a :class:`~hockey.metrics.cube.Cube` or the directory it
+        was saved to. The games are the cube's -- slice it first for a cohort
+        or a stage. A player with ``min_toi`` minutes or fewer in ``context``
+        is left out. :func:`cube_player_rows` does the work, and its refusals
+        apply.
+        """
+        from hockey.metrics.cube import Cube
+
+        if not isinstance(cube, Cube):
+            cube = Cube.load(cube)
+        rows, _ = cube_player_rows(cube, [int(p) for p in cube.players.player_id],
+                                   columns=self, context=context, min_toi=min_toi)
+        return rows
+
 
 @dataclass
 class PlayerRow:

@@ -1,0 +1,112 @@
+{
+  "columns": [
+    {
+      "heading": "G",
+      "lanes": [
+        "Goals · All"
+      ],
+      "side": "for",
+      "weight": null,
+      "rate": true
+    },
+    {
+      "heading": "xG",
+      "lanes": [
+        "Shots · All"
+      ],
+      "side": "for",
+      "weight": "xg_official",
+      "rate": true
+    },
+    {
+      "heading": "SA",
+      "lanes": [
+        "Shots · All"
+      ],
+      "side": "for",
+      "weight": null,
+      "rate": true
+    },
+    {
+      "heading": "SOG",
+      "lanes": [
+        "Shots · On Net"
+      ],
+      "side": "for",
+      "weight": null,
+      "rate": true
+    },
+    {
+      "heading": "Slot",
+      "lanes": [
+        "Shots · Slot"
+      ],
+      "side": "for",
+      "weight": null,
+      "rate": true
+    },
+    {
+      "heading": "Inner\nSlot",
+      "lanes": [
+        "Shots · Inner Slot"
+      ],
+      "side": "for",
+      "weight": null,
+      "rate": true
+    },
+    {
+      "heading": "G",
+      "lanes": [
+        "Goals · All"
+      ],
+      "side": "against",
+      "weight": null,
+      "rate": true
+    },
+    {
+      "heading": "xG",
+      "lanes": [
+        "Shots · All"
+      ],
+      "side": "against",
+      "weight": "xg_official",
+      "rate": true
+    },
+    {
+      "heading": "SA",
+      "lanes": [
+        "Shots · All"
+      ],
+      "side": "against",
+      "weight": null,
+      "rate": true
+    },
+    {
+      "heading": "SOG",
+      "lanes": [
+        "Shots · On Net"
+      ],
+      "side": "against",
+      "weight": null,
+      "rate": true
+    },
+    {
+      "heading": "Slot",
+      "lanes": [
+        "Shots · Slot"
+      ],
+      "side": "against",
+      "weight": null,
+      "rate": true
+    },
+    {
+      "heading": "Inner\nSlot",
+      "lanes": [
+        "Shots · Inner Slot"
+      ],
+      "side": "against",
+      "weight": null,
+      "rate": true
+    }
+  ]
+}

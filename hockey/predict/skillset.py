@@ -417,6 +417,9 @@ if __name__ == "__main__":
 
     from hockey.helpers.get_roster import get_roster
 
+    CUBE_DIR = Path(__file__).resolve().parents[2] / "output" / "cubes" / "league13_2627"
+    normalize("offensive_wo_goals", CUBE_DIR, min_toi=50)
+    #exit(0)
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     parser.add_argument("config", nargs="?", default="my_skillset", #skating",
                         help="a config name in skillsets/ or a path (default: skating)")

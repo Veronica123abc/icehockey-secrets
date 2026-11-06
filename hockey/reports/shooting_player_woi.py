@@ -66,6 +66,9 @@ from hockey.reports.sheet import render_pdf
 #: checked. G (woi) must equal the goals scored by either team while the player
 #: was on the ice, and SA (woi) the shot attempts -- both countable from the
 #: events directly, and both what the canvas shows for one game.
+
+COLUMNSET_DIR = Path(__file__).resolve().parents[1] / "config" / "columnsets"
+
 COLUMNS = ColumnSet((
     #Column("G (woi)",  "Goals · All", BOTH, rate=False),
     #Column("SA (woi)", "Shots · All", BOTH, rate=False),
@@ -83,6 +86,9 @@ COLUMNS = ColumnSet((
     Column("Inner\nSlot", "Shots · Inner Slot",   AGAINST),
 ))
 
+
+#COLUMNS.save(COLUMNSET_DIR / "shooting_player_woi.json")
+#COLUMNS = ColumnSet.load("shooting_player_woi.json")
 _NOTE = ("xG is the supplier's expected_goals_all_shots summed over shot "
          "attempts, with ungraded slot shots raised to a grade C chance as "
          "the supplier's own published figures do; SOG includes goals; Slot "
@@ -121,7 +127,17 @@ def player_woi_report(players: Iterable, league: int, season: str, *,
                                                    season, stage))
 
 
+def short_version():
+    CUBE_DIR = Path(__file__).resolve().parents[2] / "output" / "cubes" / "league13_2627"
+    SKILLSET_DIR = Path(__file__).resolve().parents[1] / "config" / "skillsets"
+    COLUMNSET_DIR = Path(__file__).resolve().parents[1] / "config" / "columnsets"
+    c = ColumnSet.load(COLUMNSET_DIR / "shooting_player_woi.json")
+    rows = c.player_rows(CUBE_DIR, min_toi=50)
+    print(rows)
+
 if __name__ == "__main__":
+    # short_version()
+    # exit(0)
     LEAGUE = 13
     SEASON = "20262027"
     # Ids and names both work; the last one is a deliberate miss, so the
